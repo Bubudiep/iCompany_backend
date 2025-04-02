@@ -100,8 +100,8 @@ class CompanyStaffHistoryAdmin(admin.ModelAdmin):
 class MiniAppFunctionInline(admin.TabularInline):
     model = MiniAppFunction
     extra = 0
-    readonly_fields = ('code','name','is_active')
-    fields = ('code', 'name', 'description', 'is_active')
+    readonly_fields = ('code','name','is_active', 'public')
+    fields = ('code', 'name', 'public', 'description', 'is_active')
 
 class MiniAppPricingInline(admin.TabularInline):
     model = MiniAppPricing
@@ -118,7 +118,7 @@ class MiniAppAdmin(admin.ModelAdmin):
 
 @admin.register(MiniAppFunction)
 class MiniAppFunctionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'mini_app', 'is_active', 'created_at')
+    list_display = ('name', 'code', 'public', 'mini_app', 'is_active', 'created_at')
     list_filter = ('is_active', 'mini_app')
     search_fields = ('name', 'code', 'mini_app__name')
 
@@ -139,3 +139,38 @@ class MiniAppRegistrationAdmin(admin.ModelAdmin):
     list_display = ('mini_app', 'company', 'registered_at', 'approved')
     list_filter = ('approved', 'mini_app', 'company')
     search_fields = ('mini_app__name', 'company__name')
+
+
+
+
+
+class ChatAdminGroup(admin.ModelAdmin):
+    """Nhóm các model liên quan đến Chat"""
+    class Meta:
+        verbose_name = "APP Chat"
+        verbose_name_plural = "APP Chat"
+
+@admin.register(AppChatRoom)
+class AppChatRoomAdmin(admin.ModelAdmin):
+    list_display = ('name', 'company', 'is_group', 'created_at')
+    search_fields = ('name', 'company__name')
+    filter_horizontal = ('members',)
+    list_filter = ('is_group',)
+
+@admin.register(ChatRoomMembership)
+class ChatRoomMembershipAdmin(admin.ModelAdmin):
+    list_display = ('user', 'room', 'role', 'joined_at')
+
+@admin.register(ChatDate)
+class ChatDateAdmin(admin.ModelAdmin):
+    list_display = ('room', 'date', 'total_messages')
+
+@admin.register(ChatMessage)
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ('room', 'sender', 'created_at')
+    search_fields = ('message', 'sender__name')
+    list_filter = ('created_at',)
+
+@admin.register(AppChatStatus)
+class AppChatStatusAdmin(admin.ModelAdmin):
+    list_display = ('room', 'user', 'last_read_at')

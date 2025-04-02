@@ -22,13 +22,16 @@ io.use(async (socket, next) => {
   if (clientKey === "@OAIIA3UHUIE21vczx@faWOOCS)=123SAF") return next();
   if (clientKey && clientToken) {
     try {
-      const userdata = await axios.get("http://localhost:8000/api/user/", {
+      const userdata = await axios.get("http://localhost:8008/api/user/", {
         headers: {
           ApplicationKey: clientKey,
           Authorization: clientToken,
         },
       });
-      socket.user = { ...userdata, ApplicationKey: clientKey };
+      socket.user = {
+        ...userdata,
+        ApplicationKey: clientKey,
+      };
       return next();
     } catch (e) {
       console.log(e);
@@ -40,12 +43,12 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
   const user = socket.user;
   if (user?.ApplicationKey && user?.data?.profile) {
-    console.log(user?.data?.profile.full_name, socket.id);
     if (!connected_list[user?.ApplicationKey])
       connected_list[user?.ApplicationKey] = [];
     connected_list[user?.ApplicationKey].push({
       id: socket.id,
       user: user?.data?.profile,
+      staff__id: user?.data?.id,
     });
     socket.join(`user_${user?.ApplicationKey}`);
     socket.to(`user_${user?.ApplicationKey}`).emit("message", {
@@ -81,6 +84,7 @@ io.on("connection", (socket) => {
             });
           }
         });
+        data.key;
       }
       if (msg_data?.type == "group") {
         // Gửi cho cá nhân
@@ -88,8 +92,30 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("backend_event", (data) => {
-    if (data?.ApplicationKey) {
-      socket.to(`user_${data?.ApplicationKey}`).emit("message", data.data);
+    if (data?.type === "chat_message") {
+      // Nếu mà gửi tin nhắn message bằng backend
+      // Lấy danh sách người nhận
+      const to = data?.room?.members.filter(
+        (staff) => staff.id !== data.data.sender
+      );
+      // Kiểm tra người dùng có online không
+      if (connected_list[data.key]) {
+        for (let i = 0; i < to.length; i++) {
+          const online = connected_list[data.key].find(
+            (user) => user?.staff__id === to[i].id
+          );
+          if (online) {
+            socket.to(online.id).emit("message", {
+              type: "message",
+              user: user?.data?.profile,
+              data: data?.data,
+            });
+            console.log("Sended to:", online?.user?.username);
+          } else {
+            console.log("Người dùng offline!");
+          }
+        }
+      }
     }
   });
   socket.on("disconnect", () => {

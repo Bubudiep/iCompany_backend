@@ -1,18 +1,4 @@
-import sys
-import os
-from ..models import *
-from ..serializers import *
-from datetime import timedelta
-from django.utils.timezone import now
-from rest_framework import status
-from oauthlib.common import generate_token
-from django.contrib.auth.hashers import check_password
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from oauth2_provider.settings import oauth2_settings
-from oauth2_provider.models import AccessToken, Application, RefreshToken
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+from .a import *
 
 def generate_response_json(result:str, message:str, data:dict={}):
     return {"result": result, "message": message, "data": data}
@@ -119,11 +105,40 @@ class GetUserAPIView(APIView):
                     qs_profile=UserProfile.objects.get(user=user)
                 except:
                     pass
+                chat_not_read=0
+                alert_not_read=0
+                update_not_read=0
+                approve_not_read=0
+                member_updated_not_check=0
+                qs_user_chatroom=AppChatRoom.objects.filter(members=qs_staff)
+                for qs_chatroom in qs_user_chatroom:
+                    qs_last_read=AppChatStatus.objects.filter(room=qs_chatroom,user=qs_staff).first()
+                    if qs_last_read:
+                        qs_not_read=ChatMessage.objects.filter(room=qs_chatroom,created_at__gt=qs_last_read.last_read_at)
+                        chat_not_read+=qs_not_read.count()
+                    else:
+                        qs_not_read=ChatMessage.objects.filter(room=qs_chatroom)
+                        chat_not_read+=qs_not_read.count()
+                        
                 return Response({
                     'id': qs_staff.id,
-                    'staff': CompanyStaffSerializer(qs_staff).data,
+                    'staff': CompanyStaffSerializer(
+                        CompanyStaff.objects.filter(
+                            company__key=key,
+                            isActive=True,
+                            isBan=False
+                        ),many=True
+                    ).data,
                     'company': CompanySerializer(qs_staff.company).data,
-                    'profile': UserProfileSerializer(qs_profile).data if qs_profile else None
+                    'profile': UserProfileSerializer(qs_profile).data if qs_profile else None,
+                    'app_list': [],
+                    'app_config': {
+                        'chat_not_read': chat_not_read,
+                        'alert_not_read': alert_not_read,
+                        'update_not_read': update_not_read,
+                        'approve_not_read': approve_not_read,
+                        'member_updated_not_check': member_updated_not_check
+                    }
                 }, status=status.HTTP_200_OK)
             except CompanyStaff.DoesNotExist:
                 return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)

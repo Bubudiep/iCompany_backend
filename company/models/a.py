@@ -9,6 +9,7 @@ import random
 import string
 from django.utils.timezone import now
 from datetime import datetime, timedelta
+from django.db.models import F
 import socketio
 # Khởi tạo client
 sio = socketio.Client()

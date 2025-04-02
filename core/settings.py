@@ -4,6 +4,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-f96g36n*i_8vzq5675q&i9cgny-wfj_8f4bbs0e=*ksktt@a6n'
 DEBUG = True
 INSTALLED_APPS = [
+    'django_filters',
     'company',
     'rest_framework',
     'oauth2_provider',
