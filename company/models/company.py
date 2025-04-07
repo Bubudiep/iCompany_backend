@@ -203,3 +203,142 @@ class CompanyStaffHistory(models.Model):
         verbose_name_plural = "Company Staff History"
     def __str__(self):
         return f"{self.staff.name}"
+
+
+class CompanyCustomer(models.Model):
+    staffs = models.ManyToManyField(CompanyStaff, related_name="customers", blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    fullname = models.CharField(max_length=200, null=True, blank=True)
+    address = models.CharField(max_length=200, null=True, blank=True)
+    email = models.CharField(max_length=200, null=True, blank=True)
+    hotline = models.CharField(max_length=200, null=True, blank=True)
+    website = models.CharField(max_length=200, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+        unique_together = ('company', 'name')
+        verbose_name = "Company Customers"
+        verbose_name_plural = "Company Customers"
+    def __str__(self):
+        return f"{self.name}"
+    
+class CompanySupplier(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    fullname = models.CharField(max_length=200, null=True, blank=True)
+    address = models.CharField(max_length=200, null=True, blank=True)
+    email = models.CharField(max_length=200, null=True, blank=True)
+    hotline = models.CharField(max_length=200, null=True, blank=True)
+    website = models.CharField(max_length=200, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+        unique_together = ('company', 'name')
+        verbose_name = "Company Suppliers"
+        verbose_name_plural = "Company Suppliers"
+    def __str__(self):
+        return f"{self.name}"
+    
+class CompanyVendor(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    fullname = models.CharField(max_length=200, null=True, blank=True)
+    address = models.CharField(max_length=200, null=True, blank=True)
+    email = models.CharField(max_length=200, null=True, blank=True)
+    hotline = models.CharField(max_length=200, null=True, blank=True)
+    website = models.CharField(max_length=200, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+        unique_together = ('company', 'name')
+        verbose_name = "Company Vendors"
+        verbose_name_plural = "Company Vendors"
+    def __str__(self):
+        return f"{self.name}"
+    
+class CompanyOperator(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    ma_nhanvien= models.CharField(max_length=200, null=True, blank=True)
+    
+    sdt= models.CharField(max_length=15, null=True, blank=True)
+    ho_ten= models.CharField(max_length=200, null=True, blank=True)
+    gioi_tinh= models.CharField(max_length=200, null=True, blank=True)
+    ten_goc= models.CharField(max_length=200, null=True, blank=True)
+    so_cccd= models.CharField(max_length=200, null=True, blank=True)
+    ngaysinh= models.DateField(null=True, blank=True)
+    diachi= models.CharField(max_length=200, null=True, blank=True)
+    quequan= models.CharField(max_length=200, null=True, blank=True)
+    
+    avatar= models.TextField(null=True, blank=True)
+    cccd_front= models.TextField(null=True, blank=True)
+    cccd_back= models.TextField(null=True, blank=True)
+    
+    trangthai= models.CharField(max_length=200, null=True, blank=True)
+    nganhang= models.CharField(max_length=200, null=True, blank=True)
+    so_taikhoan= models.CharField(max_length=200, null=True, blank=True)
+    chu_taikhoan= models.CharField(max_length=200, null=True, blank=True)
+    ghichu_taikhoan= models.CharField(max_length=200, null=True, blank=True)
+    ghichu= models.CharField(max_length=200, null=True, blank=True)
+    
+    nguoituyen = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nguoituyen")
+    nhacungcap = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True)
+    congty_danglam = models.ForeignKey(CompanyCustomer, on_delete=models.SET_NULL, null=True, blank=True)
+    nhachinh = models.ForeignKey(CompanySupplier, on_delete=models.SET_NULL, null=True, blank=True)
+    nguoibaocao = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nguoibaocao")
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+        verbose_name = "Company Operators"
+        verbose_name_plural = "Company Operators"
+        unique_together = ('company', 'ma_nhanvien')
+    def save(self, *args, **kwargs):
+        if not self.ma_nhanvien:
+            self.ma_nhanvien = f"RANDOM_{uuid.uuid4().hex.upper()[:18]}"
+        super(CompanyOperator, self).save(*args, **kwargs)
+    def __str__(self):
+        return f"{self.ma_nhanvien}"
+
+class OperatorUpdateHistory(models.Model):
+    operator = models.ForeignKey(CompanyOperator, on_delete=models.CASCADE, related_name="history")
+    old_data = models.JSONField(null=True, blank=True)
+    new_data = models.JSONField(null=True, blank=True)
+    changed_by = models.ForeignKey(CompanyStaff, null=True, blank=True, on_delete=models.SET_NULL)
+    notes = models.TextField(null=True, blank=True)
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Company Operator History"
+        verbose_name_plural = "Company Operator Histories"
+        ordering = ['-changed_at']
+
+class OperatorWorkHistory(models.Model):
+    operator = models.ForeignKey(CompanyOperator, on_delete=models.CASCADE , related_name="work_histories")
+    customer = models.ForeignKey(CompanyCustomer, on_delete=models.CASCADE, related_name="operator_histories")
+    vendor = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True, related_name="operator_histories")
+    supplier = models.ForeignKey(CompanySupplier, on_delete=models.SET_NULL, null=True, blank=True, related_name="operator_histories")
+    nguoituyen = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyHIS_nguoituyen")
+    so_cccd= models.CharField(max_length=200, null=True, blank=True)
+    anh_cccd_front= models.TextField(null=True, blank=True)
+    anh_cccd_back= models.TextField(null=True, blank=True)
+    ma_nhanvien= models.CharField(max_length=200, null=True, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True)  # Thời gian bắt đầu làm việc
+    end_date = models.DateTimeField(null=True, blank=True)    # Thời gian kết thúc làm việc
+    notes = models.TextField(null=True, blank=True)           # Ghi chú thêm nếu cần
+    reason = models.TextField(null=True, blank=True)           # Ghi chú thêm nếu cần
+    noihopdong = models.ForeignKey('self',on_delete=models.SET_NULL,null=True,blank=True,related_name="next_histories")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-id']  # Sắp xếp theo thời gian bắt đầu mới nhất
+        verbose_name = "Operator History"
+        verbose_name_plural = "Operator Histories"
+
+    def __str__(self):
+        return f"{self.operator} -> {self.customer} ({self.start_date} - {self.end_date})"

@@ -122,15 +122,12 @@ class GetUserAPIView(APIView):
                         
                 return Response({
                     'id': qs_staff.id,
+                    'info': CompanyStaffSerializer(qs_staff).data,
                     'staff': CompanyStaffSerializer(
-                        CompanyStaff.objects.filter(
-                            company__key=key,
-                            isActive=True,
-                            isBan=False
+                        CompanyStaff.objects.filter(company__key=key,isActive=True,isBan=False
                         ),many=True
                     ).data,
                     'company': CompanySerializer(qs_staff.company).data,
-                    'profile': UserProfileSerializer(qs_profile).data if qs_profile else None,
                     'app_list': [],
                     'app_config': {
                         'chat_not_read': chat_not_read,

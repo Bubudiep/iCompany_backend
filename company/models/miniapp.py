@@ -86,6 +86,7 @@ class MiniAppConfigs(models.Model):
 ## Kiểm tra xem người dùng đã đọc lần cuối vào lúc nào, query ra số lượng tin nhắn chưa đọc
 class AppChatRoom(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    avatar = models.TextField(blank=True, null=True)
     name = models.CharField(max_length=255, null=True, blank=True)  # Chỉ dùng cho nhóm
     is_group = models.BooleanField(default=False)  # Xác định nhóm hay chat cá nhân
     members = models.ManyToManyField(CompanyStaff)  # Thành viên trong phòng
