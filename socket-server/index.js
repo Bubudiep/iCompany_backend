@@ -22,12 +22,15 @@ io.use(async (socket, next) => {
   if (clientKey === "@OAIIA3UHUIE21vczx@faWOOCS)=123SAF") return next();
   if (clientKey && clientToken) {
     try {
-      const userdata = await axios.get("http://localhost:8008/api/user/", {
-        headers: {
-          ApplicationKey: clientKey,
-          Authorization: clientToken,
-        },
-      });
+      const userdata = await axios.get(
+        "http://localhost:8008/api/user_socket/",
+        {
+          headers: {
+            ApplicationKey: clientKey,
+            Authorization: clientToken,
+          },
+        }
+      );
       socket.user = {
         ...userdata,
         ApplicationKey: clientKey,
@@ -42,12 +45,12 @@ io.use(async (socket, next) => {
 });
 io.on("connection", (socket) => {
   const user = socket.user;
-  if (user?.ApplicationKey && user?.data?.profile) {
+  if (user?.ApplicationKey && user?.data?.info) {
     if (!connected_list[user?.ApplicationKey])
       connected_list[user?.ApplicationKey] = [];
     connected_list[user?.ApplicationKey].push({
       id: socket.id,
-      user: user?.data?.profile,
+      user: user?.data.info,
       staff__id: user?.data?.id,
     });
     socket.join(`user_${user?.ApplicationKey}`);
@@ -56,20 +59,14 @@ io.on("connection", (socket) => {
       action: "connect",
       data: {
         id: socket.id,
-        user: user?.data?.profile,
+        user: user?.data.info,
       },
     });
     io.emit("online_users", connected_list[user?.ApplicationKey]);
   }
   socket.on("message", (msg_data) => {
     if (user?.ApplicationKey) {
-      // socket.to(`user_${user?.ApplicationKey}`).emit("message", {
-      //   type: "message",
-      //   user: user?.data?.profile,
-      //   data: msg_data,
-      // });
       if (msg_data?.type == "user") {
-        // Gửi cho cá nhân với id là staff id
         const online = connected_list[user?.ApplicationKey].filter(
           (user) => user?.user?.id === msg_data?.to
         );
@@ -110,7 +107,8 @@ io.on("connection", (socket) => {
               user: user?.data?.profile,
               data: data?.data,
             });
-            console.log("Sended to:", online?.user?.username);
+            console.log("List user:", connected_list[data.key]);
+            console.log("Sended to:", online?.user?.profile?.username);
           } else {
             console.log("Người dùng offline!");
           }
@@ -119,16 +117,16 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("disconnect", () => {
-    if (user?.ApplicationKey && user?.data?.profile) {
+    if (user?.ApplicationKey && user?.data?.info) {
       connected_list[user?.ApplicationKey] = connected_list[
         user?.ApplicationKey
-      ].filter((user) => user?.id !== socket.id);
+      ].filter((user) => user.id !== socket.id);
       socket.to(`user_${user?.ApplicationKey}`).emit("message", {
         type: "userEvent",
         action: "dissconnect",
         data: {
           id: socket.id,
-          user: user?.data?.profile,
+          user: user?.data?.info,
         },
       });
     }

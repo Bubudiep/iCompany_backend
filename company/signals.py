@@ -5,7 +5,6 @@ from .serializers import *
 
 @receiver(post_save, sender=ChatMessage)
 def handle_transaction_save(sender, instance, created, **kwargs):
-    print("Create one message")
     if created:
         # Cập nhật thời gian cuối có tin nhắn cho phòng chat
         instance.room.last_have_message_at = now()

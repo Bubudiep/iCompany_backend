@@ -144,3 +144,29 @@ class GetUserAPIView(APIView):
         else:
             return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
         
+class GetUserSocketAPIView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def get(self, request):
+        key = request.headers.get('ApplicationKey')
+        if request.user.is_authenticated:
+            user=request.user
+            try:
+                qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                qs_profile=None
+                try:
+                    qs_profile=UserProfile.objects.get(user=user)
+                except:
+                    pass
+                return Response({
+                    'id': qs_staff.id,
+                    'info': CompanyStaffSerializer(qs_staff).data,
+                    'company': CompanySerializer(qs_staff.company).data
+                }, status=status.HTTP_200_OK)
+            except CompanyStaff.DoesNotExist:
+                return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                return Response({'detail': f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+        

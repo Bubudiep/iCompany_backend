@@ -9,6 +9,7 @@ router.register(r'chatbox', AppChatRoomViewSet, basename='chatbox')
 urlpatterns = [
     path('login/', LoginOAuth2APIView.as_view(), name='login'),
     path('user/', GetUserAPIView.as_view(), name='user'),
+    path('user_socket/', GetUserSocketAPIView.as_view(), name='user_socket'),
     path('banks/', json.banks, name='banks'),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('', include(router.urls)),
