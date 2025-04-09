@@ -128,3 +128,4 @@ def create_default_miniapps(sender, **kwargs):
                     "description": func_data.get("description", "")
                 }
             )
+            

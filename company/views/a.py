@@ -1,5 +1,6 @@
 import sys
 import os
+from django.conf import settings
 from ..models import *
 from ..serializers import *
 from ..filters import *
