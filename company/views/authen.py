@@ -1,41 +1,14 @@
 from .a import *
 
-def generate_response_json(result:str, message:str, data:dict={}):
-    return {"result": result, "message": message, "data": data}
-def record_user_action(function_name,
-                       action_name, staff, old_data=None, 
-                       new_data=None, title=None, 
-                       message=None, is_hidden=False, 
-                       is_sended=False, is_received=False, is_readed=False,
-                       ip_action=None):
-    function = CompanyStaffHistoryFunction.objects.get_or_create(name=function_name)[0]
-    action = CompanyStaffHistoryAction.objects.get_or_create(name=action_name)[0]
-    history = CompanyStaffHistory.objects.create(
-        ip_action=ip_action,
-        staff=staff,
-        function=function,
-        action=action,
-        old_data=old_data,
-        new_data=new_data,
-        title=title,
-        message=message,
-        isHidden=is_hidden,
-        isSended=is_sended,
-        isReceived=is_received,
-        isReaded=is_readed,
-    )
-    return {
-        "message": "History created successfully.",
-        "data": history.id
-    }
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-  
+class PermissionAPIView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def get(self, request):
+        query = request.query_params.get('p', '').strip()
+        if request.user.is_authenticated and query:
+            user=request.user
+            return check_permission(user,query)
+        
 class LoginOAuth2APIView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -102,7 +75,7 @@ class GetUserAPIView(APIView):
                 qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
                 qs_profile=None
                 try:
-                    qs_profile=UserProfile.objects.get(user=user)
+                    qs_profile=CompanyStaffProfile.objects.get(staff=qs_staff)
                 except:
                     pass
                 chat_not_read=0
@@ -144,6 +117,58 @@ class GetUserAPIView(APIView):
         else:
             return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
         
+    def post(self, request):
+        key = request.headers.get('ApplicationKey')
+        try:
+            username = request.data.get('username')
+            password = request.data.get('password')
+            cardID = request.data.get('cardID',None)
+            department = request.data.get('department')
+            possition = request.data.get('possition')
+            isAdmin = request.data.get('isAdmin')
+            user=request.user
+            qs_user=CompanyUser.objects.filter(username=username)
+            qs_user_company=CompanyStaff.objects.get(user__user=user,company__key=key)
+            last_id = CompanyStaff.objects.filter(company__key=key).count()
+            company_code=qs_user_company.company.companyCode
+            if not cardID:
+                if not company_code:
+                    company_code="MNV"
+                count = f"{last_id:06d}"
+                cardID=f"{company_code}-{count}"
+            if qs_user_company.isAdmin:
+                if not qs_user:
+                    with transaction.atomic():
+                        new_user=User.objects.create(username=f"{key}_{username}",password=uuid.uuid4().hex.upper())
+                        new_company_user=CompanyUser.objects.create(user=new_user,username=username,
+                                                                    password=password,
+                                                                    company=qs_user_company.company)
+                        qs_department=None
+                        qs_possition=None
+                        if department:
+                            qs_department=CompanyDepartment.objects.get(id=department,company=qs_user_company.company)
+                        if possition:
+                            qs_possition=CompanyDepartment.objects.get(id=possition,company=qs_user_company.company)
+                        staff=CompanyStaff.objects.create(company=qs_user_company.company,
+                                                        cardID=cardID,
+                                                        department=qs_department,
+                                                        possition=qs_possition,
+                                                        user=new_company_user,
+                                                        isActive=True,
+                                                        created_by=qs_user_company,
+                                                        isAdmin=isAdmin)
+                        return Response(data=CompanyStaffDetailsSerializer(staff).data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(data={"detail":"Tên tài khoản này đã được sử dụng!"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"detail":"Bạn không có quyền tạo tài khoản mới!"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+            return Response(data={"detail":"Bạn không có quyền tạo tài khoản mới!","error":res_data}, status=status.HTTP_400_BAD_REQUEST)
+        
 class GetUserSocketAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
     permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
@@ -155,7 +180,7 @@ class GetUserSocketAPIView(APIView):
                 qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
                 qs_profile=None
                 try:
-                    qs_profile=UserProfile.objects.get(user=user)
+                    qs_profile=CompanyStaffProfile.objects.get(staff=qs_staff)
                 except:
                     pass
                 return Response({

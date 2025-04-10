@@ -7,6 +7,7 @@ router = routers.DefaultRouter()
 router.register(r'staff', CompanyStaffViewSet, basename='staff')
 router.register(r'chatbox', AppChatRoomViewSet, basename='chatbox')
 urlpatterns = [
+    path('search/', SearchAPIView.as_view(), name='search'),
     path('login/', LoginOAuth2APIView.as_view(), name='login'),
     path('user/', GetUserAPIView.as_view(), name='user'),
     path('user_socket/', GetUserSocketAPIView.as_view(), name='user_socket'),

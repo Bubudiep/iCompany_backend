@@ -32,3 +32,72 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50  # Số lượng đối tượng trên mỗi trang
     page_size_query_param = 'page_size'
     max_page_size = 200  # Số lượng đối tượng tối đa trên mỗi trang
+
+def check_permission(user_a, permission_name, permission_action):
+    """
+    Kiểm tra xem user_a có quyền cụ thể không.
+    
+    Args:
+        user_a (User): Người dùng cần kiểm tra quyền.
+        permission_name (str): Tên quyền cần kiểm tra.
+    
+    Returns:
+        bool: True nếu có quyền, False nếu không.
+    """
+    try:
+        # Lấy thông tin nhân viên từ tài khoản người dùng
+        staff = CompanyStaff.objects.get(user__user=user_a)
+        # Lấy tất cả các quyền của công ty liên quan đến nhân viên (bao gồm trực tiếp, bộ phận, chức vụ)
+        applicable_permissions = CompanyPermission.objects.filter(
+            Q(applicable_staff=staff) |
+            Q(applicable_departments=staff.department) |
+            Q(applicable_positions=staff.possition),
+            is_active=True,
+            permission__name=permission_name,
+            permission_types__name=permission_action,
+            company=staff.company
+        ).exclude(excluded_staff=staff)  # Loại trừ nếu nhân viên nằm trong danh sách bị loại trừ
+        # Nếu có ít nhất một quyền phù hợp
+        if applicable_permissions.exists():
+            return True
+        return False
+    except CompanyStaff.DoesNotExist:
+        # Nhân viên không tồn tại
+        return False
+    
+def generate_response_json(result:str, message:str, data:dict={}):
+    return {"result": result, "message": message, "data": data}
+def record_user_action(function_name,
+                       action_name, staff, old_data=None, 
+                       new_data=None, title=None, 
+                       message=None, is_hidden=False, 
+                       is_sended=False, is_received=False, is_readed=False,
+                       ip_action=None):
+    function = CompanyStaffHistoryFunction.objects.get_or_create(name=function_name)[0]
+    action = CompanyStaffHistoryAction.objects.get_or_create(name=action_name)[0]
+    history = CompanyStaffHistory.objects.create(
+        ip_action=ip_action,
+        staff=staff,
+        function=function,
+        action=action,
+        old_data=old_data,
+        new_data=new_data,
+        title=title,
+        message=message,
+        isHidden=is_hidden,
+        isSended=is_sended,
+        isReceived=is_received,
+        isReaded=is_readed,
+    )
+    return {
+        "message": "History created successfully.",
+        "data": history.id
+    }
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+  

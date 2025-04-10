@@ -1,5 +1,4 @@
 from .a import *
-import google.generativeai as genai
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
@@ -12,9 +11,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save()  # Bạn có thể gắn thêm logic ở đây nếu muốn log cập nhật
 
-
-genai.configure(api_key=settings.GOOGLE_API_KEY)
-class chatGemini(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def post(self, request, format=None, *args, **kwargs):
         user=request.user

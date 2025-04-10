@@ -73,6 +73,10 @@ class CompanyStaffAdmin(admin.ModelAdmin):
     list_filter = ('isActive', 'isAdmin', 'isSuperAdmin', 'isBan')
     readonly_fields = ('created_at', 'updated_at')
 
+@admin.register(CompanyStaffProfile)
+class CompanyStaffProfileAdmin(admin.ModelAdmin):
+    list_display = ['staff', 'full_name', 'phone', 'gender']
+    search_fields = ['full_name', 'nick_name', 'phone']
 
 @admin.register(CompanyStaffHistoryFunction)
 class StaffHistoryFunctionAdmin(admin.ModelAdmin):
@@ -139,11 +143,7 @@ class MiniAppRegistrationAdmin(admin.ModelAdmin):
     list_display = ('mini_app', 'company', 'registered_at', 'approved')
     list_filter = ('approved', 'mini_app', 'company')
     search_fields = ('mini_app__name', 'company__name')
-
-
-
-
-
+    
 class ChatAdminGroup(admin.ModelAdmin):
     """Nhóm các model liên quan đến Chat"""
     class Meta:
