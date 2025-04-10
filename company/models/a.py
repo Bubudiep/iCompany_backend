@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, IntegrityError
 from django.utils import timezone
 from django.contrib.auth.models import User
 from datetime import time
@@ -11,6 +11,7 @@ from django.utils.timezone import now
 from datetime import datetime, timedelta
 from django.db.models import F
 import socketio
+from django.core.exceptions import ObjectDoesNotExist
 # Khởi tạo client
 sio = socketio.Client()
 # Sự kiện khi kết nối thành công

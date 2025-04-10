@@ -19,9 +19,18 @@ class CompanyPossitionSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class CompanyUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
     class Meta:
         model = CompanyUser
-        fields = '__all__'
+        fields = ['username', 'password']
+    def update(self, instance, validated_data):
+        if 'password' in validated_data:
+            instance.password = make_password(validated_data.pop('password'))
+        return super().update(instance, validated_data)
+    def create(self, validated_data):
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
         
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
@@ -34,6 +43,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at']
  
+class CompanyStaffProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    class Meta:
+        model = CompanyStaffProfile
+        fields = [
+            'id', 'username', 'email', 'full_name', 'phone', 'gender',
+            'avatar', 'avatar_base64', 'date_of_birth', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+        
 class CompanyStaffSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     profile = serializers.SerializerMethodField(read_only=True)
@@ -41,8 +61,8 @@ class CompanyStaffSerializer(serializers.ModelSerializer):
     possition_name = serializers.CharField(source='possition.name',allow_null=True, read_only=True)
     def get_profile(self,staff):
         try:
-            qs_profile=UserProfile.objects.get(user=staff.user.user)
-            return UserProfileSerializer(qs_profile).data
+            qs_profile=CompanyStaffProfile.objects.get(staff=staff)
+            return CompanyStaffProfileSerializer(qs_profile).data
         except Exception as e:
             return {}
     class Meta:
@@ -113,3 +133,265 @@ class AppChatRoomDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppChatRoom
         fields = '__all__'
+        
+class OperatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = ['ho_ten','trangthai']
+class CompanyOperatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = '__all__'
+     
+class CompanyStaffProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyStaffProfile
+        fields = '__all__'
+        
+class CompanyStaffDetailsSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField(read_only=True)
+    username = serializers.CharField(source='user.username',read_only=True)
+    department_name = serializers.SerializerMethodField(read_only=True)
+    possition_name = serializers.SerializerMethodField(read_only=True)
+    def get_department_name(self, obj):
+        return obj.department.name if obj.department else None
+    def get_possition_name(self, obj):
+        return obj.possition.name if obj.possition else None
+    def get_profile(self, qs):
+        try:
+            profile=CompanyStaffProfile.objects.get(staff=qs)
+            return CompanyStaffProfileSerializer(profile).data
+        except CompanyStaffProfile.DoesNotExist:
+            return None
+            
+    class Meta:
+        model = CompanyStaff
+        fields = [
+            'id','cardID','username',
+            'company','user','department',
+            'possition','isSuperAdmin','isActive','isAdmin',
+            'isOnline','isValidate','socket_id','profile',
+            'created_at','department_name','possition_name'
+        ]
+class CompanyStaffProfileLTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyStaffProfile
+        fields = ['full_name','nick_name','avatar']
+
+class CompanyStaffSmallSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField(read_only=True)
+    def get_profile(self, qs):
+        try:
+            profile=CompanyStaffProfile.objects.get(staff=qs)
+            return CompanyStaffProfileLTESerializer(profile).data
+        except CompanyStaffProfile.DoesNotExist:
+            return None
+    class Meta:
+        model = CompanyStaff
+        fields = [
+            'id','name','department',
+            'possition','isSuperAdmin',
+            'isActive','isAdmin',
+            'isOnline','isValidate',
+            'socket_id','profile',
+            'created_at'
+        ]
+class AdvanceTypeSerializer(serializers.ModelSerializer):     
+    class Meta:
+        model = AdvanceType
+        fields = '__all__'
+class AdvanceReasonTypeSerializer(serializers.ModelSerializer):     
+    class Meta:
+        model = AdvanceReasonType
+        fields = '__all__'
+        
+class AdvanceRequestHistorySerializer(serializers.ModelSerializer):
+    user = CompanyStaffDetailsSerializer(allow_null=True)  
+    class Meta:
+        model = AdvanceRequestHistory
+        fields = '__all__'
+        
+class AdvanceRequestSerializer(serializers.ModelSerializer):
+    reason = AdvanceReasonTypeSerializer(allow_null=True)
+    requesttype = AdvanceTypeSerializer()
+    requester = CompanyStaffSmallSerializer(allow_null=True)
+    operator = OperatorSerializer(allow_null=True)
+    history = serializers.SerializerMethodField(read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    payment_status_display = serializers.CharField(source='get_payment_status_display', read_only=True)
+    retrieve_status_display = serializers.CharField(source='get_retrieve_status_display', read_only=True)
+    hinhthucThanhtoan_display = serializers.CharField(source='get_hinhthucThanhtoan_display', read_only=True)
+    nguoiThuhuong_display = serializers.CharField(source='get_nguoiThuhuong_display', read_only=True)
+    def get_history(self, qs):
+        qs_his=AdvanceRequestHistory.objects.filter(request=qs)
+        return AdvanceRequestHistorySerializer(qs_his,many=True).data
+    class Meta:
+        model = AdvanceRequest
+        fields = '__all__'
+           
+class OP_HISTSerializer(serializers.ModelSerializer):
+    customer = serializers.SerializerMethodField(read_only=True)
+    supplier = serializers.SerializerMethodField(read_only=True)
+    vendor = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = OperatorWorkHistory
+        fields = '__all__'
+    def get_vendor(self, qs):
+        if qs.vendor:
+            return {
+                "name":qs.vendor.name,
+                "fullname": qs.vendor.fullname,
+            }
+    def get_customer(self, qs):
+        if qs.customer:
+            return {
+                "name":qs.customer.name,
+                "fullname": qs.customer.fullname,
+            }
+    def get_supplier(self, qs):
+        if qs.supplier:
+            return {
+                "name":qs.supplier.name,
+                "fullname": qs.supplier.fullname,
+            }
+class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
+    company = serializers.PrimaryKeyRelatedField(read_only=True)
+    work = serializers.SerializerMethodField(read_only=True)
+    nguoituyen = serializers.SerializerMethodField(read_only=True)
+    nguoibaocao = serializers.SerializerMethodField(read_only=True)
+    congty_danglam = serializers.SerializerMethodField(read_only=True)
+    nhachinh = serializers.SerializerMethodField(read_only=True)
+    nhacungcap = serializers.SerializerMethodField(read_only=True)
+    thamnien = serializers.SerializerMethodField(read_only=True)
+    baoung = serializers.SerializerMethodField(read_only=True)
+    def get_baoung(self, qs):
+        try:
+            qs_baoung=AdvanceRequest.objects.filter(operator=qs)
+            return AdvanceRequestSerializer(qs_baoung,many=True).data
+        except Exception as e:
+            return None
+    def get_thamnien(self, qs):
+        return None
+    def get_congty_danglam(self, qs):
+        if qs.congty_danglam:
+            return {
+                "name":qs.congty_danglam.name,
+                "fullname":qs.congty_danglam.fullname,
+            }
+    def get_nhacungcap(self, qs):
+        if qs.nhacungcap:
+            return {
+                "name":qs.nhacungcap.name,
+                "fullname":qs.nhacungcap.fullname,
+            }
+    def get_nhachinh(self, qs):
+        if qs.nhachinh:
+            return {
+                "name":qs.nhachinh.name,
+                "fullname":qs.nhachinh.fullname,
+            }
+    def get_nguoibaocao(self, qs):
+        try:
+            if qs.nguoibaocao:
+                qs_profile=CompanyStaffProfile.objects.filter(staff=qs.nguoibaocao)
+                return {
+                    "id":qs.nguoibaocao.id,
+                    "name":qs.nguoibaocao.name,
+                    "full_name":qs_profile.first().full_name if len(qs_profile)>0 else None
+                }
+        except Exception as e:
+            return None
+    def get_nguoituyen(self, qs):
+        try:
+            if qs.nguoituyen:
+                qs_profile=CompanyStaffProfile.objects.filter(staff=qs.nguoituyen)
+                return {
+                    "id":qs.nguoituyen.id,
+                    "name":qs.nguoituyen.name,
+                    "full_name":qs_profile.first().full_name if len(qs_profile)>0 else None
+                }
+        except Exception as e:
+            return None
+    def get_work(self, qs):
+        qs_work=OperatorWorkHistory.objects.filter(operator=qs)
+        return OP_HISTSerializer(qs_work,many=True).data
+    class Meta:
+        model = OperatorWorkHistory
+        fields = '__all__'
+          
+class CompanyOperatorDetailsSerializer(serializers.ModelSerializer):
+    company = serializers.PrimaryKeyRelatedField(read_only=True)
+    work = serializers.SerializerMethodField(read_only=True)
+    nguoituyen = serializers.SerializerMethodField(read_only=True)
+    nguoibaocao = serializers.SerializerMethodField(read_only=True)
+    congty_danglam = serializers.SerializerMethodField(read_only=True)
+    nhachinh = serializers.SerializerMethodField(read_only=True)
+    nhacungcap = serializers.SerializerMethodField(read_only=True)
+    thamnien = serializers.SerializerMethodField(read_only=True)
+    def get_thamnien(self, obj):
+        def calculate_seniority(record):
+            if not record.start_date:
+                return 0
+            start_date = record.start_date.date()
+            end_date = (record.end_date or datetime.now()).date()
+            delta_days = (end_date - start_date).days + 1
+            if record.noihopdong:
+                delta_days += calculate_seniority(record.noihopdong)
+            return delta_days
+        qs_history=OperatorWorkHistory.objects.filter(operator=obj).first()
+        if qs_history:
+            total_days = calculate_seniority(qs_history)
+            return total_days
+        else:
+            return None
+    
+    def get_congty_danglam(self, qs):
+        if qs.congty_danglam:
+            return {
+                "name":qs.congty_danglam.name,
+                "fullname":qs.congty_danglam.fullname,
+            }
+    def get_nhacungcap(self, qs):
+        if qs.nhacungcap:
+            return {
+                "name":qs.nhacungcap.name,
+                "fullname":qs.nhacungcap.fullname,
+            }
+    def get_nhachinh(self, qs):
+        if qs.nhachinh:
+            return {
+                "name":qs.nhachinh.name,
+                "fullname":qs.nhachinh.fullname,
+            }
+    def get_nguoibaocao(self, qs):
+        try:
+            if qs.nguoibaocao:
+                qs_profile=CompanyStaffProfile.objects.filter(staff=qs.nguoibaocao)
+                return {
+                    "id":qs.nguoibaocao.id,
+                    "name":qs.nguoibaocao.name,
+                    "full_name":qs_profile.first().full_name if len(qs_profile)>0 else None
+                }
+        except Exception as e:
+            return None
+    def get_nguoituyen(self, qs):
+        try:
+            if qs.nguoituyen:
+                qs_profile=CompanyStaffProfile.objects.filter(staff=qs.nguoituyen)
+                return {
+                    "id":qs.nguoituyen.id,
+                    "name":qs.nguoituyen.name,
+                    "full_name":qs_profile.first().full_name if len(qs_profile)>0 else None
+                }
+        except Exception as e:
+            return None
+    def get_work(self, qs):
+        qs_work=OperatorWorkHistory.objects.filter(operator=qs)
+        if len(qs_work)>0:
+            return [OP_HISTSerializer(qs_work.first()).data]
+        else:
+            return []
+    class Meta:
+        model = CompanyOperator
+        fields = '__all__'
+ 

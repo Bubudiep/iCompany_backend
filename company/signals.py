@@ -28,10 +28,30 @@ def handle_transaction_save(sender, instance, created, **kwargs):
     if created:
         company = instance
         print(f"Đã tạo công ty: {company.name}")
-        # Đăng ký app free
+        # Tạo tài khoản admin
+        user=User.objects.create(username=f"{company.key}_admin",password=uuid.uuid4().hex.upper())
+        staff=CompanyUser.objects.create(user=user,company=company,username="admin",password="1234")
+        cstaff=CompanyStaff.objects.create(company=company,user=staff,isActive=True,
+                                           isSuperAdmin=True,isAdmin=True)
+        profile=CompanyStaffProfile.objects.create(staff=cstaff,full_name="Admin",nick_name="Admin")
     else:
-        print(f"User {company.name} đã được cập nhật.")
+        print(f"Công ty {instance.name} đã được cập nhật.")
 
+@receiver(post_save, sender=CompanyStaff)
+def handle_transaction_save(sender, instance, created, **kwargs):
+    staff = instance
+    if created:
+        # Tạo profile
+        profile=CompanyStaffProfile.objects.create(staff=staff,full_name=staff.cardID,nick_name=staff.cardID)
+        sio.emit('backend_event', {
+            'type': 'user_created',
+            'data':  CompanyStaffDetailsSerializer(instance).data,
+            'key': instance.company.key
+        })
+        print(f"Đã tạo nhân viên: {staff.cardID}")
+    else:
+        print(f"{staff.cardID} đã được cập nhật.")
+        
 # Khởi tạo ban đầu
 @receiver(post_migrate)
 def create_default_miniapps(sender, **kwargs):

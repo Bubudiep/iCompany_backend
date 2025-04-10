@@ -53,6 +53,8 @@ class CompanyStaffViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
+        if check_permission(user,'CompanyStaff',"create"):
+            ...
         return Response(
             {"detail": "Bạn không có quyền thực hiện thao tác này."},
             status=status.HTTP_403_FORBIDDEN

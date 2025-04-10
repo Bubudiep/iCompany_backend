@@ -134,7 +134,7 @@ class CompanyUser(models.Model):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
     def __str__(self):
-        return f"{self.username} ({self.company.name})"
+        return f"{self.username} ({self.company.key})"
     
 class CompanyStaff(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
@@ -149,6 +149,7 @@ class CompanyStaff(models.Model):
     isOnline = models.BooleanField(default=False, null=True, blank=True) # online trên app
     isValidate = models.BooleanField(default=False, null=True, blank=True) # được phê duyệt
     socket_id = models.CharField(max_length=200, null=True, blank=True)
+    created_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
@@ -157,7 +158,23 @@ class CompanyStaff(models.Model):
         verbose_name = "Company Staff"
         verbose_name_plural = "Company Staff"
     def __str__(self):
-        return f"{self.cardID}_{self.user.username}_{self.possition}_{self.company}"
+        return f"{self.cardID}_{self.user.username}_{self.company}"
+    
+class CompanyStaffProfile(models.Model):
+    staff = models.OneToOneField(CompanyStaff, on_delete=models.CASCADE, related_name='profile')
+    public = models.BooleanField(default=True)
+    full_name = models.CharField(max_length=255, blank=True, null=True)
+    nick_name = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=[('male', 'Nam'), ('female', 'Nữ')], blank=True)
+    avatar = models.URLField(blank=True, null=True)
+    avatar_base64 = models.TextField(blank=True, null=True)  # <--- thêm dòng này
+    date_of_birth = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"{self.staff.cardID}_{self.staff.user.username}"
     
 class CompanyStaffHistoryFunction(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
@@ -202,7 +219,7 @@ class CompanyStaffHistory(models.Model):
         verbose_name = "Company Staff History"
         verbose_name_plural = "Company Staff History"
     def __str__(self):
-        return f"{self.staff.name}"
+        return f"{self.staff.username}"
 
 
 class CompanyCustomer(models.Model):
