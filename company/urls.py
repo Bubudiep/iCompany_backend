@@ -6,6 +6,7 @@ from . import json
 router = routers.DefaultRouter()
 router.register(r'staff', CompanyStaffViewSet, basename='staff')
 router.register(r'chatbox', AppChatRoomViewSet, basename='chatbox')
+router.register(r'accounts', CompanyAccountsViewSet, basename='accounts')
 urlpatterns = [
     path('search/', SearchAPIView.as_view(), name='search'),
     path('login/', LoginOAuth2APIView.as_view(), name='login'),
