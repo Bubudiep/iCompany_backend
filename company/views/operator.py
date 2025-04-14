@@ -1,5 +1,67 @@
 from .a import *
 
+class AddOperatorAPIView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def post(self, request):
+        key = request.headers.get('ApplicationKey')
+        user=request.user
+        if request.user.is_authenticated:
+            try:
+                operators=request.data.get("operators")
+                phongvan=request.data.get("date")
+                staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                if len(operators)>0:
+                    listcreated=[]
+                    for op in operators:
+                        qs_nguoituyen=None
+                        if op.get("staff"):
+                            qs_nguoituyen=CompanyStaff.objects.get(id=op.get("staff"),company__key=key)
+                            
+                        last_id = CompanyOperator.objects.filter(company=staff.company).count()
+                        operatorCode=staff.company.operatorCode
+                        if not operatorCode:
+                            operatorCode="NLD"
+                        count = f"{last_id:06d}"
+                        cardID=f"{operatorCode}-{count}"
+                        nhacungcap=None
+                        if op.get("type")=="Người của vendor":
+                            nhacungcap=CompanyVendor.objects.get(id=nhacungcap)
+                        op=CompanyOperator.objects.create(
+                            ho_ten=op.get("fullname"),
+                            ngay_phongvan=phongvan,
+                            avatar=op.get("avatar"),
+                            company=staff.company,
+                            ma_nhanvien=cardID,
+                            sdt=op.get("phone"),
+                            so_cccd=op.get("cardid"),
+                            ngaysinh=op.get("old"),
+                            gioi_tinh=op.get("sex"),
+                            diachi=op.get("address"),
+                            quequan=op.get("address"),
+                            nganhang=op.get("bank_code"),
+                            so_taikhoan=op.get("bank_number"),
+                            cccd_front=op.get("cccd_img"),
+                            ghichu=op.get("note"),
+                            nguoituyen=qs_nguoituyen,
+                            nguoibaocao=staff,
+                            nhacungcap=nhacungcap
+                        )
+                        listcreated.append(op)
+                    return Response(CompanyOperatorDetailsSerializer(listcreated,many=True).data,
+                                    status=status.HTTP_200_OK)
+                return Response({"detail": "Lỗi khi thêm người lao động"}, status=status.HTTP_200_OK)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                print(f"[{file_name}_{lineno}] {str(e)}")
+                return Response({"detail": "Lỗi khi thêm người lao động"}, status=status.HTTP_400_BAD_REQUEST)
+                    
+        else:
+            return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+        
 class CompanyOperatorViewSet(viewsets.ModelViewSet):
     serializer_class = CompanyOperatorSerializer
     authentication_classes = [OAuth2Authentication]
@@ -10,7 +72,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
         qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
-        return CompanyOperator.objects.filter(company=qs_res.company)
+        return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | Q(nguoibaocao=qs_res),company=qs_res.company)
     
     @action(detail=True, methods=['post'])
     def dilam(self, request, pk=None):
@@ -123,7 +185,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
-        qs_res = company_staff.objects.get(
+        qs_res = CompanyStaff.objects.get(
             user__user=user,
             isActive=True,
             company__key=key
@@ -166,6 +228,12 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 {"detail": "Lỗi cập nhập!"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = CompanyOperatorMoreDetailsSerializer(instance)
+        return Response(serializer.data)
+    
     def create(self, request, *args, **kwargs):
         try:
             user = self.request.user

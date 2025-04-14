@@ -26,7 +26,7 @@ class CompanyStaffViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             qs_from=CompanyStaff.objects.get(user__user=user,company__key=key)
             room = AppChatRoom.objects.filter(company__key=key,
-                        is_group=False,members__in=[staff, qs_from]).first()
+                        is_group=False,members=staff).filter(members=qs_from).first()
             if not room:
                 room = AppChatRoom.objects.create(company=staff.company, is_group=False)
                 room.members.add(staff, qs_from)
@@ -137,6 +137,45 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    
+class ChatMessageViewSet(viewsets.ModelViewSet):
+    queryset =ChatMessage.objects.all()
+    serializer_class =ChatMessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get']
+    pagination_class = StandardResultsSetPagination
+    filter_backends = (DjangoFilterBackend,OrderingFilter)
+    ordering_fields = ['created_at', 'last_have_message_at']
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        qs_staff = None
+        try:
+          qs_staff=CompanyStaff.objects.get(user__user=user,isBan=False,isActive=True,company__key=key)
+        except:
+          ...
+        return ChatMessage.objects.filter(room__members=qs_staff)
+      
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        room = self.request.query_params.get('room_id')
+        if not room:
+            return Response({"detail":"Vui lòng chọn room!"},status=status.HTTP_400_BAD_REQUEST)
+        queryset=ChatMessage.objects.filter(room__id=room)
+        last = self.request.query_params.get('last_id')
+        if last:
+            queryset=ChatMessage.objects.filter(id__lt=last)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)

@@ -4,7 +4,7 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
     queryset =CompanyStaff.objects.all()
     serializer_class =CompanyStaffSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get']
+    http_method_names = ['get','patch']
     pagination_class = StandardResultsSetPagination
     def get_queryset(self):
         key = self.request.headers.get('ApplicationKey')
@@ -12,6 +12,27 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
         qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
         return CompanyStaff.objects.filter(company__key=qs_staff.company.key)
         
+    def partial_update(self, request, *args, **kwargs):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        account=self.get_object()
+        try:
+            qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không tồn tại trong công ty này"}, status=status.HTTP_403_FORBIDDEN)
+
+        if not (qs_staff.isAdmin or qs_staff.isSuperAdmin):
+            return Response({"detail": "Bạn không có quyền cập nhật thông tin nhân viên"}, status=status.HTTP_403_FORBIDDEN)
+        if account.isSuperAdmin:
+            return Response({"detail": "Bạn không có quyền cập nhật thông tin nhân viên này"}, status=status.HTTP_403_FORBIDDEN)
+        if account.isAdmin:
+            if qs_staff.isAdmin:
+              return Response({"detail": "Bạn không có quyền cập nhật thông tin nhân viên này"}, status=status.HTTP_403_FORBIDDEN)
+        if request.data.get("cardID"):
+            qs_staff = CompanyStaff.objects.filter(cardID=request.data.get("cardID")).exclude(user__user=user)
+            if len(qs_staff):
+              return Response({"detail": "Mã nhân viên đã tồn tại!"}, status=status.HTTP_403_FORBIDDEN)
+        return super().partial_update(request, *args, **kwargs)
     def list(self, request, *args, **kwargs):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')

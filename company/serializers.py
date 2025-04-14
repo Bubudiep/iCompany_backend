@@ -316,7 +316,7 @@ class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
         qs_work=OperatorWorkHistory.objects.filter(operator=qs)
         return OP_HISTSerializer(qs_work,many=True).data
     class Meta:
-        model = OperatorWorkHistory
+        model = CompanyOperator
         fields = '__all__'
           
 class CompanyOperatorDetailsSerializer(serializers.ModelSerializer):

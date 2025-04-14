@@ -6,8 +6,11 @@ from . import json
 router = routers.DefaultRouter()
 router.register(r'staff', CompanyStaffViewSet, basename='staff')
 router.register(r'chatbox', AppChatRoomViewSet, basename='chatbox')
+router.register(r'message', ChatMessageViewSet, basename='message')
 router.register(r'accounts', CompanyAccountsViewSet, basename='accounts')
+router.register(r'ops', CompanyOperatorViewSet, basename='ops')
 urlpatterns = [
+    path('op/add/', AddOperatorAPIView.as_view(), name='add-op'),
     path('search/', SearchAPIView.as_view(), name='search'),
     path('login/', LoginOAuth2APIView.as_view(), name='login'),
     path('user/', GetUserAPIView.as_view(), name='user'),

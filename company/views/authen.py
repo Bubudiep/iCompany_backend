@@ -118,17 +118,35 @@ class GetUserAPIView(APIView):
             return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
         
     def post(self, request):
+        user=request.user
         key = request.headers.get('ApplicationKey')
+        qs_user_company=CompanyStaff.objects.get(user__user=user,company__key=key)
         try:
             username = request.data.get('username')
             password = request.data.get('password')
             cardID = request.data.get('cardID',None)
             department = request.data.get('department')
             possition = request.data.get('possition')
-            isAdmin = request.data.get('isAdmin')
-            user=request.user
+            role = request.data.get('role')
+            fullname = request.data.get('fullname')
+            isAdmin=False
+            isSuper=False
+            if role=="Admin":
+                if qs_user_company.isAdmin==False:
+                    return Response(
+                        data={"detail":"Bạn không có quyền tạo tài khoản admin!"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                isAdmin=True
+            if role=="SuperAdmin":
+                if qs_user_company.isSuperAdmin==False:
+                    return Response(
+                        data={"detail":"Bạn không có quyền tạo tài khoản boss!"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                isAdmin=True
+                isSuper=True
             qs_user=CompanyUser.objects.filter(username=username)
-            qs_user_company=CompanyStaff.objects.get(user__user=user,company__key=key)
             last_id = CompanyStaff.objects.filter(company__key=key).count()
             company_code=qs_user_company.company.companyCode
             if not cardID:
@@ -140,21 +158,30 @@ class GetUserAPIView(APIView):
                 if not qs_user:
                     with transaction.atomic():
                         new_user=User.objects.create(username=f"{key}_{username}",password=uuid.uuid4().hex.upper())
-                        new_company_user=CompanyUser.objects.create(user=new_user,username=username,
+                        new_company_user=CompanyUser.objects.create(user=new_user,
+                                                                    username=username,
                                                                     password=password,
                                                                     company=qs_user_company.company)
                         qs_department=None
                         qs_possition=None
                         if department:
-                            qs_department=CompanyDepartment.objects.get(id=department,company=qs_user_company.company)
+                            qs_department,_=CompanyDepartment.objects.get_or_create(
+                                name=department,
+                                company=qs_user_company.company,
+                                isActive=True)
                         if possition:
-                            qs_possition=CompanyDepartment.objects.get(id=possition,company=qs_user_company.company)
+                            qs_possition,_=CompanyPossition.objects.get_or_create(
+                                name=possition,
+                                company=qs_user_company.company,
+                                isActive=True
+                            )
                         staff=CompanyStaff.objects.create(company=qs_user_company.company,
                                                         cardID=cardID,
                                                         department=qs_department,
                                                         possition=qs_possition,
                                                         user=new_company_user,
                                                         isActive=True,
+                                                        isSuperAdmin=isSuper,
                                                         created_by=qs_user_company,
                                                         isAdmin=isAdmin)
                         return Response(data=CompanyStaffDetailsSerializer(staff).data, status=status.HTTP_201_CREATED)
