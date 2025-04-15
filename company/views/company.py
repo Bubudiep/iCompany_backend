@@ -4,8 +4,34 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
     queryset =CompanyStaff.objects.all()
     serializer_class =CompanyStaffSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get','patch']
+    http_method_names = ['get', 'patch', 'post']
     pagination_class = StandardResultsSetPagination
+    @action(detail=True, methods=['post'], url_path='reset-password')
+    def reset_password(self, request, pk=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        try:
+            current_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        if not (current_staff.isAdmin or current_staff.isSuperAdmin):
+            return Response({"detail": "Bạn không có quyền reset mật khẩu"}, status=status.HTTP_403_FORBIDDEN)
+        account = self.get_object()
+        if account.isSuperAdmin:
+            return Response({"detail": "Không thể reset mật khẩu SuperAdmin"}, status=status.HTTP_403_FORBIDDEN)
+        if account.isAdmin and not current_staff.isSuperAdmin:
+            return Response({"detail": "Không thể reset mật khẩu Admin khác"}, status=status.HTTP_403_FORBIDDEN)
+        new_password = get_random_string(length=10)
+        account.user.password=new_password
+        account.user.save()
+        return Response({
+            "detail": "Mật khẩu đã được reset.",
+            "new_password": new_password
+        }, status=status.HTTP_200_OK)
+        
+    def create(self, request, *args, **kwargs):
+        return Response({"detail": "Bạn không được phép tạo tài khoản mới"}, status=status.HTTP_403_FORBIDDEN)
+
     def get_queryset(self):
         key = self.request.headers.get('ApplicationKey')
         user = self.request.user

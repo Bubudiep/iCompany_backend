@@ -23,6 +23,7 @@ from django.db.models import Q,F
 from rest_framework.decorators import action
 from pytz import timezone
 from django.db import transaction
+from django.utils.crypto import get_random_string
 
 myzone = timezone('Asia/Ho_Chi_Minh')
 def generate_response_json(result:str, message:str, data:dict={}):
