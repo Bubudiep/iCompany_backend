@@ -47,6 +47,12 @@ class AddOperatorAPIView(APIView):
                             nguoibaocao=staff,
                             nhacungcap=nhacungcap
                         )
+                        OperatorUpdateHistory.objects.create(
+                            operator=op,
+                            old_data=None,
+                            new_data=CompanyOperatorSerializer(op).data,
+                            notes="Khởi tạo tài khoản"
+                        )
                         listcreated.append(op)
                     return Response(CompanyOperatorDetailsSerializer(listcreated,many=True).data,
                                     status=status.HTTP_200_OK)
