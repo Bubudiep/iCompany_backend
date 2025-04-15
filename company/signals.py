@@ -1,8 +1,10 @@
-from django.db.models.signals import post_save, post_migrate
+from django.db.models.signals import post_save, pre_save, post_migrate
 from django.dispatch import receiver
 from .models import *
 from .serializers import *
+import threading
 
+_thread_locals = threading.local()
 @receiver(post_save, sender=ChatMessage)
 def handle_transaction_save(sender, instance, created, **kwargs):
     if created:
@@ -23,6 +25,47 @@ def handle_transaction_save(sender, instance, created, **kwargs):
                 'key': instance.room.company.key
             })
     
+@receiver(pre_save, sender=CompanyOperator)
+def store_old_operator_data(sender, instance, **kwargs):
+    if instance.pk:  # Chỉ lưu khi đã có trong DB
+        try:
+            old_instance = CompanyOperator.objects.get(pk=instance.pk)
+            _thread_locals.old_operator_data = CompanyOperatorSerializer(old_instance).data
+        except CompanyOperator.DoesNotExist:
+            _thread_locals.old_operator_data = None
+    else:
+        _thread_locals.old_operator_data = None
+
+# IGNORED_FIELDS = ["updated_at"]
+# @receiver(post_save, sender=CompanyOperator)
+# def handle_transaction_save(sender, instance, created, **kwargs):
+#     current_data = CompanyOperatorSerializer(instance).data
+#     old_data = getattr(_thread_locals, "old_operator_data", None)
+#     qs_staff = CompanyStaff.objects.get(user__user=user,company=instance.company)
+#     # Nếu là tạo mới thì lưu toàn bộ
+#     if created or not old_data:
+#         OperatorUpdateHistory.objects.create(
+#             operator=instance,
+#             old_data=None,
+#             new_data=current_data,
+#             notes="Khởi tạo tài khoản"
+#         )
+#     else:
+#         # So sánh từng trường và chỉ lấy các trường thay đổi
+#         changed_data = {
+#             key: current_data[key]
+#             for key in current_data
+#             if key not in IGNORED_FIELDS and old_data.get(key) != current_data.get(key)
+#         }
+#         if changed_data:  # Chỉ tạo lịch sử nếu có sự thay đổi
+#             OperatorUpdateHistory.objects.create(
+#                 operator=instance,
+#                 old_data={k: old_data[k] for k in changed_data if k in old_data},
+#                 new_data=changed_data,
+#                 notes="Cập nhật thông tin tài khoản"
+#             )
+#     _thread_locals.old_operator_data = None
+
 @receiver(post_save, sender=Company)
 def handle_transaction_save(sender, instance, created, **kwargs):
     if created:

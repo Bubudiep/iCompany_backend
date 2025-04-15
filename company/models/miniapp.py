@@ -163,3 +163,10 @@ class AppChatStatus(models.Model):
     last_read_at = models.DateTimeField(null=True, blank=True)
     def __str__(self):
         return f"{self.room}"
+    
+class LastCheckAPI(models.Model):
+    function_name = models.CharField(max_length=100)
+    user = models.ForeignKey(CompanyStaff, on_delete=models.CASCADE)
+    last_read_at = models.DateTimeField(null=True, blank=True)
+    def __str__(self):
+        return f"{self.function_name}"

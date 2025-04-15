@@ -174,3 +174,44 @@ class ChatMessageAdmin(admin.ModelAdmin):
 @admin.register(AppChatStatus)
 class AppChatStatusAdmin(admin.ModelAdmin):
     list_display = ('room', 'user', 'last_read_at')
+
+@admin.register(CompanyCustomer)
+class CompanyCustomerAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "fullname", "company", "email", "hotline")
+    search_fields = ("name", "fullname", "email", "hotline")
+    list_filter = ("company",)
+    filter_horizontal = ("staffs",)
+
+@admin.register(CompanySupplier)
+class CompanySupplierAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "fullname", "company", "email", "hotline")
+    search_fields = ("name", "fullname", "email", "hotline")
+    list_filter = ("company",)
+
+@admin.register(CompanyVendor)
+class CompanyVendorAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "fullname", "company", "email", "hotline")
+    search_fields = ("name", "fullname", "email", "hotline")
+    list_filter = ("company",)
+
+@admin.register(CompanyOperator)
+class CompanyOperatorAdmin(admin.ModelAdmin):
+    list_display = ("id", "ma_nhanvien", "ho_ten", "company", "sdt", "trangthai")
+    search_fields = ("ma_nhanvien", "ho_ten", "sdt", "so_cccd")
+    list_filter = ("company", "trangthai")
+    autocomplete_fields = ["congty_danglam", "nhachinh", "nhacungcap", "nguoituyen", "nguoibaocao"]
+
+@admin.register(OperatorUpdateHistory)
+class OperatorUpdateHistoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "operator", "changed_by", "changed_at", "notes")
+    search_fields = ("operator__ma_nhanvien", "changed_by__user__username", "notes")
+    list_filter = ("changed_at",)
+    readonly_fields = ("operator", "old_data", "new_data", "changed_by", "notes", "changed_at")
+
+@admin.register(OperatorWorkHistory)
+class OperatorWorkHistoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "operator", "customer", "start_date", "end_date", "nguoituyen")
+    search_fields = ("operator__ma_nhanvien", "customer__name", "so_cccd")
+    list_filter = ("customer", "vendor", "supplier")
+    autocomplete_fields = ["operator", "customer", "vendor", "supplier", "nguoituyen", "noihopdong"]
+    readonly_fields = ("created_at", "updated_at")

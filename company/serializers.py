@@ -142,11 +142,6 @@ class CompanyOperatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
         fields = '__all__'
-     
-class CompanyStaffProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CompanyStaffProfile
-        fields = '__all__'
         
 class CompanyStaffDetailsSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField(read_only=True)
@@ -254,6 +249,13 @@ class OP_HISTSerializer(serializers.ModelSerializer):
                 "name":qs.supplier.name,
                 "fullname": qs.supplier.fullname,
             }
+            
+class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
+    changed_by=CompanyStaffProfileSerializer(allow_null=True)
+    class Meta:
+        model = OperatorUpdateHistory
+        fields = '__all__'
+        
 class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
     company = serializers.PrimaryKeyRelatedField(read_only=True)
     work = serializers.SerializerMethodField(read_only=True)
@@ -264,6 +266,10 @@ class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
     nhacungcap = serializers.SerializerMethodField(read_only=True)
     thamnien = serializers.SerializerMethodField(read_only=True)
     baoung = serializers.SerializerMethodField(read_only=True)
+    history = serializers.SerializerMethodField(read_only=True)
+    def get_history(self, qs):
+        qs_update=OperatorUpdateHistory.objects.filter(operator=qs)
+        return OperatorUpdateHistorySerializer(qs_update,many=True).data
     def get_baoung(self, qs):
         try:
             qs_baoung=AdvanceRequest.objects.filter(operator=qs)
@@ -318,7 +324,7 @@ class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
         fields = '__all__'
-          
+        
 class CompanyOperatorDetailsSerializer(serializers.ModelSerializer):
     company = serializers.PrimaryKeyRelatedField(read_only=True)
     work = serializers.SerializerMethodField(read_only=True)
