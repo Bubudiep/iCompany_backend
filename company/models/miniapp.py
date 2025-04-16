@@ -89,7 +89,9 @@ class AppChatRoom(models.Model):
     avatar = models.TextField(blank=True, null=True)
     name = models.CharField(max_length=255, null=True, blank=True)  # Chỉ dùng cho nhóm
     is_group = models.BooleanField(default=False)  # Xác định nhóm hay chat cá nhân
-    members = models.ManyToManyField(CompanyStaff)  # Thành viên trong phòng
+    members = models.ManyToManyField(CompanyStaff,related_name="appchatroom_members")
+    admins = models.ManyToManyField(CompanyStaff,related_name="appchatroom_admins")
+    host = models.ForeignKey(CompanyStaff,on_delete=models.SET_NULL,null=True,related_name="appchatroom_host")
     members_change_avatar = models.BooleanField(default=True)
     members_change_name = models.BooleanField(default=True)
     members_add_members = models.BooleanField(default=True)

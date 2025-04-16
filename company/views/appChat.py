@@ -115,6 +115,7 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
                 is_group=True
             )
             room.members.add(staff)
+            room.host=staff
             for member in members:
                 room.members.add(member)
             room.save()
