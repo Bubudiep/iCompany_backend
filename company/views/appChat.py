@@ -100,7 +100,29 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
         qs_status.save()
         serializer = AppChatRoomDetailSerializer(instance, context=self.get_serializer_context())
         return Response(serializer.data)
-      
+    
+    @action(detail=False, methods=['post'])
+    def create_room(self, request):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        if request.data.get('members') and request.data.get('name'):
+            members=CompanyStaff.objects.filter(id__in=request.data.get('members',None))
+            room = AppChatRoom.objects.create(
+                company=staff.company,
+                name=request.data.get('name',None),
+                avatar=request.data.get('avatar',None),
+                is_group=True
+            )
+            room.members.add(staff)
+            for member in members:
+                room.members.add(member)
+            room.save()
+            return Response(AppChatRoomDetailSerializer(room, context=self.get_serializer_context()).data,
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response({"detail":"Thiếu thành viên trong nhóm hoặc tên nhóm"},status=status.HTTP_400_BAD_REQUEST)
+        
     @action(detail=True, methods=['post'])
     def chat(self, request, pk=None):
         user = self.request.user

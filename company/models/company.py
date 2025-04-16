@@ -281,7 +281,7 @@ class CompanyVendor(models.Model):
 class CompanyOperator(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     ma_nhanvien= models.CharField(max_length=200, null=True, blank=True)
-    ngay_phongvan = models.DateField(default=datetime.now().date(),null=True, blank=True)
+    ngay_phongvan = models.DateField(default=timezone.now,null=True, blank=True)
     
     sdt= models.CharField(max_length=15, null=True, blank=True)
     ho_ten= models.CharField(max_length=200, null=True, blank=True)

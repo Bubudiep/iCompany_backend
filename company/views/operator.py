@@ -98,7 +98,15 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     return Response({"detail": "Ngày đi làm không được nhỏ hơn ngày nghỉ ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
                 if ctyNow.end_date is None:
                     return Response({"detail": f"Nhân viên {operator.ho_ten} đang chưa nghỉ làm ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
+            
             qs_cty=company_customer.objects.get(id=company)
+            OperatorUpdateHistory.objects.create(
+                operator=operator,
+                changed_by=qs_staff,
+                old_data={"congty_danglam":None},
+                new_data={"congty_danglam":qs_cty.name},
+                notes=f"Báo đi làm ở công ty {qs_cty.name}"
+            )
             operator.congty_danglam = qs_cty
             operator.save()
             nguoituyen = request.data.get('nguoituyen',None)
@@ -146,6 +154,11 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                                 khacStk= request.data.get('khacStk',None),
                             )
             created_data=AdvanceRequestSerializer(create_request).data
+            OperatorUpdateHistory.objects.create(
+                operator=operator,
+                changed_by=qs_staff,
+                notes=f"Báo ứng {soTien}"
+            )
             AdvanceRequestHistory.objects.create(request=create_request,
                                                 user=qs_res,action="create",
                                                 old_data=None,
@@ -165,6 +178,9 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         
     @action(detail=True, methods=['post'])
     def nghiviec(self, request, pk=None):
+        user=request.user
+        key = self.request.headers.get('ApplicationKey')
+        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
         ngaynghi = request.data.get('ngayNghi',now())
         lyDo = request.data.get('lyDo',None)
         try:
@@ -179,6 +195,13 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             if ctyNow.end_date:
                 operator.congty_danglam = None
                 return Response({"detail": f"Nhân viên {operator.ho_ten} đang không đi làm!"}, status=status.HTTP_400_BAD_REQUEST)
+            OperatorUpdateHistory.objects.create(
+                operator=operator,
+                changed_by=qs_staff,
+                old_data={"congty_danglam":congty_danglam.name},
+                new_data={"congty_danglam":None},
+                notes=f"Báo nghỉ việc ở công ty {operator.congty_danglam.name}"
+            )
             ctyNow.end_date=ngaynghi
             ctyNow.reason=lyDo
             operator.congty_danglam = None
