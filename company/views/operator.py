@@ -128,10 +128,11 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             user = self.request.user
             key = self.request.headers.get('ApplicationKey')
             operator = self.get_object()
-            qs_com=company.objects.get(key=key)
+            qs_com=Company.objects.get(key=key)
             soTien = request.data.get('soTien',None)
             lyDo = request.data.get('lyDo',None)
-            ngayUng = request.data.get('ngayUng',None)
+            qs_staff=CompanyStaff.objects.get(user__user=user,company=qs_com)
+            ngayUng = request.data.get('ngayUng',datetime.now().date())
             if not soTien:
                 return Response({"error": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baoung, _ = AdvanceType.objects.get_or_create(
@@ -139,14 +140,14 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 need_operator=True,
                 company=qs_com
             )
-            qs_res=company_staff.objects.get(user__user=user,isActive=True,company__key=key)
+            qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
             create_request=AdvanceRequest.objects.create(company=qs_com,
                                 requester=qs_res,
                                 requesttype=qs_baoung,
                                 operator=operator,
                                 amount=soTien,
                                 comment=lyDo,
-                                request_date= request.data.get('ngayUng',None),
+                                request_date= ngayUng,
                                 hinhthucThanhtoan= request.data.get('hinhthucThanhtoan',None),
                                 nguoiThuhuong= request.data.get('nguoiThuhuong',None),
                                 khacCtk= request.data.get('khacCtk',None),

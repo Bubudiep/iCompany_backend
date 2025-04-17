@@ -198,7 +198,7 @@ class CompanyStaffSmallSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyStaff
         fields = [
-            'id','name','department',
+            'id','cardID','department',
             'possition','isSuperAdmin',
             'isActive','isAdmin',
             'isOnline','isValidate',
