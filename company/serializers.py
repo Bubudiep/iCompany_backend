@@ -84,6 +84,13 @@ class AppChatRoomSerializer(serializers.ModelSerializer):
     not_read = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
     members = CompanyStaffSerializer(many=True)
+    ghim = serializers.SerializerMethodField()
+    def get_ghim(self,room):
+        try:
+            ghim=ChatMessage.objects.filter(room=room,ghim_by__isnull=False)
+            return ChatMessageSerializer(ghim,many=True).data
+        except Exception as e:
+            return []
     def get_not_read(self,room):
         try:
             qs_last_seen=AppChatStatus.objects.filter(room=room,
@@ -98,7 +105,7 @@ class AppChatRoomSerializer(serializers.ModelSerializer):
             return 0
     def get_last_message(self,room):
         try:
-            qs_mess=ChatMessage.objects.filter(room=room).first()
+            qs_mess=ChatMessage.objects.filter(room=room,isAction=False).first()
             return ChatMessageSerializer(qs_mess).data
         except Exception as e:
             return None
@@ -109,6 +116,13 @@ class AppChatRoomDetailSerializer(serializers.ModelSerializer):
     not_read = serializers.SerializerMethodField()
     message = serializers.SerializerMethodField()
     members = CompanyStaffSerializer(many=True)
+    ghim = serializers.SerializerMethodField()
+    def get_ghim(self,room):
+        try:
+            ghim=ChatMessage.objects.filter(room=room,ghim_by__isnull=False)
+            return ChatMessageSerializer(ghim,many=True).data
+        except Exception as e:
+            return []
     def get_not_read(self,room):
         try:
             qs_last_seen=AppChatStatus.objects.filter(room=room,
