@@ -137,7 +137,8 @@ class ChatMessage(models.Model):
         file_type = value.file.content_type
         if file_type not in valid_mime_types:
             raise ValidationError("Chỉ chấp nhận file ảnh hoặc PDF.")
-        
+    isAction = models.BooleanField(default=False)
+    ghim_by = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True, related_name="ghim_messages")
     room = models.ForeignKey(AppChatRoom, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(CompanyStaff, on_delete=models.CASCADE, related_name="sent_messages")
     message = models.TextField(blank=True, null=True)

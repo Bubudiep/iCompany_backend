@@ -125,6 +125,59 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
             return Response({"detail":"Thiếu thành viên trong nhóm hoặc tên nhóm"},status=status.HTTP_400_BAD_REQUEST)
         
     @action(detail=True, methods=['post'])
+    def boghim(self, request, pk=None):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        room = self.get_object()
+        ghim = request.data.get('message',None)
+        with transaction.atomic():
+            qs_from=CompanyStaff.objects.get(user__user=user,company__key=key)
+            qs_message=ChatMessage.objects.get(id=ghim,room=room)
+            if qs_message.ghim_by==None: # đã bỏ ghim rồi
+                return Response(
+                    AppChatRoomSerializer(room).data,
+                    status=status.HTTP_200_OK
+                )
+            qs_message.ghim_by=None
+            qs_message.save()
+            ChatMessage.objects.create(
+                room=room,
+                sender=qs_from,
+                message=f"Bỏ ghim tin nhắn [{qs_message.id}]",
+                isAction=True
+            )
+            return Response(
+                AppChatRoomSerializer(room).data,
+                status=status.HTTP_200_OK
+            )
+    @action(detail=True, methods=['post'])
+    def ghim(self, request, pk=None):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        room = self.get_object()
+        ghim = request.data.get('message',None)
+        with transaction.atomic():
+            qs_from=CompanyStaff.objects.get(user__user=user,company__key=key)
+            qs_message=ChatMessage.objects.get(id=ghim,room=room)
+            if qs_message.ghim_by==qs_from: # đã ghim rồi
+                return Response(
+                    AppChatRoomSerializer(room).data,
+                    status=status.HTTP_200_OK
+                )
+            qs_message.ghim_by=qs_from
+            qs_message.save()
+            ChatMessage.objects.create(
+                room=room,
+                sender=qs_from,
+                message=f"Ghim tin nhắn [{qs_message.id}]",
+                isAction=True
+            )
+            return Response(
+                AppChatRoomSerializer(room).data,
+                status=status.HTTP_200_OK
+            )
+        
+    @action(detail=True, methods=['post'])
     def chat(self, request, pk=None):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
