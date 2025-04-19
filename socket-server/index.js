@@ -24,7 +24,7 @@ io.use(async (socket, next) => {
   if (clientKey && clientToken) {
     try {
       const userdata = await axios.get(
-        "http://localhost:8008/api/user_socket/",
+        "http://localhost:5001/api/user_socket/",
         {
           headers: {
             ApplicationKey: clientKey,
