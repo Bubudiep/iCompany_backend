@@ -17,8 +17,6 @@ const io = new Server(server, {
       "Content-Type",
       "ApplicationKey",
       "Authorization",
-      "applicationkey",
-      "authorization",
     ],
   },
 });
