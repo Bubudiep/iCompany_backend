@@ -26,7 +26,12 @@ io.use(async (socket, next) => {
   const headers = socket.handshake.headers;
   const clientKey = headers["applicationkey"];
   const clientToken = headers["authorization"];
-  console.log(clientKey, clientToken, socket.handshake.headers);
+  console.log(
+    clientKey,
+    clientToken,
+    socket.handshake.headers,
+    socket.handshake.query
+  );
   if (clientKey === "@OAIIA3UHUIE21vczx@faWOOCS)=123SAF") return next();
   if (clientKey && clientToken) {
     try {
