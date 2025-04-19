@@ -17,6 +17,8 @@ const io = new Server(server, {
       "Content-Type",
       "ApplicationKey",
       "Authorization",
+      "applicationkey",
+      "authorization",
     ],
   },
 });
@@ -46,7 +48,7 @@ io.use(async (socket, next) => {
       console.log(e);
     }
   } else {
-    return next(new Error("Unauthorized: Invalid key or token"));
+    return new Error("Unauthorized: Invalid key or token");
   }
 });
 io.on("connection", (socket) => {

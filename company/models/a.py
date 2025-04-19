@@ -35,9 +35,9 @@ def disconnect():
 # Kiểm tra kết nối trước khi kết nối
 def check_connection():
     try:
-        # sio.connect('https://vieclamvp.vn/socket',
+        sio.connect('https://vieclamvp.vn/socket-io',
         # sio.connect('http://10.100.1.10/socket',
-        sio.connect('http://localhost:5000',
+        # sio.connect('http://localhost:5000',
             headers={
                 'applicationkey': '@OAIIA3UHUIE21vczx@faWOOCS)=123SAF'
             })
