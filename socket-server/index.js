@@ -15,11 +15,11 @@ const io = new Server(server, {
     allowedHeaders: ["Authorization", "Content-Type"],
   },
 });
-// Middleware xác thực header khi client connect
 io.use(async (socket, next) => {
   const headers = socket.handshake.headers;
   const clientKey = headers["applicationkey"];
   const clientToken = headers["authorization"];
+  console.log(clientKey, clientToken);
   if (clientKey === "@OAIIA3UHUIE21vczx@faWOOCS)=123SAF") return next();
   if (clientKey && clientToken) {
     try {
