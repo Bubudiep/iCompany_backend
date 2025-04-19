@@ -74,8 +74,7 @@ def handle_transaction_save(sender, instance, created, **kwargs):
         if not User.objects.filter(username=f"{company.key}_admin").exists():
             user = User.objects.create(username=f"{company.key}_admin", password=make_password(uuid.uuid4().hex.upper()))
             staff = CompanyUser.objects.create(user=user, company=company, username="admin", password="1234")  # Có thể mã hóa password sau
-            cstaff = CompanyStaff.objects.create(company=company, user=staff, isActive=True, isSuperAdmin=True, isAdmin=True)
-            profile = CompanyStaffProfile.objects.create(staff=cstaff, full_name="Admin", nick_name="Admin")
+            cstaff = CompanyStaff.objects.create(company=company, user=staff,cardID="Admin", isActive=True, isSuperAdmin=True, isAdmin=True)
             print(f"Tài khoản admin cho công ty {company.name} đã được tạo.")
         else:
             print(f"Tài khoản admin cho công ty {company.name} đã tồn tại.")
@@ -87,7 +86,6 @@ def handle_transaction_save(sender, instance, created, **kwargs):
     staff = instance
     if created:
         # Tạo profile
-        profile=CompanyStaffProfile.objects.create(staff=staff,full_name=staff.cardID,nick_name=staff.cardID)
         sio.emit('backend_event', {
             'type': 'user_created',
             'data':  CompanyStaffDetailsSerializer(instance).data,
