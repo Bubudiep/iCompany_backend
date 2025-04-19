@@ -56,7 +56,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 CORS_ALLOW_ALL_ORIGINS = True  # (dev local thôi)
-ALLOWED_HOSTS = ['10.100.1.50','127.0.0.1','localhost']
+ALLOWED_HOSTS = ['10.100.1.50','127.0.0.1','localhost','10.100.1.10']
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
     'x-csrf-token',
