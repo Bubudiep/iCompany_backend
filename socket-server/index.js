@@ -12,7 +12,12 @@ const io = new Server(server, {
     origin: "*", // chỉ cho localhost
     // origin: ["http://localhost", "http://localhost:3000"], // chỉ cho localhost
     methods: ["GET", "POST"],
-    allowedHeaders: ["Authorization", "Content-Type"],
+    allowedHeaders: [
+      "Authorization",
+      "Content-Type",
+      "ApplicationKey",
+      "Authorization",
+    ],
   },
 });
 io.use(async (socket, next) => {
