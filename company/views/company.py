@@ -76,3 +76,60 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class CompanyCustomerViewSet(viewsets.ModelViewSet):
+    queryset = CompanyCustomer.objects.all()
+    serializer_class = CompanyCustomerSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'patch', 'post']
+    pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        return CompanyCustomer.objects.filter(company__key=qs_staff.company.key)
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+class CompanyVendorViewSet(viewsets.ModelViewSet):
+    queryset = CompanyVendor.objects.all()
+    serializer_class = CompanyVendorSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'patch', 'post']
+    pagination_class = StandardResultsSetPagination
+    
+    def perform_create(self, serializer):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        serializer.save(company=qs_staff.company)
+
+    def get_queryset(self):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        return CompanyVendor.objects.filter(company__key=qs_staff.company.key)
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

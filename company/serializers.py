@@ -240,7 +240,7 @@ class AdvanceRequestSerializer(serializers.ModelSerializer):
            
 class OP_HISTSerializer(serializers.ModelSerializer):
     customer = serializers.SerializerMethodField(read_only=True)
-    supplier = serializers.SerializerMethodField(read_only=True)
+    nhachinh = serializers.SerializerMethodField(read_only=True)
     vendor = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = OperatorWorkHistory
@@ -257,11 +257,11 @@ class OP_HISTSerializer(serializers.ModelSerializer):
                 "name":qs.customer.name,
                 "fullname": qs.customer.fullname,
             }
-    def get_supplier(self, qs):
-        if qs.supplier:
+    def get_nhachinh(self, qs):
+        if qs.nhachinh:
             return {
-                "name":qs.supplier.name,
-                "fullname": qs.supplier.fullname,
+                "name":qs.nhachinh.name,
+                "fullname": qs.nhachinh.fullname,
             }
             
 class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
@@ -270,6 +270,18 @@ class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
         model = OperatorUpdateHistory
         fields = '__all__'
         
+class CompanyCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =CompanyCustomer
+        fields = '__all__'
+        read_only_fields = ['company']
+        
+class CompanyVendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =CompanyVendor
+        fields = '__all__'
+        read_only_fields = ['company']
+        
 class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
     company = serializers.PrimaryKeyRelatedField(read_only=True)
     work = serializers.SerializerMethodField(read_only=True)
@@ -277,7 +289,7 @@ class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
     nguoibaocao = serializers.SerializerMethodField(read_only=True)
     congty_danglam = serializers.SerializerMethodField(read_only=True)
     nhachinh = serializers.SerializerMethodField(read_only=True)
-    nhacungcap = serializers.SerializerMethodField(read_only=True)
+    vendor = serializers.SerializerMethodField(read_only=True)
     thamnien = serializers.SerializerMethodField(read_only=True)
     baoung = serializers.SerializerMethodField(read_only=True)
     history = serializers.SerializerMethodField(read_only=True)
@@ -298,11 +310,11 @@ class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
                 "name":qs.congty_danglam.name,
                 "fullname":qs.congty_danglam.fullname,
             }
-    def get_nhacungcap(self, qs):
-        if qs.nhacungcap:
+    def get_vendor(self, qs):
+        if qs.vendor:
             return {
-                "name":qs.nhacungcap.name,
-                "fullname":qs.nhacungcap.fullname,
+                "name":qs.vendor.name,
+                "fullname":qs.vendor.fullname,
             }
     def get_nhachinh(self, qs):
         if qs.nhachinh:
@@ -346,7 +358,7 @@ class CompanyOperatorDetailsSerializer(serializers.ModelSerializer):
     nguoibaocao = serializers.SerializerMethodField(read_only=True)
     congty_danglam = serializers.SerializerMethodField(read_only=True)
     nhachinh = serializers.SerializerMethodField(read_only=True)
-    nhacungcap = serializers.SerializerMethodField(read_only=True)
+    vendor = serializers.SerializerMethodField(read_only=True)
     thamnien = serializers.SerializerMethodField(read_only=True)
     def get_thamnien(self, obj):
         def calculate_seniority(record):
@@ -371,11 +383,11 @@ class CompanyOperatorDetailsSerializer(serializers.ModelSerializer):
                 "name":qs.congty_danglam.name,
                 "fullname":qs.congty_danglam.fullname,
             }
-    def get_nhacungcap(self, qs):
-        if qs.nhacungcap:
+    def get_vendor(self, qs):
+        if qs.vendor:
             return {
-                "name":qs.nhacungcap.name,
-                "fullname":qs.nhacungcap.fullname,
+                "name":qs.vendor.name,
+                "fullname":qs.vendor.fullname,
             }
     def get_nhachinh(self, qs):
         if qs.nhachinh:

@@ -182,12 +182,6 @@ class CompanyCustomerAdmin(admin.ModelAdmin):
     list_filter = ("company",)
     filter_horizontal = ("staffs",)
 
-@admin.register(CompanySupplier)
-class CompanySupplierAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "fullname", "company", "email", "hotline")
-    search_fields = ("name", "fullname", "email", "hotline")
-    list_filter = ("company",)
-
 @admin.register(CompanyVendor)
 class CompanyVendorAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "fullname", "company", "email", "hotline")
@@ -199,7 +193,7 @@ class CompanyOperatorAdmin(admin.ModelAdmin):
     list_display = ("id", "ma_nhanvien", "ho_ten", "company", "sdt", "trangthai")
     search_fields = ("ma_nhanvien", "ho_ten", "sdt", "so_cccd")
     list_filter = ("company", "trangthai")
-    autocomplete_fields = ["congty_danglam", "nhachinh", "nhacungcap", "nguoituyen", "nguoibaocao"]
+    autocomplete_fields = ["congty_danglam", "nhachinh", "vendor", "nguoituyen", "nguoibaocao"]
 
 @admin.register(OperatorUpdateHistory)
 class OperatorUpdateHistoryAdmin(admin.ModelAdmin):
@@ -212,6 +206,6 @@ class OperatorUpdateHistoryAdmin(admin.ModelAdmin):
 class OperatorWorkHistoryAdmin(admin.ModelAdmin):
     list_display = ("id", "operator", "customer", "start_date", "end_date", "nguoituyen")
     search_fields = ("operator__ma_nhanvien", "customer__name", "so_cccd")
-    list_filter = ("customer", "vendor", "supplier")
-    autocomplete_fields = ["operator", "customer", "vendor", "supplier", "nguoituyen", "noihopdong"]
+    list_filter = ("customer", "vendor", "nhachinh")
+    autocomplete_fields = ["operator", "customer", "vendor", "nhachinh", "nguoituyen", "noihopdong"]
     readonly_fields = ("created_at", "updated_at")

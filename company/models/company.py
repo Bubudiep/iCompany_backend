@@ -242,24 +242,6 @@ class CompanyCustomer(models.Model):
     def __str__(self):
         return f"{self.name}"
     
-class CompanySupplier(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    name = models.CharField(max_length=200, null=True, blank=True)
-    fullname = models.CharField(max_length=200, null=True, blank=True)
-    address = models.CharField(max_length=200, null=True, blank=True)
-    email = models.CharField(max_length=200, null=True, blank=True)
-    hotline = models.CharField(max_length=200, null=True, blank=True)
-    website = models.CharField(max_length=200, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
-    class Meta:
-        ordering = ['-id']
-        unique_together = ('company', 'name')
-        verbose_name = "Company Suppliers"
-        verbose_name_plural = "Company Suppliers"
-    def __str__(self):
-        return f"{self.name}"
-    
 class CompanyVendor(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, null=True, blank=True)
@@ -304,9 +286,9 @@ class CompanyOperator(models.Model):
     ghichu= models.CharField(max_length=200, null=True, blank=True)
     
     nguoituyen = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nguoituyen")
-    nhacungcap = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True)
+    vendor = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_vendor")
     congty_danglam = models.ForeignKey(CompanyCustomer, on_delete=models.SET_NULL, null=True, blank=True)
-    nhachinh = models.ForeignKey(CompanySupplier, on_delete=models.SET_NULL, null=True, blank=True)
+    nhachinh = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nhachinh")
     nguoibaocao = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nguoibaocao")
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -338,8 +320,8 @@ class OperatorUpdateHistory(models.Model):
 class OperatorWorkHistory(models.Model):
     operator = models.ForeignKey(CompanyOperator, on_delete=models.CASCADE , related_name="work_histories")
     customer = models.ForeignKey(CompanyCustomer, on_delete=models.CASCADE, related_name="operator_histories")
-    vendor = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True, related_name="operator_histories")
-    supplier = models.ForeignKey(CompanySupplier, on_delete=models.SET_NULL, null=True, blank=True, related_name="operator_histories")
+    vendor = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True, related_name="operator_vendor")
+    nhachinh = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True, related_name="operator_nhachinh")
     nguoituyen = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyHIS_nguoituyen")
     so_cccd= models.CharField(max_length=200, null=True, blank=True)
     anh_cccd_front= models.TextField(null=True, blank=True)
