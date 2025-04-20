@@ -15,6 +15,9 @@ def handle_transaction_save(sender, instance, created, **kwargs):
         chat_date,_ = ChatDate.objects.get_or_create(room=instance.room, date=now().date())
         chat_date.total_messages = F('total_messages') + 1
         chat_date.save(update_fields=['total_messages'])
+        qs_status,_=AppChatStatus.objects.get_or_create(room=instance.room,user=instance.sender)
+        qs_status.last_read_at=now()
+        qs_status.save()
         if instance.socket_sended==False:
             instance.socket_sended=True
             instance.save(update_fields=['socket_sended'])

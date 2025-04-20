@@ -20,6 +20,7 @@ class LoginOAuth2APIView(APIView):
             key = request.headers.get('ApplicationKey')
             token = generate_token()
             application = Application.objects.get(client_id='48MghDAMhSXJoPZKwQ7BZoRVIjQJLowv7QFrtT08')
+            #OfCTXBjo9mUmvzurHSZaQa52lQLfZ8Qu5XPDbKnR4h1vNQEIEQDGiCu4iH5QrGGiMYLjevnCr2X3sF3jvk8jhn59eQaTCv7GAArEL1CMz45OwR9CZRMvBKwr4nU0iNh7
             company_instance=Company.objects.get(key=key)
             user=CompanyUser.objects.get(username=username,company=company_instance )
             if check_password(password, user.password)==False:
@@ -75,7 +76,7 @@ class GetUserAPIView(APIView):
                 qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
                 qs_profile=None
                 try:
-                    qs_profile=CompanyStaffProfile.objects.get(staff=qs_staff)
+                    qs_profile,_=CompanyStaffProfile.objects.get_or_create(staff=qs_staff)
                 except:
                     pass
                 chat_not_read=0

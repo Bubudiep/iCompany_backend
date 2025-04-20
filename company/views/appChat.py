@@ -172,6 +172,9 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
                 message=f"Ghim tin nhắn [{qs_message.id}]",
                 isAction=True
             )
+            qs_status,_=AppChatStatus.objects.get_or_create(room=room,user=qs_staff)
+            qs_status.last_read_at=now()
+            qs_status.save()
             return Response(
                 AppChatRoomSerializer(room).data,
                 status=status.HTTP_200_OK

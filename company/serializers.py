@@ -64,7 +64,7 @@ class CompanyStaffSerializer(serializers.ModelSerializer):
             qs_profile=CompanyStaffProfile.objects.get(staff=staff)
             return CompanyStaffProfileSerializer(qs_profile).data
         except Exception as e:
-            return {}
+            return None
     class Meta:
         model = CompanyStaff
         fields = ['id','cardID','username','profile','isActive','isSuperAdmin','isAdmin','isBan',
