@@ -110,6 +110,54 @@ class CompanyVendorViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'patch', 'post']
     pagination_class = StandardResultsSetPagination
     
+    @action(detail=False, methods=['get'], url_path='download_template')
+    def download_template(self, request):
+        df = pd.DataFrame(columns=["name", "fullname", "email", "hotline", "address", "website"])
+        output = BytesIO()
+        df.to_excel(output, index=False, engine='openpyxl')
+        output.seek(0)
+
+        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="vendor_template.xlsx"'
+        return response
+    
+    @action(detail=False, methods=['post'], url_path='upload_excel')
+    def upload_excel(self, request):
+        excel_file = request.FILES.get("file")
+        if not excel_file:
+            return Response({"error": "No file uploaded."}, status=400)
+        try:
+            df = pd.read_excel(excel_file)
+        except Exception as e:
+            return Response({"error": f"Invalid Excel file: {str(e)}"}, status=400)
+        required_columns = ['name', 'fullname', 'email', 'hotline', 'address', 'website']
+        for col in required_columns:
+            if col not in df.columns:
+                return Response({"error": f"Missing column: {col}"}, status=400)
+        key = request.headers.get('ApplicationKey')
+        user = request.user
+        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        created_count = 0
+        for _, row in df.iterrows():
+            if pd.isna(row["name"]):
+                continue
+            vendor_data = {
+                "company": qs_staff.company,
+                "name": row["name"],
+                "fullname": row.get("fullname", ""),
+                "email": row.get("email", ""),
+                "hotline": row.get("hotline", ""),
+                "address": row.get("address", ""),
+                "website": row.get("website", ""),
+            }
+            CompanyVendor.objects.update_or_create(
+                company=qs_staff.company,
+                name=row["name"],
+                defaults=vendor_data
+            )
+            created_count += 1
+        return Response({"message": f"Imported {created_count} vendors."}, status=200)
+    
     def perform_create(self, serializer):
         key = self.request.headers.get('ApplicationKey')
         user = self.request.user

@@ -2,8 +2,8 @@ from decouple import config
 from corsheaders.defaults import default_headers
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-f96g36n*i_8vzq5675q&i9cgny-wfj_8f4bbs0e=*ksktt@a6n'
-DEBUG = True
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('WORK_MODE')
 INSTALLED_APPS = [
     'django_filters',
     'company',
@@ -35,9 +35,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'core.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -65,12 +63,6 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'ApplicationKey',
     'Companykey',
 ]
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -95,26 +87,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = 'static/'
-GOOGLE_API_KEY="AIzaSyC8bYYJI3GQ6r0CO4IEW4Rt1z0xmfJJxAs"
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
+GOOGLE_API_KEY= config('GOOGLE_API_KEY')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

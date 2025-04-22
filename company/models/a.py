@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from datetime import time
 import uuid
+from decouple import config
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
 import random
@@ -35,11 +36,10 @@ def disconnect():
 # Kiểm tra kết nối trước khi kết nối
 def check_connection():
     try:
-        sio.connect('https://vieclamvp.vn/socket-io',
-        # sio.connect('http://10.100.1.10/socket',
-        # sio.connect('http://localhost:5000',
+        print(f"Kết nối tới {config('SOCKET')}")
+        sio.connect(config('SOCKET'),
             headers={
-                'applicationkey': '@OAIIA3UHUIE21vczx@faWOOCS)=123SAF'
+                'applicationkey': config('SOCKET_KEY')
             })
         # Chờ một chút để xem kết nối có thành công không
         time_module.sleep(2)  # Chờ 2 giây
@@ -58,8 +58,6 @@ def connect_with_retry():
     while not check_connection():
         print("⏳ Đang thử kết nối lại...")
         time_module.sleep(5)  # Chờ 5 giây trước khi thử lại
-
-    print("Kết nối thành công sau khi thử lại!")
 
 # Gọi hàm kết nối với retry
 connect_with_retry()
