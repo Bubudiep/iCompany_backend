@@ -1,22 +1,52 @@
 from rest_framework import serializers
 from .models import *
 
-class CompanySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Company
-        fields = ['companyType','avatar','name','fullname','address',
-        'addressDetails','hotline','isValidate','isOA','wallpaper',
-        'shortDescription','description','created_at']
-
-class CompanyDepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CompanyDepartment
-        fields = '__all__'
 
 class CompanyPossitionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyPossition
         fields = '__all__'
+        read_only_fields = ['company']
+        
+class CompanyPossitionDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyPossition
+        fields = '__all__'
+        read_only_fields = ['company']
+        
+class CompanyDepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyDepartment
+        fields = '__all__'
+        read_only_fields = ['company']
+        
+class CompanyDepartmentDetailsSerializer(serializers.ModelSerializer):
+    Possition = serializers.SerializerMethodField(read_only=True)
+    def get_Possition(self,dept):
+        try:
+            allPossition=CompanyPossition.objects.filter(company=dept.company,department=dept)
+            return CompanyPossitionDetailsSerializer(allPossition,many=True).data
+        except Exception as e:
+            return None
+    class Meta:
+        model = CompanyDepartment
+        fields = '__all__'
+        read_only_fields = ['company']
+        
+class CompanySerializer(serializers.ModelSerializer):
+    Department = serializers.SerializerMethodField(read_only=True)
+    def get_Department(self,company):
+        try:
+            allDepartment=CompanyDepartment.objects.filter(company=company)
+            return CompanyDepartmentDetailsSerializer(allDepartment,many=True).data
+        except Exception as e:
+            return None
+    class Meta:
+        model = Company
+        fields = ['companyType','avatar','name','fullname','address','Department',
+        'addressDetails','hotline','isValidate','isOA','wallpaper',
+        'shortDescription','description','created_at']
+
         
 class CompanyUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
