@@ -146,6 +146,7 @@ class CompanyStaff(models.Model):
     isActive = models.BooleanField(default=False, null=True, blank=True) # nghỉ việc
     isSuperAdmin = models.BooleanField(default=False, null=True, blank=True)
     isAdmin = models.BooleanField(default=False, null=True, blank=True)
+    isSystem = models.BooleanField(default=False, null=True, blank=True)
     isBan = models.BooleanField(default=False, null=True, blank=True) # bị ban
     isOnline = models.BooleanField(default=False, null=True, blank=True) # online trên app
     isValidate = models.BooleanField(default=False, null=True, blank=True) # được phê duyệt
