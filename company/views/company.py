@@ -33,9 +33,7 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
         return Response({"detail": "Bạn không được phép tạo tài khoản mới"}, status=status.HTTP_403_FORBIDDEN)
 
     def get_queryset(self):
-        key = self.request.headers.get('ApplicationKey')
-        user = self.request.user
-        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        qs_staff=update_lastcheck(self,'Account')
         return CompanyStaff.objects.filter(company__key=qs_staff.company.key)
         
     def partial_update(self, request, *args, **kwargs):
@@ -60,9 +58,7 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
               return Response({"detail": "Mã nhân viên đã tồn tại!"}, status=status.HTTP_403_FORBIDDEN)
         return super().partial_update(request, *args, **kwargs)
     def list(self, request, *args, **kwargs):
-        user = self.request.user
-        key = self.request.headers.get('ApplicationKey')
-        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        qs_staff=update_lastcheck(self,'Account')
         if qs_staff.isAdmin==False:
           return Response({"detail":"Bạn không có quyền truy cập"},status=status.HTTP_400_BAD_REQUEST)
         queryset = self.get_queryset()
@@ -86,9 +82,7 @@ class CompanyCustomerViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
     
     def get_queryset(self):
-        key = self.request.headers.get('ApplicationKey')
-        user = self.request.user
-        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        qs_staff=update_lastcheck(self,'Customer')
         return CompanyCustomer.objects.filter(company__key=qs_staff.company.key)
         
     def list(self, request, *args, **kwargs):
@@ -117,9 +111,7 @@ class CompanyVendorViewSet(viewsets.ModelViewSet):
         serializer.save(company=qs_staff.company)
 
     def get_queryset(self):
-        key = self.request.headers.get('ApplicationKey')
-        user = self.request.user
-        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        qs_staff=update_lastcheck(self,'Vendor')
         return CompanyVendor.objects.filter(company__key=qs_staff.company.key)
         
     def list(self, request, *args, **kwargs):
@@ -148,9 +140,7 @@ class CompanyCustomerViewSet(viewsets.ModelViewSet):
         serializer.save(company=qs_staff.company)
 
     def get_queryset(self):
-        key = self.request.headers.get('ApplicationKey')
-        user = self.request.user
-        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        qs_staff=update_lastcheck(self,'Customer')
         return CompanyCustomer.objects.filter(company__key=qs_staff.company.key)
         
     def list(self, request, *args, **kwargs):
@@ -199,9 +189,7 @@ class CompanyDepartmentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     def get_queryset(self):
-        key = self.request.headers.get('ApplicationKey')
-        user = self.request.user
-        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        qs_staff=update_lastcheck(self,'Department')
         return CompanyDepartment.objects.filter(company__key=qs_staff.company.key)
         
     def list(self, request, *args, **kwargs):
@@ -250,9 +238,7 @@ class CompanyPossitionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     def get_queryset(self):
-        key = self.request.headers.get('ApplicationKey')
-        user = self.request.user
-        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        qs_staff=update_lastcheck(self,"Possition")
         return CompanyPossition.objects.filter(company__key=qs_staff.company.key)
         
     def list(self, request, *args, **kwargs):

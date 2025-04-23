@@ -2,6 +2,7 @@ from django.db import models, IntegrityError
 from django.utils import timezone
 from django.contrib.auth.models import User
 from datetime import time
+from rest_framework import exceptions
 import uuid
 from decouple import config
 from django.core.exceptions import ValidationError

@@ -26,7 +26,7 @@ class UserProfile(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True)
     gender = models.CharField(max_length=10, choices=[('male', 'Nam'), ('female', 'Nữ')], blank=True)
     avatar = models.URLField(blank=True, null=True)
-    avatar_base64 = models.TextField(blank=True, null=True)  # <--- thêm dòng này
+    avatar_base64 = models.TextField(blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -49,6 +49,11 @@ class LoginOAuth2APIView(APIView):
             access_token.refresh_token = refresh_token_instance
             access_token.save()
             staff=CompanyStaff.objects.get(user=user)
+            LastCheckAPI.objects.update_or_create(
+                function_name='Login',
+                user=staff,
+                defaults={'last_read_at': datetime.now()}
+            )
             return Response({
                 'access_token': token,
                 'refresh_token': refresh_token_instance.token,
@@ -93,7 +98,7 @@ class GetUserAPIView(APIView):
                     else:
                         qs_not_read=ChatMessage.objects.filter(room=qs_chatroom)
                         chat_not_read+=qs_not_read.count()
-                        
+                last_check=LastCheckAPI.objects.filter(user=qs_staff)
                 return Response({
                     'id': qs_staff.id,
                     'info': CompanyStaffSerializer(qs_staff).data,
@@ -108,7 +113,8 @@ class GetUserAPIView(APIView):
                         'alert_not_read': alert_not_read,
                         'update_not_read': update_not_read,
                         'approve_not_read': approve_not_read,
-                        'member_updated_not_check': member_updated_not_check
+                        'member_updated_not_check': member_updated_not_check,
+                        'last_check':LastCheckAPISerializer(last_check,many=True).data
                     }
                 }, status=status.HTTP_200_OK)
             except CompanyStaff.DoesNotExist:

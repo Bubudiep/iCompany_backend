@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from .models import *
 
+class LastCheckAPISerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LastCheckAPI
+        fields = '__all__'
 
 class CompanyPossitionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,8 +36,35 @@ class CompanyDepartmentDetailsSerializer(serializers.ModelSerializer):
         model = CompanyDepartment
         fields = '__all__'
         read_only_fields = ['company']
+      
+class CompanyCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =CompanyCustomer
+        fields = '__all__'
+        read_only_fields = ['company']
         
+class CompanyVendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =CompanyVendor
+        fields = '__all__'
+        read_only_fields = ['company']
+          
 class CompanySerializer(serializers.ModelSerializer):
+    Department = serializers.SerializerMethodField(read_only=True)
+    Customer = serializers.SerializerMethodField(read_only=True)
+    Vendor = serializers.SerializerMethodField(read_only=True)
+    def get_Vendor(self,company):
+        try:
+            allVendor=CompanyVendor.objects.filter(company=company)
+            return CompanyVendorSerializer(allVendor,many=True).data
+        except Exception as e:
+            return None
+    def get_Customer(self,company):
+        try:
+            allCustomer=CompanyCustomer.objects.filter(company=company)
+            return CompanyCustomerSerializer(allCustomer,many=True).data
+        except Exception as e:
+            return None
     Department = serializers.SerializerMethodField(read_only=True)
     def get_Department(self,company):
         try:
@@ -43,9 +74,10 @@ class CompanySerializer(serializers.ModelSerializer):
             return None
     class Meta:
         model = Company
-        fields = ['companyType','avatar','name','fullname','address','Department',
-        'addressDetails','hotline','isValidate','isOA','wallpaper',
-        'shortDescription','description','created_at']
+        fields = ['companyType','avatar','name','fullname','address',
+            'Department','Customer','Vendor',
+            'addressDetails','hotline','isValidate','isOA','wallpaper',
+            'shortDescription','description','created_at']
 
         
 class CompanyUserSerializer(serializers.ModelSerializer):
@@ -299,18 +331,6 @@ class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = OperatorUpdateHistory
         fields = '__all__'
-        
-class CompanyCustomerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model =CompanyCustomer
-        fields = '__all__'
-        read_only_fields = ['company']
-        
-class CompanyVendorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model =CompanyVendor
-        fields = '__all__'
-        read_only_fields = ['company']
         
 class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
     company = serializers.PrimaryKeyRelatedField(read_only=True)

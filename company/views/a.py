@@ -38,6 +38,20 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 200  # Số lượng đối tượng tối đa trên mỗi trang
 
+def update_lastcheck(self, function_name="Accounts"):
+    user = self.request.user
+    key = self.request.headers.get('ApplicationKey')
+    try:
+        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+    except CompanyStaff.DoesNotExist:
+        raise exceptions.PermissionDenied("Không tìm thấy nhân sự tương ứng")
+    LastCheckAPI.objects.update_or_create(
+        function_name=function_name,
+        user=qs_staff,
+        defaults={'last_read_at': datetime.now()}
+    )
+    return qs_staff
+
 def check_permission(user_a, permission_name, permission_action):
     """
     Kiểm tra xem user_a có quyền cụ thể không.
