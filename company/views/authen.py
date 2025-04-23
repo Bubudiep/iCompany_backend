@@ -102,12 +102,8 @@ class GetUserAPIView(APIView):
                 return Response({
                     'id': qs_staff.id,
                     'info': CompanyStaffSerializer(qs_staff).data,
-                    'staff': CompanyStaffSerializer(
-                        CompanyStaff.objects.filter(company__key=key,isActive=True,isBan=False
-                        ),many=True
-                    ).data,
                     'company': CompanySerializer(qs_staff.company).data,
-                    'app_list': [],
+                    'chatbox': AppChatRoomSerializer(AppChatRoom.objects.filter(members=qs_staff),many=True).data,
                     'app_config': {
                         'chat_not_read': chat_not_read,
                         'alert_not_read': alert_not_read,

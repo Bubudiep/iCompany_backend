@@ -1,6 +1,33 @@
 from rest_framework import serializers
 from .models import *
 
+class CompanyStaffProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    class Meta:
+        model = CompanyStaffProfile
+        fields = [
+            'id', 'username', 'email', 'full_name', 'phone', 'gender',
+            'avatar', 'avatar_base64', 'date_of_birth', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+        
+class CompanyStaffSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    profile = serializers.SerializerMethodField(read_only=True)
+    department_name = serializers.CharField(source='department.name',allow_null=True, read_only=True)
+    possition_name = serializers.CharField(source='possition.name',allow_null=True, read_only=True)
+    def get_profile(self,staff):
+        try:
+            qs_profile=CompanyStaffProfile.objects.get(staff=staff)
+            return CompanyStaffProfileSerializer(qs_profile).data
+        except Exception as e:
+            return None
+    class Meta:
+        model = CompanyStaff
+        fields = ['id','cardID','username','profile','isActive','isSuperAdmin','isAdmin','isBan',
+                  'possition_name','department_name','socket_id','created_at','updated_at']
+        
 class LastCheckAPISerializer(serializers.ModelSerializer):
     class Meta:
         model = LastCheckAPI
@@ -53,6 +80,13 @@ class CompanySerializer(serializers.ModelSerializer):
     Department = serializers.SerializerMethodField(read_only=True)
     Customer = serializers.SerializerMethodField(read_only=True)
     Vendor = serializers.SerializerMethodField(read_only=True)
+    Staff = serializers.SerializerMethodField(read_only=True)
+    def get_Staff(self,company):
+        try:
+            allStaff=CompanyStaff.objects.filter(company=company)
+            return CompanyStaffSerializer(allStaff,many=True).data
+        except Exception as e:
+            return None
     def get_Vendor(self,company):
         try:
             allVendor=CompanyVendor.objects.filter(company=company)
@@ -75,7 +109,7 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ['companyType','avatar','name','fullname','address',
-            'Department','Customer','Vendor',
+            'Department','Customer','Vendor','Staff',
             'addressDetails','hotline','isValidate','isOA','wallpaper',
             'shortDescription','description','created_at']
 
@@ -105,33 +139,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at']
  
-class CompanyStaffProfileSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
-    email = serializers.EmailField(source='user.email', read_only=True)
-    class Meta:
-        model = CompanyStaffProfile
-        fields = [
-            'id', 'username', 'email', 'full_name', 'phone', 'gender',
-            'avatar', 'avatar_base64', 'date_of_birth', 'created_at', 'updated_at'
-        ]
-        read_only_fields = ['created_at', 'updated_at']
-        
-class CompanyStaffSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
-    profile = serializers.SerializerMethodField(read_only=True)
-    department_name = serializers.CharField(source='department.name',allow_null=True, read_only=True)
-    possition_name = serializers.CharField(source='possition.name',allow_null=True, read_only=True)
-    def get_profile(self,staff):
-        try:
-            qs_profile=CompanyStaffProfile.objects.get(staff=staff)
-            return CompanyStaffProfileSerializer(qs_profile).data
-        except Exception as e:
-            return None
-    class Meta:
-        model = CompanyStaff
-        fields = ['id','cardID','username','profile','isActive','isSuperAdmin','isAdmin','isBan',
-                  'possition_name','department_name','socket_id','created_at','updated_at']
-        
 class CompanyStaffHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyStaffHistory

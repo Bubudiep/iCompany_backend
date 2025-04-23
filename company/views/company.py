@@ -63,6 +63,9 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
           return Response({"detail":"Bạn không có quyền truy cập"},status=status.HTTP_400_BAD_REQUEST)
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
+        last_update = self.request.query_params.get('last_update')
+        if last_update:
+            queryset=queryset.filter(updated_at__gt=last_update)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
@@ -88,6 +91,9 @@ class CompanyCustomerViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         page_size = self.request.query_params.get('page_size')
+        last_update = self.request.query_params.get('last_update')
+        if last_update:
+            queryset=queryset.filter(updated_at__gt=last_update)
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
         page = self.paginate_queryset(queryset)
@@ -116,6 +122,9 @@ class CompanyVendorViewSet(viewsets.ModelViewSet):
         
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        last_update = self.request.query_params.get('last_update')
+        if last_update:
+            queryset=queryset.filter(updated_at__gt=last_update)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
@@ -145,6 +154,9 @@ class CompanyCustomerViewSet(viewsets.ModelViewSet):
         
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        last_update = self.request.query_params.get('last_update')
+        if last_update:
+            queryset=queryset.filter(updated_at__gt=last_update)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
@@ -194,6 +206,9 @@ class CompanyDepartmentViewSet(viewsets.ModelViewSet):
         
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        last_update = self.request.query_params.get('last_update')
+        if last_update:
+            queryset=queryset.filter(updated_at__gt=last_update)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
@@ -243,6 +258,9 @@ class CompanyPossitionViewSet(viewsets.ModelViewSet):
         
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        last_update = self.request.query_params.get('last_update')
+        if last_update:
+            queryset=queryset.filter(updated_at__gt=last_update)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
