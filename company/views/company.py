@@ -110,54 +110,6 @@ class CompanyVendorViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'patch', 'post']
     pagination_class = StandardResultsSetPagination
     
-    @action(detail=False, methods=['get'], url_path='download_template')
-    def download_template(self, request):
-        df = pd.DataFrame(columns=["name", "fullname", "email", "hotline", "address", "website"])
-        output = BytesIO()
-        df.to_excel(output, index=False, engine='openpyxl')
-        output.seek(0)
-
-        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename="vendor_template.xlsx"'
-        return response
-    
-    @action(detail=False, methods=['post'], url_path='upload_excel')
-    def upload_excel(self, request):
-        excel_file = request.FILES.get("file")
-        if not excel_file:
-            return Response({"error": "No file uploaded."}, status=400)
-        try:
-            df = pd.read_excel(excel_file)
-        except Exception as e:
-            return Response({"error": f"Invalid Excel file: {str(e)}"}, status=400)
-        required_columns = ['name', 'fullname', 'email', 'hotline', 'address', 'website']
-        for col in required_columns:
-            if col not in df.columns:
-                return Response({"error": f"Missing column: {col}"}, status=400)
-        key = request.headers.get('ApplicationKey')
-        user = request.user
-        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
-        created_count = 0
-        for _, row in df.iterrows():
-            if pd.isna(row["name"]):
-                continue
-            vendor_data = {
-                "company": qs_staff.company,
-                "name": row["name"],
-                "fullname": row.get("fullname", ""),
-                "email": row.get("email", ""),
-                "hotline": row.get("hotline", ""),
-                "address": row.get("address", ""),
-                "website": row.get("website", ""),
-            }
-            CompanyVendor.objects.update_or_create(
-                company=qs_staff.company,
-                name=row["name"],
-                defaults=vendor_data
-            )
-            created_count += 1
-        return Response({"message": f"Imported {created_count} vendors."}, status=200)
-    
     def perform_create(self, serializer):
         key = self.request.headers.get('ApplicationKey')
         user = self.request.user
@@ -169,6 +121,139 @@ class CompanyVendorViewSet(viewsets.ModelViewSet):
         user = self.request.user
         qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
         return CompanyVendor.objects.filter(company__key=qs_staff.company.key)
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+class CompanyCustomerViewSet(viewsets.ModelViewSet):
+    queryset = CompanyCustomer.objects.all()
+    serializer_class = CompanyCustomerSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'patch', 'post']
+    pagination_class = StandardResultsSetPagination
+    
+    def perform_create(self, serializer):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        serializer.save(company=qs_staff.company)
+
+    def get_queryset(self):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        return CompanyCustomer.objects.filter(company__key=qs_staff.company.key)
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+class CompanyDepartmentViewSet(viewsets.ModelViewSet):
+    queryset = CompanyDepartment.objects.all()
+    serializer_class = CompanyDepartmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'patch', 'post']
+    pagination_class = StandardResultsSetPagination
+    
+    def perform_create(self, serializer):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        serializer.save(company=qs_staff.company)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = CompanyDepartmentDetailsSerializer(instance)
+        return Response(serializer.data)
+    
+    def partial_update(self, request, *args, **kwargs):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        try:
+            qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không tồn tại trong công ty này"}, status=status.HTTP_403_FORBIDDEN)
+
+        if not qs_staff.isSuperAdmin:
+            return Response({"detail": "Bạn không có quyền cập nhật thông tin này"}, status=status.HTTP_403_FORBIDDEN)
+        response = super().partial_update(request, *args, **kwargs)
+        instance = self.get_object()
+        serializer = CompanyDepartmentDetailsSerializer(instance, context={'request': request})
+        return Response(serializer.data)
+    
+    def get_queryset(self):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        return CompanyDepartment.objects.filter(company__key=qs_staff.company.key)
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+class CompanyPossitionViewSet(viewsets.ModelViewSet):
+    queryset = CompanyPossition.objects.all()
+    serializer_class = CompanyPossitionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'patch', 'post']
+    pagination_class = StandardResultsSetPagination
+    
+    def perform_create(self, serializer):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        serializer.save(company=qs_staff.company)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = CompanyPossitionDetailsSerializer(instance)
+        return Response(serializer.data)
+    
+    def partial_update(self, request, *args, **kwargs):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        try:
+            qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không tồn tại trong công ty này"}, status=status.HTTP_403_FORBIDDEN)
+
+        if not qs_staff.isSuperAdmin:
+            return Response({"detail": "Bạn không có quyền cập nhật thông tin này"}, status=status.HTTP_403_FORBIDDEN)
+        response = super().partial_update(request, *args, **kwargs)
+        instance = self.get_object()
+        serializer = CompanyPossitionDetailsSerializer(instance, context={'request': request})
+        return Response(serializer.data)
+    
+    def get_queryset(self):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        return CompanyPossition.objects.filter(company__key=qs_staff.company.key)
         
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()

@@ -173,6 +173,7 @@ class GetUserAPIView(APIView):
                         if possition:
                             qs_possition,_=CompanyPossition.objects.get_or_create(
                                 name=possition,
+                                department=qs_department,
                                 company=qs_user_company.company,
                                 isActive=True
                             )
