@@ -132,6 +132,7 @@ class GetUserAPIView(APIView):
             possition = request.data.get('possition')
             role = request.data.get('role')
             fullname = request.data.get('fullname')
+            birthday = request.data.get('birthday')
             isAdmin=False
             isSuper=False
             if role=="Admin":
@@ -188,6 +189,11 @@ class GetUserAPIView(APIView):
                                                         isSuperAdmin=isSuper,
                                                         created_by=qs_user_company,
                                                         isAdmin=isAdmin)
+                        profile=CompanyStaffProfile.objects.create(
+                            staff=staff,
+                            full_name=fullname if fullname else cardID,
+                            date_of_birth=birthday
+                        )
                         return Response(data=CompanyStaffDetailsSerializer(staff).data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(data={"detail":"Tên tài khoản này đã được sử dụng!"}, status=status.HTTP_400_BAD_REQUEST)

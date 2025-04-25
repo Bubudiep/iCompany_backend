@@ -4,7 +4,7 @@ from django.conf import settings
 from ..models import *
 from ..serializers import *
 from ..filters import *
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.utils.timezone import now
 from rest_framework import status
 from oauthlib.common import generate_token
@@ -30,6 +30,7 @@ from io import BytesIO
 from django.http import HttpResponse
 
 myzone = timezone('Asia/Ho_Chi_Minh')
+now = datetime.now(myzone)
 def generate_response_json(result:str, message:str, data:dict={}):
     return {"result": result, "message": message, "data": data}
   
@@ -48,7 +49,7 @@ def update_lastcheck(self, function_name="Accounts"):
     LastCheckAPI.objects.update_or_create(
         function_name=function_name,
         user=qs_staff,
-        defaults={'last_read_at': datetime.now()}
+        defaults={'last_read_at': now.astimezone(myzone)}
     )
     return qs_staff
 

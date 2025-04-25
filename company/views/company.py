@@ -53,9 +53,19 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
             if qs_staff.isAdmin:
               return Response({"detail": "Bạn không có quyền cập nhật thông tin nhân viên này"}, status=status.HTTP_403_FORBIDDEN)
         if request.data.get("cardID"):
-            qs_staff = CompanyStaff.objects.filter(cardID=request.data.get("cardID")).exclude(user__user=user)
-            if len(qs_staff):
+            qs_staff = CompanyStaff.objects.filter(cardID=request.data.get("cardID")).exclude(id=account.id)
+            if len(qs_staff)>0:
               return Response({"detail": "Mã nhân viên đã tồn tại!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        if request.data.get("department"):
+            qs_department,_=CompanyDepartment.objects.get_or_create(name=request.data.get("department"),company=qs_staff.company)
+            request.data["department"]=qs_department.id
+            if qs_department and request.data.get("position"):
+                qs_department.updated_at=now
+                qs_department.save()
+                qs_pos,_=CompanyPossition.objects.get_or_create(name=request.data.get("position"),department=qs_department,company=qs_staff.company)
+                print(f"{qs_pos}")
+                request.data["possition"]=qs_pos.id
         return super().partial_update(request, *args, **kwargs)
     def list(self, request, *args, **kwargs):
         qs_staff=update_lastcheck(self,'Account')
@@ -169,7 +179,7 @@ class CompanyCustomerViewSet(viewsets.ModelViewSet):
 
 class CompanyDepartmentViewSet(viewsets.ModelViewSet):
     queryset = CompanyDepartment.objects.all()
-    serializer_class = CompanyDepartmentSerializer
+    serializer_class = CompanyDepartmentDetailsSerializer
     permission_classes = [permissions.IsAuthenticated]
     http_method_names = ['get', 'patch', 'post']
     pagination_class = StandardResultsSetPagination

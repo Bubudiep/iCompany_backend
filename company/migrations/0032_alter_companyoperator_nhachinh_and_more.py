@@ -30,11 +30,6 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='companyOP_vendor', to='company.companyvendor'),
         ),
         migrations.AddField(
-            model_name='companystaff',
-            name='isSystem',
-            field=models.BooleanField(blank=True, default=False, null=True),
-        ),
-        migrations.AddField(
             model_name='operatorworkhistory',
             name='nhachinh',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='operator_nhachinh', to='company.companyvendor'),

@@ -23,10 +23,13 @@ class CompanyStaffSerializer(serializers.ModelSerializer):
             return CompanyStaffProfileSerializer(qs_profile).data
         except Exception as e:
             return None
+        
+    def update(self, instance, validated_data):
+        print(f"{validated_data}")
+        return super().update(instance, validated_data)
     class Meta:
         model = CompanyStaff
-        fields = ['id','cardID','username','profile','isActive','isSuperAdmin','isAdmin','isBan',
-                  'possition_name','department_name','socket_id','created_at','updated_at']
+        fields = '__all__'
         
 class LastCheckAPISerializer(serializers.ModelSerializer):
     class Meta:

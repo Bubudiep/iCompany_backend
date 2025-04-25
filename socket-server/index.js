@@ -60,7 +60,7 @@ io.on("connection", (socket) => {
       staff__id: user?.data?.id,
     });
     socket.join(`user_${user?.ApplicationKey}`);
-    socket.to(`user_${user?.ApplicationKey}`).emit("message", {
+    socket.to(`user_${user?.ApplicationKey}`).emit("online_users", {
       type: "userEvent",
       action: "connect",
       data: {
@@ -68,7 +68,6 @@ io.on("connection", (socket) => {
         user: user?.data.info,
       },
     });
-    io.emit("online_users", connected_list[user?.ApplicationKey]);
   }
   socket.on("message", (msg_data) => {
     if (user?.ApplicationKey) {
@@ -127,7 +126,7 @@ io.on("connection", (socket) => {
       connected_list[user?.ApplicationKey] = connected_list[
         user?.ApplicationKey
       ].filter((user) => user.id !== socket.id);
-      socket.to(`user_${user?.ApplicationKey}`).emit("message", {
+      socket.to(`user_${user?.ApplicationKey}`).emit("online_users", {
         type: "userEvent",
         action: "dissconnect",
         data: {
