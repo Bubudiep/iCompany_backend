@@ -29,7 +29,7 @@ class LoginOAuth2APIView(APIView):
                 user=user.user,
                 token=token,
                 application=application,
-                expires=now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS),
+                expires=datetime.now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS),
                 scope='read write'
             )
             refresh_token_instance = RefreshToken.objects.create(
