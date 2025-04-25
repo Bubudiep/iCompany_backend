@@ -79,11 +79,7 @@ class GetUserAPIView(APIView):
             user=request.user
             try:
                 qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
-                qs_profile=None
-                try:
-                    qs_profile,_=CompanyStaffProfile.objects.get_or_create(staff=qs_staff)
-                except:
-                    pass
+                qs_profile,_=CompanyStaffProfile.objects.get_or_create(staff=qs_staff)
                 chat_not_read=0
                 alert_not_read=0
                 update_not_read=0
