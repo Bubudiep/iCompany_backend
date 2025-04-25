@@ -88,7 +88,7 @@ class GetUserAPIView(APIView):
                 qs_user_chatroom=AppChatRoom.objects.filter(members=qs_staff)
                 for qs_chatroom in qs_user_chatroom:
                     qs_last_read=AppChatStatus.objects.filter(room=qs_chatroom,user=qs_staff).first()
-                    if qs_last_read:
+                    if qs_last_read and qs_last_read.last_read_at:
                         qs_not_read=ChatMessage.objects.filter(room=qs_chatroom,created_at__gt=qs_last_read.last_read_at)
                         chat_not_read+=qs_not_read.count()
                     else:
@@ -112,6 +112,12 @@ class GetUserAPIView(APIView):
             except CompanyStaff.DoesNotExist:
                 return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+                print(f"{res_data}")
                 return Response({'detail': f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
