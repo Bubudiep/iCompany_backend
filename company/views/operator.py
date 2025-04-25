@@ -82,7 +82,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def dilam(self, request, pk=None):
-        startDate = request.data.get('startDate',now())
+        startDate = request.data.get('startDate',datetime.now())
         employeeCode = request.data.get('employeeCode',None)
         company = request.data.get('company',None)
         cccd_truoc = request.data.get('cccd_truoc',None)
@@ -182,7 +182,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         user=request.user
         key = self.request.headers.get('ApplicationKey')
         qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
-        ngaynghi = request.data.get('ngayNghi',now())
+        ngaynghi = request.data.get('ngayNghi',datetime.now())
         lyDo = request.data.get('lyDo',None)
         try:
             # xóa cty đang làm, cập nhập lịch sử làm việc tại công ty đang làm

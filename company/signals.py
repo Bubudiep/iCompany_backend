@@ -9,14 +9,14 @@ _thread_locals = threading.local()
 def handle_transaction_save(sender, instance, created, **kwargs):
     if created:
         # Cập nhật thời gian cuối có tin nhắn cho phòng chat
-        instance.room.last_have_message_at = now()
+        instance.room.last_have_message_at = datetime.now()
         instance.room.save(update_fields=['last_have_message_at'])
         # Cập nhật hoặc tạo mới bản ghi ChatDate
-        chat_date,_ = ChatDate.objects.get_or_create(room=instance.room, date=now().date())
+        chat_date,_ = ChatDate.objects.get_or_create(room=instance.room, date=datetime.now().date())
         chat_date.total_messages = F('total_messages') + 1
         chat_date.save(update_fields=['total_messages'])
         qs_status,_=AppChatStatus.objects.get_or_create(room=instance.room,user=instance.sender)
-        qs_status.last_read_at=now()
+        qs_status.last_read_at=datetime.now()
         qs_status.save()
         if instance.socket_sended==False:
             instance.socket_sended=True
