@@ -135,6 +135,7 @@ class GetUserAPIView(APIView):
             role = request.data.get('role')
             fullname = request.data.get('fullname')
             birthday = request.data.get('birthday')
+            managerCustomer = request.data.get('managerCustomer')
             isAdmin=False
             isSuper=False
             if role=="Admin":
@@ -191,6 +192,11 @@ class GetUserAPIView(APIView):
                                                         isSuperAdmin=isSuper,
                                                         created_by=qs_user_company,
                                                         isAdmin=isAdmin)
+                        if managerCustomer:
+                            for cus in managerCustomer:
+                                qs_cus=CompanyCustomer.objects.get(id=cus)
+                                staff.managerCustomer.add(qs_cus)
+                                staff.save()
                         profile=CompanyStaffProfile.objects.create(
                             staff=staff,
                             full_name=fullname if fullname else cardID,

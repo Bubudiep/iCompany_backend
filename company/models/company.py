@@ -150,6 +150,7 @@ class CompanyStaff(models.Model):
     isBan = models.BooleanField(default=False, null=True, blank=True) # bị ban
     isOnline = models.BooleanField(default=False, null=True, blank=True) # online trên app
     isValidate = models.BooleanField(default=False, null=True, blank=True) # được phê duyệt
+    managerCustomer=models.ManyToManyField('CompanyCustomer',blank=True)
     socket_id = models.CharField(max_length=200, null=True, blank=True)
     created_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -160,7 +161,8 @@ class CompanyStaff(models.Model):
         verbose_name = "Company Staff"
         verbose_name_plural = "Company Staff"
     def __str__(self):
-        return f"{self.cardID}_{self.user.username}_{self.company}"
+        username = self.user.username if self.user else "NoUser"
+        return f"{self.cardID}_{username}_{self.company}"
     
 class CompanyStaffProfile(models.Model):
     staff = models.OneToOneField(CompanyStaff, on_delete=models.CASCADE, related_name='profile')

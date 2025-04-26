@@ -119,7 +119,7 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
             for member in members:
                 room.members.add(member)
             room.save()
-            return Response(AppChatRoomDetailSerializer(room, context=self.get_serializer_context()).data,
+            return Response(dat,
                             status=status.HTTP_201_CREATED)
         else:
             return Response({"detail":"Thiếu thành viên trong nhóm hoặc tên nhóm"},status=status.HTTP_400_BAD_REQUEST)
@@ -140,14 +140,16 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
                 )
             qs_message.ghim_by=None
             qs_message.save()
-            ChatMessage.objects.create(
+            ghim=ChatMessage.objects.create(
                 room=room,
                 sender=qs_from,
                 message=f"Bỏ ghim tin nhắn [{qs_message.id}]",
                 isAction=True
             )
-            return Response(
-                AppChatRoomSerializer(room).data,
+            return Response({
+                    'room':AppChatRoomSerializer(room).data,
+                    'message':ChatMessageSerializer(ghim).data
+                },
                 status=status.HTTP_200_OK
             )
     @action(detail=True, methods=['post'])
@@ -166,14 +168,16 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
                 )
             qs_message.ghim_by=qs_from
             qs_message.save()
-            ChatMessage.objects.create(
+            ghim=ChatMessage.objects.create(
                 room=room,
                 sender=qs_from,
                 message=f"Ghim tin nhắn [{qs_message.id}]",
                 isAction=True
             )
-            return Response(
-                AppChatRoomSerializer(room).data,
+            return Response({
+                'room':AppChatRoomSerializer(room).data,
+                'message':ChatMessageSerializer(ghim).data
+                },
                 status=status.HTTP_200_OK
             )
         

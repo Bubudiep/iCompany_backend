@@ -249,7 +249,7 @@ class CompanyStaffDetailsSerializer(serializers.ModelSerializer):
         model = CompanyStaff
         fields = [
             'id','cardID','username',
-            'company','user','department',
+            'company','user','department','managerCustomer',
             'possition','isSuperAdmin','isActive','isAdmin',
             'isOnline','isValidate','socket_id','profile',
             'created_at','department_name','possition_name'

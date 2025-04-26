@@ -52,15 +52,25 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
   const user = socket.user;
   if (user?.ApplicationKey && user?.data?.info) {
-    if (!connected_list[user?.ApplicationKey])
-      connected_list[user?.ApplicationKey] = [];
-    connected_list[user?.ApplicationKey].push({
-      id: socket.id,
-      user: user?.data.info,
-      staff__id: user?.data?.id,
+    const appKey = user.ApplicationKey;
+    if (!connected_list[appKey]) connected_list[appKey] = [];
+    // Thêm user vào danh sách nếu chưa có
+    const alreadyExists = connected_list[appKey].some(
+      (s) => s.id === socket.id
+    );
+    if (!alreadyExists) {
+      connected_list[appKey].push({
+        id: socket.id,
+        user: user.data.info,
+      });
+    }
+    socket.join(`user_${appKey}`);
+    socket.emit("online_users", {
+      type: "userEvent",
+      action: "all_users",
+      data: connected_list[appKey],
     });
-    socket.join(`user_${user?.ApplicationKey}`);
-    socket.to(`user_${user?.ApplicationKey}`).emit("online_users", {
+    socket.to(`user_${appKey}`).emit("online_users", {
       type: "userEvent",
       action: "connect",
       data: {
