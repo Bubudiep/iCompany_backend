@@ -117,7 +117,7 @@ io.on("connection", (socket) => {
           const online = connected_list[data.key].find(
             (user) => user?.id === to[i].id
           );
-          console.log(to);
+          console.log(connected_list[data.key]);
           if (online) {
             socket.to(online.id).emit("message", {
               type: "message",
