@@ -114,21 +114,17 @@ io.on("connection", (socket) => {
       // Kiểm tra người dùng có online không
       if (connected_list[data.key]) {
         for (let i = 0; i < to.length; i++) {
-          const online = connected_list[data.key].find(
+          const onlines = connected_list[data.key].filter(
             (user) => user?.user?.id === to[i].id
           );
-          console.log(connected_list[data.key]);
-          if (online) {
+          onlines.map((online) => {
             socket.to(online.id).emit("message", {
               type: "message",
               user: user?.data?.profile,
               data: data?.data,
             });
-            console.log("List user:", connected_list[data.key]);
-            console.log("Sended to:", online?.user?.profile?.username);
-          } else {
-            console.log("Người dùng offline!");
-          }
+            console.log("Sended to:", online?.user?.id);
+          });
         }
       }
     }
