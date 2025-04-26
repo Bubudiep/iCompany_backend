@@ -43,7 +43,8 @@ io.use(async (socket, next) => {
       };
       return next();
     } catch (e) {
-      console.log(e);
+      console.log(clientKey, clientToken);
+      return new Error("Unauthorized: Invalid key or token");
     }
   } else {
     return new Error("Unauthorized: Invalid key or token");
