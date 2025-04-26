@@ -64,13 +64,13 @@ io.on("connection", (socket) => {
         user: user.data.info,
       });
     }
-    socket.join(`user_${appKey}`);
+    socket.join(appKey);
     socket.emit("online_users", {
       type: "userEvent",
       action: "all_users",
       data: connected_list[appKey],
     });
-    socket.to(`user_${appKey}`).emit("online_users", {
+    socket.to(appKey).emit("online_users", {
       type: "userEvent",
       action: "connect",
       data: {
