@@ -1,5 +1,6 @@
 from django.db import models, IntegrityError
 from django.utils import timezone
+from django.utils.timezone import now
 from django.contrib.auth.models import User
 from datetime import time
 from rest_framework import exceptions

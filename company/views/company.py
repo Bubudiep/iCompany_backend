@@ -60,10 +60,10 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
         if request.data.get("department"):
             qs_department,_=CompanyDepartment.objects.get_or_create(name=request.data.get("department"),company=qs_staff.company)
             request.data["department"]=qs_department.id
-            if qs_department and request.data.get("position"):
+            if qs_department and request.data.get("possition"):
                 qs_department.updated_at=now
                 qs_department.save()
-                qs_pos,_=CompanyPossition.objects.get_or_create(name=request.data.get("position"),department=qs_department,company=qs_staff.company)
+                qs_pos,_=CompanyPossition.objects.get_or_create(name=request.data.get("possition"),department=qs_department,company=qs_staff.company)
                 print(f"{qs_pos}")
                 request.data["possition"]=qs_pos.id
         return super().partial_update(request, *args, **kwargs)

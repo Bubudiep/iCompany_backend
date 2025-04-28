@@ -29,7 +29,7 @@ class LoginOAuth2APIView(APIView):
                 user=user.user,
                 token=token,
                 application=application,
-                expires=datetime.now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS),
+                expires=now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS),
                 scope='read write'
             )
             refresh_token_instance = RefreshToken.objects.create(
@@ -52,7 +52,7 @@ class LoginOAuth2APIView(APIView):
             LastCheckAPI.objects.update_or_create(
                 function_name='Login',
                 user=staff,
-                defaults={'last_read_at': datetime.now()}
+                defaults={'last_read_at': now()}
             )
             return Response({
                 'access_token': token,

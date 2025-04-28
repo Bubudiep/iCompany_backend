@@ -82,7 +82,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def dilam(self, request, pk=None):
-        startDate = request.data.get('startDate',datetime.now())
+        startDate = request.data.get('startDate',now())
         employeeCode = request.data.get('employeeCode',None)
         company = request.data.get('company',None)
         cccd_truoc = request.data.get('cccd_truoc',None)
@@ -132,7 +132,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             soTien = request.data.get('soTien',None)
             lyDo = request.data.get('lyDo',None)
             qs_staff=CompanyStaff.objects.get(user__user=user,company=qs_com)
-            ngayUng = request.data.get('ngayUng',datetime.now().date())
+            ngayUng = request.data.get('ngayUng',now().date())
             if not soTien:
                 return Response({"error": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baoung, _ = AdvanceType.objects.get_or_create(
@@ -182,7 +182,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         user=request.user
         key = self.request.headers.get('ApplicationKey')
         qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
-        ngaynghi = request.data.get('ngayNghi',datetime.now())
+        ngaynghi = request.data.get('ngayNghi',now())
         lyDo = request.data.get('lyDo',None)
         try:
             # xóa cty đang làm, cập nhập lịch sử làm việc tại công ty đang làm

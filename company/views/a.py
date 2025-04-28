@@ -5,7 +5,6 @@ from ..models import *
 from ..serializers import *
 from ..filters import *
 from datetime import timedelta, datetime
-from django.utils.timezone import now
 from rest_framework import status
 from oauthlib.common import generate_token
 from django.contrib.auth.hashers import check_password
@@ -21,7 +20,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from django.db.models import Q,F
 from rest_framework.decorators import action
-from pytz import timezone
 from django.db import transaction
 from django.utils.crypto import get_random_string
 import pandas as pd
@@ -29,8 +27,6 @@ from rest_framework.parsers import MultiPartParser
 from io import BytesIO
 from django.http import HttpResponse
 
-myzone = timezone('Asia/Ho_Chi_Minh')
-now = datetime.now(myzone)
 def generate_response_json(result:str, message:str, data:dict={}):
     return {"result": result, "message": message, "data": data}
   
@@ -49,7 +45,7 @@ def update_lastcheck(self, function_name="Accounts"):
     LastCheckAPI.objects.update_or_create(
         function_name=function_name,
         user=qs_staff,
-        defaults={'last_read_at': now.astimezone(myzone)}
+        defaults={'last_read_at': now}
     )
     return qs_staff
 

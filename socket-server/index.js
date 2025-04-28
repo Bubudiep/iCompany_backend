@@ -134,9 +134,9 @@ io.on("connection", (socket) => {
       connected_list[user?.ApplicationKey] = connected_list[
         user?.ApplicationKey
       ].filter((user) => user.id !== socket.id);
-      socket.to(`user_${user?.ApplicationKey}`).emit("online_users", {
+      socket.to(user?.ApplicationKey).emit("online_users", {
         type: "userEvent",
-        action: "dissconnect",
+        action: "disconnect",
         data: {
           id: socket.id,
           user: user?.data?.info,

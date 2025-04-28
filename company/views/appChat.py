@@ -96,7 +96,7 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         qs_staff=CompanyStaff.objects.get(user__user=request.user)
         qs_status,_=AppChatStatus.objects.get_or_create(room=instance,user=qs_staff)
-        qs_status.last_read_at=datetime.now()
+        qs_status.last_read_at=now()
         qs_status.save()
         serializer = AppChatRoomDetailSerializer(instance, context=self.get_serializer_context())
         return Response(serializer.data)
@@ -119,7 +119,7 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
             for member in members:
                 room.members.add(member)
             room.save()
-            return Response(dat,
+            return Response(AppChatRoomDetailSerializer(room, context=self.get_serializer_context()).data,
                             status=status.HTTP_201_CREATED)
         else:
             return Response({"detail":"Thiếu thành viên trong nhóm hoặc tên nhóm"},status=status.HTTP_400_BAD_REQUEST)
