@@ -14,38 +14,42 @@ class AddOperatorAPIView(APIView):
                 if len(operators)>0:
                     listcreated=[]
                     for op in operators:
-                        qs_nguoituyen=None
-                        if op.get("staff"):
-                            qs_nguoituyen=CompanyStaff.objects.get(id=op.get("staff"),company__key=key)
-                            
                         last_id = CompanyOperator.objects.filter(company=staff.company).count()
                         operatorCode=staff.company.operatorCode
                         if not operatorCode:
                             operatorCode="NLD"
                         count = f"{last_id:06d}"
                         cardID=f"{operatorCode}-{count}"
+                        qs_nguoituyen=None
                         nhacungcap=None
-                        if op.get("type")=="Người của vendor":
-                            nhacungcap=CompanyVendor.objects.get(id=nhacungcap)
+                        qs_nhachinh=None
+                        if op.get("vendor"):
+                            nhacungcap=CompanyVendor.objects.get(id=op.get("vendor"))
+                        if op.get("staff"):
+                            qs_nguoituyen=CompanyStaff.objects.get(id=op.get("staff"),company__key=key)
+                        if op.get("nhachinh"):
+                            qs_nhachinh=CompanyStaff.objects.get(id=op.get("nhachinh"),company__key=key)
                         op=CompanyOperator.objects.create(
-                            ho_ten=op.get("fullname"),
-                            ngay_phongvan=phongvan,
-                            avatar=op.get("avatar"),
                             company=staff.company,
+                            ngay_phongvan=phongvan,
                             ma_nhanvien=cardID,
+                            ho_ten=op.get("fullname"),
+                            avatar=op.get("avatar"),
                             sdt=op.get("phone"),
                             so_cccd=op.get("cardid"),
-                            ngaysinh=op.get("old"),
+                            ngaysinh=op.get("birthday"),
                             gioi_tinh=op.get("sex"),
                             diachi=op.get("address"),
                             quequan=op.get("address"),
                             nganhang=op.get("bank_code"),
                             so_taikhoan=op.get("bank_number"),
+                            chu_taikhoan=op.get("bank_name"),
                             cccd_front=op.get("cccd_img"),
                             ghichu=op.get("note"),
                             nguoituyen=qs_nguoituyen,
                             nguoibaocao=staff,
-                            nhacungcap=nhacungcap
+                            vendor=nhacungcap,
+                            nhachinh=qs_nhachinh
                         )
                         OperatorUpdateHistory.objects.create(
                             operator=op,
@@ -207,6 +211,26 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             ctyNow.reason=lyDo
             operator.congty_danglam = None
             ctyNow.save()
+            operator.save()
+            return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+          
+    @action(detail=True, methods=['post'])
+    def bank(self, request, pk=None):
+        user=request.user
+        key = self.request.headers.get('ApplicationKey')
+        qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        bankname = request.data.get('bankname')
+        banknumber = request.data.get('banknumber')
+        fullname = request.data.get('fullname')
+        try:
+            operator = self.get_object()
+            if qs_staff!=operator.nguoituyen and qs_staff!=operator.nguoibaocao:
+                return Response({"error": "Bạn không có quyền!"}, status=status.HTTP_400_BAD_REQUEST)
+            operator.nganhang=bankname
+            operator.so_taikhoan=banknumber
+            operator.chu_taikhoan=fullname
             operator.save()
             return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
         except Exception as e:

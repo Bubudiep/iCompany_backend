@@ -8,7 +8,8 @@ class CompanyStaffProfileSerializer(serializers.ModelSerializer):
         model = CompanyStaffProfile
         fields = [
             'id', 'username', 'email', 'full_name', 'phone', 'gender',
-            'avatar', 'avatar_base64', 'date_of_birth', 'created_at', 'updated_at'
+            'avatar', 'avatar_base64', 'date_of_birth', 'created_at', 'updated_at',
+            'nganhang', 'so_taikhoan', 'chu_taikhoan'
         ]
         read_only_fields = ['created_at', 'updated_at']
         

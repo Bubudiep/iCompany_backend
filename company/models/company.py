@@ -175,6 +175,11 @@ class CompanyStaffProfile(models.Model):
     avatar = models.URLField(blank=True, null=True)
     avatar_base64 = models.TextField(blank=True, null=True)  # <--- thêm dòng này
     date_of_birth = models.DateField(null=True, blank=True)
+    
+    nganhang= models.CharField(max_length=200, null=True, blank=True)
+    so_taikhoan= models.CharField(max_length=200, null=True, blank=True)
+    chu_taikhoan= models.CharField(max_length=200, null=True, blank=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
