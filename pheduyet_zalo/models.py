@@ -1,9 +1,20 @@
-from django.db import models
-import uuid
-from django.contrib.auth.models import User
+from django.db import models, IntegrityError
 from django.utils import timezone
+from django.utils.timezone import now
+from django.contrib.auth.models import User
+from datetime import time
+from rest_framework import exceptions
+import uuid
+from decouple import config
+from rest_framework import status
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
+import random
+import string
+from datetime import datetime, timedelta
+from django.db.models import F
+from django.core.exceptions import ObjectDoesNotExist
+import time as time_module
       
 class ZaloUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)    
@@ -11,6 +22,7 @@ class ZaloUser(models.Model):
     zalo_phone = models.CharField(max_length=13, null=True, blank=True)
     username = models.CharField(unique=True,max_length=255)
     password = models.CharField(max_length=255)
+    isAdmin = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
@@ -25,6 +37,16 @@ class ZaloUser(models.Model):
     def __str__(self):
         return f"{self.username}"
 
+class ZaloUserProfile(models.Model):
+    user = models.OneToOneField(ZaloUser, on_delete=models.CASCADE)    
+    full_name = models.CharField(max_length=100, null=True, blank=True)
+    phone = models.CharField(max_length=13, null=True, blank=True)
+    avatar_base64 = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"{self.full_name}"
+    
 class UserGroup(models.Model):
     key = models.CharField(unique=True,max_length=100, null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
@@ -35,9 +57,11 @@ class UserGroup(models.Model):
     approver = models.ManyToManyField(ZaloUser, blank=True,
       related_name='approver_member') # Những người đc phép phê duyệt
     amount_approver = models.ManyToManyField(ZaloUser, blank=True,
-      related_name='approver_member') # Những người đc phép phê duyệt khi có tiền
+      related_name='amount_approver_member') # Những người đc phép phê duyệt khi có tiền
     payment_approver = models.ManyToManyField(ZaloUser, blank=True,
-      related_name='approver_member') # Người được bấm nút giải ngân
+      related_name='payment_approver_member') # Người được bấm nút giải ngân
+    
+    last_have_message_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
@@ -47,9 +71,16 @@ class UserGroup(models.Model):
         return f"{self.name}"
     def save(self, *args, **kwargs):
         if not self.key:
-            self.key = str(uuid.uuid4())[:8]  # sinh chuỗi ngắn (tùy chọn độ dài)
+            self.key = str(uuid.uuid4())[:18].upper()
         super().save(*args, **kwargs)
         
+class LastCheckGroup(models.Model):
+    user = models.ForeignKey(ZaloUser, on_delete=models.CASCADE) 
+    group = models.ForeignKey(UserGroup, on_delete=models.CASCADE)
+    last_check = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.group.name} - {self.last_check}"
+  
 class ApproveType(models.Model):
     approver = models.ManyToManyField(ZaloUser, blank=True,
       related_name='type_approver_to') # Những người phê duyệt loại này
@@ -85,7 +116,7 @@ class ApproveItem(models.Model):
     
     amount = models.IntegerField(default=0)
     
-    status=models.CharField(max_length=100, choices=status_choice, null=True, blank=True)
+    status=models.CharField(max_length=100,default='pending', choices=status_choice, null=True, blank=True)
     rate=models.IntegerField(default=0)
     feedback=models.CharField(max_length=250, null=True, blank=True)
     

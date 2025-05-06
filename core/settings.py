@@ -26,6 +26,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
+OAUTH2_PROVIDER = {
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 15
+}
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -72,6 +75,10 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='127.0.0.1'),
         'PORT': config('DB_PORT', default='3306'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET NAMES 'utf8mb4'",
+        },
     }
 }
 AUTH_PASSWORD_VALIDATORS = [
