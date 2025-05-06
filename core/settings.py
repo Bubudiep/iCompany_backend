@@ -7,6 +7,7 @@ DEBUG = config('WORK_MODE')
 INSTALLED_APPS = [
     'django_filters',
     'company',
+    'pheduyet_zalo',
     'rest_framework',
     'oauth2_provider',
     'django.contrib.admin',
