@@ -4,6 +4,7 @@ from .views import *
 
 router = routers.DefaultRouter()
 router.register(r'group', UserGroupViewSet, basename='group')
+router.register(r'item', ApproveItemViewSet, basename='item')
 router.register(r'profile', ZaloUserProfileViewSet, basename='profile')
 urlpatterns = [
     path('login/', LoginAPIView.as_view(), name='login'),
