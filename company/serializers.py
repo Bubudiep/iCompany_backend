@@ -346,11 +346,6 @@ class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
 class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
     company = serializers.PrimaryKeyRelatedField(read_only=True)
     work = serializers.SerializerMethodField(read_only=True)
-    nguoituyen = serializers.SerializerMethodField(read_only=True)
-    nguoibaocao = serializers.SerializerMethodField(read_only=True)
-    congty_danglam = serializers.SerializerMethodField(read_only=True)
-    nhachinh = serializers.SerializerMethodField(read_only=True)
-    vendor = serializers.SerializerMethodField(read_only=True)
     thamnien = serializers.SerializerMethodField(read_only=True)
     baoung = serializers.SerializerMethodField(read_only=True)
     history = serializers.SerializerMethodField(read_only=True)
@@ -365,46 +360,6 @@ class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
             return None
     def get_thamnien(self, qs):
         return None
-    def get_congty_danglam(self, qs):
-        if qs.congty_danglam:
-            return {
-                "name":qs.congty_danglam.name,
-                "fullname":qs.congty_danglam.fullname,
-            }
-    def get_vendor(self, qs):
-        if qs.vendor:
-            return {
-                "name":qs.vendor.name,
-                "fullname":qs.vendor.fullname,
-            }
-    def get_nhachinh(self, qs):
-        if qs.nhachinh:
-            return {
-                "name":qs.nhachinh.name,
-                "fullname":qs.nhachinh.fullname,
-            }
-    def get_nguoibaocao(self, qs):
-        try:
-            if qs.nguoibaocao:
-                qs_profile=CompanyStaffProfile.objects.filter(staff=qs.nguoibaocao)
-                return {
-                    "id":qs.nguoibaocao.id,
-                    "name":qs.nguoibaocao.name,
-                    "full_name":qs_profile.first().full_name if len(qs_profile)>0 else None
-                }
-        except Exception as e:
-            return None
-    def get_nguoituyen(self, qs):
-        try:
-            if qs.nguoituyen:
-                qs_profile=CompanyStaffProfile.objects.filter(staff=qs.nguoituyen)
-                return {
-                    "id":qs.nguoituyen.id,
-                    "name":qs.nguoituyen.name,
-                    "full_name":qs_profile.first().full_name if len(qs_profile)>0 else None
-                }
-        except Exception as e:
-            return None
     def get_work(self, qs):
         qs_work=OperatorWorkHistory.objects.filter(operator=qs)
         return OP_HISTSerializer(qs_work,many=True).data
@@ -415,8 +370,6 @@ class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
 class CompanyOperatorDetailsSerializer(serializers.ModelSerializer):
     company = serializers.PrimaryKeyRelatedField(read_only=True)
     work = serializers.SerializerMethodField(read_only=True)
-    nguoituyen = serializers.SerializerMethodField(read_only=True)
-    nguoibaocao = serializers.SerializerMethodField(read_only=True)
     congty_danglam = serializers.SerializerMethodField(read_only=True)
     nhachinh = serializers.SerializerMethodField(read_only=True)
     vendor = serializers.SerializerMethodField(read_only=True)
@@ -456,28 +409,6 @@ class CompanyOperatorDetailsSerializer(serializers.ModelSerializer):
                 "name":qs.nhachinh.name,
                 "fullname":qs.nhachinh.fullname,
             }
-    def get_nguoibaocao(self, qs):
-        try:
-            if qs.nguoibaocao:
-                qs_profile=CompanyStaffProfile.objects.filter(staff=qs.nguoibaocao)
-                return {
-                    "id":qs.nguoibaocao.id,
-                    "name":qs.nguoibaocao.name,
-                    "full_name":qs_profile.first().full_name if len(qs_profile)>0 else None
-                }
-        except Exception as e:
-            return None
-    def get_nguoituyen(self, qs):
-        try:
-            if qs.nguoituyen:
-                qs_profile=CompanyStaffProfile.objects.filter(staff=qs.nguoituyen)
-                return {
-                    "id":qs.nguoituyen.id,
-                    "name":qs.nguoituyen.name,
-                    "full_name":qs_profile.first().full_name if len(qs_profile)>0 else None
-                }
-        except Exception as e:
-            return None
     def get_work(self, qs):
         qs_work=OperatorWorkHistory.objects.filter(operator=qs)
         if len(qs_work)>0:

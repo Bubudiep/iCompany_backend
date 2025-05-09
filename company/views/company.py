@@ -120,6 +120,14 @@ class CompanyVendorViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'patch', 'post']
     pagination_class = StandardResultsSetPagination
     
+    def create(self, request, *args, **kwargs):
+        key = self.request.headers.get('ApplicationKey')
+        qs_ven=CompanyVendor.objects.filter(company__key=key,name=request.data.get('name'))
+        print(f"{qs_ven}")
+        if len(qs_ven)>0:
+            return Response({"detail": "Tên nhà cung cấp đã tồn tại"}, status=status.HTTP_403_FORBIDDEN)
+        return super().create(request, *args, **kwargs)
+    
     def perform_create(self, serializer):
         key = self.request.headers.get('ApplicationKey')
         user = self.request.user
@@ -151,6 +159,13 @@ class CompanyCustomerViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     http_method_names = ['get', 'patch', 'post']
     pagination_class = StandardResultsSetPagination
+
+    def create(self, request, *args, **kwargs):
+        key = self.request.headers.get('ApplicationKey')
+        qs_ven=CompanyCustomer.objects.filter(company__key=key,name=request.data.get('name'))
+        if len(qs_ven)>0:
+            return Response({"detail": "Khách hàng này đã tồn tại"}, status=status.HTTP_403_FORBIDDEN)
+        return super().create(request, *args, **kwargs)
     
     def perform_create(self, serializer):
         key = self.request.headers.get('ApplicationKey')

@@ -10,7 +10,7 @@ class AddOperatorAPIView(APIView):
             try:
                 operators=request.data.get("operators")
                 phongvan=request.data.get("date")
-                staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                staff=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
                 if len(operators)>0:
                     listcreated=[]
                     for op in operators:
@@ -28,7 +28,7 @@ class AddOperatorAPIView(APIView):
                         if op.get("staff"):
                             qs_nguoituyen=CompanyStaff.objects.get(id=op.get("staff"),company__key=key)
                         if op.get("nhachinh"):
-                            qs_nhachinh=CompanyStaff.objects.get(id=op.get("nhachinh"),company__key=key)
+                            qs_nhachinh=CompanyVendor.objects.get(id=op.get("nhachinh"),company__key=key)
                         op=CompanyOperator.objects.create(
                             company=staff.company,
                             ngay_phongvan=phongvan,
@@ -52,6 +52,7 @@ class AddOperatorAPIView(APIView):
                             nhachinh=qs_nhachinh
                         )
                         OperatorUpdateHistory.objects.create(
+                            changed_by=staff,
                             operator=op,
                             old_data=None,
                             new_data=CompanyOperatorSerializer(op).data,
@@ -61,6 +62,13 @@ class AddOperatorAPIView(APIView):
                     return Response(CompanyOperatorDetailsSerializer(listcreated,many=True).data,
                                     status=status.HTTP_200_OK)
                 return Response({"detail": "Lỗi khi thêm người lao động"}, status=status.HTTP_200_OK)
+            except CompanyStaff.DoesNotExist as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                print(f"[{file_name}_{lineno}] {str(e)}")
+                return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 lineno = exc_tb.tb_lineno
@@ -86,45 +94,53 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def dilam(self, request, pk=None):
-        startDate = request.data.get('startDate',now())
-        employeeCode = request.data.get('employeeCode',None)
-        company = request.data.get('company',None)
+        startDate = request.data.get('ngaybatdau',now())
+        employeeCode = request.data.get('manhanvien',None)
+        company = request.data.get('congty',None)
         cccd_truoc = request.data.get('cccd_truoc',None)
         cccd_sau = request.data.get('cccd_sau',None)
+        key = self.request.headers.get('ApplicationKey')
         if company is None:
             return Response({"detail": f"Chưa chọn công ty làm việc!"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            operator = self.get_object()
-            hist=operator_history.objects.filter(operator=operator).order_by('-id')
-            if len(hist)!=0:
-                ctyNow=hist.first()
-                if datetime.strptime(startDate,"%Y-%m-%d").replace(tzinfo=pytz.timezone("Asia/Ho_Chi_Minh")) < ctyNow.end_date:
-                    return Response({"detail": "Ngày đi làm không được nhỏ hơn ngày nghỉ ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
-                if ctyNow.end_date is None:
-                    return Response({"detail": f"Nhân viên {operator.ho_ten} đang chưa nghỉ làm ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
-            
-            qs_cty=company_customer.objects.get(id=company)
-            OperatorUpdateHistory.objects.create(
-                operator=operator,
-                changed_by=qs_staff,
-                old_data={"congty_danglam":None},
-                new_data={"congty_danglam":qs_cty.name},
-                notes=f"Báo đi làm ở công ty {qs_cty.name}"
-            )
-            operator.congty_danglam = qs_cty
-            operator.save()
-            nguoituyen = request.data.get('nguoituyen',None)
-            if nguoituyen is not None:
-                qs_nguoituyen=company_staff.objects.get(id=nguoituyen)
-                nguoituyen=qs_nguoituyen
-            else:
-                nguoituyen=operator.nguoituyen
-            OperatorWorkHistory.objects.create(ma_nhanvien=employeeCode,operator=operator,
-                                            nguoituyen=nguoituyen,
-                                            customer=qs_cty,start_date=startDate)
-            return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
+            qs_staff = CompanyStaff.objects.get(user__user=request.user,company__key=key)
+            with transaction.atomic():
+                operator = self.get_object()
+                hist=OperatorWorkHistory.objects.filter(operator=operator).order_by('-id')
+                if len(hist)!=0:
+                    ctyNow=hist.first()
+                    if datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z") < ctyNow.end_date:
+                        return Response({"detail": "Ngày đi làm không được nhỏ hơn ngày nghỉ ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
+                    if ctyNow.end_date is None:
+                        return Response({"detail": f"Chưa nghỉ làm ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                qs_cty=CompanyCustomer.objects.get(id=company)
+                OperatorUpdateHistory.objects.create(
+                    operator=operator,
+                    changed_by=qs_staff,
+                    old_data={"congty_danglam": None if operator.congty_danglam is None else operator.congty_danglam.name},
+                    new_data={"congty_danglam":qs_cty.name},
+                    notes=f"Báo đi làm ở công ty {qs_cty.name}"
+                )
+                operator.congty_danglam = qs_cty
+                nguoituyen = request.data.get('nguoituyen',None)
+                if nguoituyen is not None:
+                    qs_nguoituyen=CompanyStaff.objects.get(id=nguoituyen)
+                    nguoituyen=qs_nguoituyen
+                else:
+                    nguoituyen=operator.nguoituyen
+                OperatorWorkHistory.objects.create(ma_nhanvien=employeeCode,operator=operator,
+                                                nguoituyen=nguoituyen,
+                                                customer=qs_cty,start_date=startDate)
+                operator.nguoituyen=nguoituyen
+                operator.save()
+                return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            return Response({"detail": f"[{file_name}_{lineno}] {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
         
     @action(detail=True, methods=['post'])
     def baoung(self, request, pk=None):
@@ -193,17 +209,18 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             operator = self.get_object()
             hist=OperatorWorkHistory.objects.filter(operator=operator).order_by('-id')
             if len(hist)==0:
-                return Response({"detail": f"Nhân viên {operator.ho_ten} chưa đi làm ở công ty nào!"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": f"Chưa đi làm ở công ty nào!"}, status=status.HTTP_400_BAD_REQUEST)
             ctyNow=hist.first()
-            if datetime.strptime(ngaynghi,"%Y-%m-%d").replace(tzinfo=pytz.timezone("Asia/Ho_Chi_Minh")) < ctyNow.start_date:
+            if datetime.strptime(ngaynghi,"%Y-%m-%dT%H:%M:%S.%f%z") < ctyNow.start_date:
                 return Response({"detail": "Ngày nghỉ phải lớn hơn ngày bắt đầu làm!"}, status=status.HTTP_400_BAD_REQUEST)
             if ctyNow.end_date:
                 operator.congty_danglam = None
-                return Response({"detail": f"Nhân viên {operator.ho_ten} đang không đi làm!"}, status=status.HTTP_400_BAD_REQUEST)
+                operator.save()
+                return Response({"detail": f"Đang không đi làm!"}, status=status.HTTP_400_BAD_REQUEST)
             OperatorUpdateHistory.objects.create(
                 operator=operator,
                 changed_by=qs_staff,
-                old_data={"congty_danglam":congty_danglam.name},
+                old_data={"congty_danglam":operator.congty_danglam.name},
                 new_data={"congty_danglam":None},
                 notes=f"Báo nghỉ việc ở công ty {operator.congty_danglam.name}"
             )
@@ -214,7 +231,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             operator.save()
             return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
           
     @action(detail=True, methods=['post'])
     def bank(self, request, pk=None):
@@ -227,14 +244,14 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         try:
             operator = self.get_object()
             if qs_staff!=operator.nguoituyen and qs_staff!=operator.nguoibaocao:
-                return Response({"error": "Bạn không có quyền!"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "Bạn không có quyền!"}, status=status.HTTP_400_BAD_REQUEST)
             operator.nganhang=bankname
             operator.so_taikhoan=banknumber
             operator.chu_taikhoan=fullname
             operator.save()
             return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     def perform_create(self, serializer):
         user = self.request.user
