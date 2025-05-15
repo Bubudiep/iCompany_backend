@@ -38,7 +38,6 @@ class LoginOAuth2APIView(APIView):
                 access_token=access_token,
                 application=application
             )
-            print(f"{ip}")
             record_user_action(function_name="login",
                                action_name="login",
                                ip_action=ip,

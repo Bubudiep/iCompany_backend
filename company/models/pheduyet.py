@@ -65,9 +65,7 @@ class AdvanceRequest(models.Model): # phê duyệt
     # số tiền
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     # lý do
-    reason = models.ForeignKey(AdvanceReasonType, on_delete=models.SET_NULL,
-                               null=True,blank=True, related_name="advance_reason")
-    
+    reason = models.ForeignKey(AdvanceReasonType, on_delete=models.SET_NULL,null=True,blank=True)
     hinhthucThanhtoan = models.CharField(max_length=10, choices=PAY_CHOICES, default='bank')
     nguoiThuhuong = models.CharField(max_length=10, choices=PAYER_CHOICES, default='opertor')
     khacCtk = models.CharField(max_length=100, null=True,blank=True)
@@ -122,4 +120,39 @@ class AdvanceRequestHistory(models.Model): # phân loại nguyên nhân phê duy
         ordering = ['-created_at']
     def __str__(self):
         return f"{self.id}"
+          
       
+class KeepSalaryRequest(models.Model): # phê duyệt
+    STATUS_CHOICES = [
+        ('cancel', 'Hủy bỏ'),
+        ('pending', 'Chờ duyệt'),
+        ('approved', 'Đã duyệt'),
+        ('rejected', 'Từ chối'),
+    ]
+    code = models.CharField(max_length=15, unique=True, blank=True, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,
+                                 null=True,blank=True)
+    author = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL,null=True,blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    request_date = models.DateField(null=True,blank=True)
+    comment = models.TextField(null=True,blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    isKeep = models.BooleanField(default=False) # đã gửi cho người giữ
+    isPay = models.BooleanField(default=False) # đã trả cho người lao động
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-created_at']
+    def generate_code(self):
+        """Tạo mã yêu cầu PDOC-[random 10 ký tự]"""
+        return 'KDOC-' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = self.generate_code()
+            while KeepSalaryRequest.objects.filter(code=self.code).exists():
+                self.code = self.generate_code()  # Nếu đã tồn tại, tạo lại
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"Giữ {self.amount}"
+    
