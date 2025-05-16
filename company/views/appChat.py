@@ -19,10 +19,6 @@ class CompanyStaffViewSet(viewsets.ModelViewSet):
         chat_message = request.data.get('message',None)
         reply_to = request.data.get('reply_to',None)
         attachment = request.data.get('attachment',None)
-        if chat_message is None:
-            return Response({"detail": "Chưa có tin nhắn để gửi."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         with transaction.atomic():
             qs_from=CompanyStaff.objects.get(user__user=user,company__key=key)
             room = AppChatRoom.objects.filter(company__key=key,
@@ -30,7 +26,7 @@ class CompanyStaffViewSet(viewsets.ModelViewSet):
             if not room:
                 room = AppChatRoom.objects.create(company=staff.company, is_group=False)
                 room.members.add(staff, qs_from)
-
+                room.save()
             if reply_to:
                 try:
                   reply_to=ChatMessage.objects.get(id=reply_to,room=room)
@@ -38,17 +34,23 @@ class CompanyStaffViewSet(viewsets.ModelViewSet):
                     return Response({"detail": "Không tìm thấy tin nhắn cần reply."},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-            crete_mes=ChatMessage.objects.create(
-                room=room,
-                sender=qs_from,
-                message=chat_message,
-                reply_to=reply_to,
-                attachment=attachment
-            )
-            return Response(
-                ChatMessageSerializer(crete_mes).data,
-                status=status.HTTP_201_CREATED
-              )
+            if chat_message is not None:
+                crete_mes=ChatMessage.objects.create(
+                    room=room,
+                    sender=qs_from,
+                    message=chat_message,
+                    reply_to=reply_to,
+                    attachment=attachment
+                )
+                return Response(
+                    ChatMessageSerializer(crete_mes).data,
+                    status=status.HTTP_201_CREATED
+                )
+            else:
+                return Response(
+                    AppChatRoomSerializer(room).data,
+                    status=status.HTTP_201_CREATED
+                )
       
     def perform_create(self, serializer):
         user = self.request.user

@@ -137,6 +137,25 @@ class CompanyUser(models.Model):
     def __str__(self):
         return f"{self.username} ({self.company.key})"
     
+
+class CompanyCustomer(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    fullname = models.CharField(max_length=200, null=True, blank=True)
+    address = models.CharField(max_length=200, null=True, blank=True)
+    email = models.CharField(max_length=200, null=True, blank=True)
+    hotline = models.CharField(max_length=200, null=True, blank=True)
+    website = models.CharField(max_length=200, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+        unique_together = ('company', 'name')
+        verbose_name = "Company Customers"
+        verbose_name_plural = "Company Customers"
+    def __str__(self):
+        return f"{self.name}"
+    
 class CompanyStaff(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     cardID = models.CharField(max_length=200, null=True, blank=True) # mã NV
@@ -150,7 +169,7 @@ class CompanyStaff(models.Model):
     isBan = models.BooleanField(default=False, null=True, blank=True) # bị ban
     isOnline = models.BooleanField(default=False, null=True, blank=True) # online trên app
     isValidate = models.BooleanField(default=False, null=True, blank=True) # được phê duyệt
-    managerCustomer=models.ManyToManyField('CompanyCustomer',blank=True)
+    managerCustomer=models.ManyToManyField(CompanyCustomer,blank=True)
     socket_id = models.CharField(max_length=200, null=True, blank=True)
     created_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -229,26 +248,6 @@ class CompanyStaffHistory(models.Model):
         verbose_name_plural = "Company Staff History"
     def __str__(self):
         return f"{self.staff.username}"
-
-
-class CompanyCustomer(models.Model):
-    staffs = models.ManyToManyField(CompanyStaff, related_name="customers", blank=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    name = models.CharField(max_length=200, null=True, blank=True)
-    fullname = models.CharField(max_length=200, null=True, blank=True)
-    address = models.CharField(max_length=200, null=True, blank=True)
-    email = models.CharField(max_length=200, null=True, blank=True)
-    hotline = models.CharField(max_length=200, null=True, blank=True)
-    website = models.CharField(max_length=200, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
-    class Meta:
-        ordering = ['-id']
-        unique_together = ('company', 'name')
-        verbose_name = "Company Customers"
-        verbose_name_plural = "Company Customers"
-    def __str__(self):
-        return f"{self.name}"
     
 class CompanyVendor(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)

@@ -177,10 +177,10 @@ class AppChatRoomSerializer(serializers.ModelSerializer):
         except Exception as e:
             return 0
     def get_last_message(self,room):
-        try:
-            qs_mess=ChatMessage.objects.filter(room=room,isAction=False).first()
+        qs_mess=ChatMessage.objects.filter(room=room,isAction=False).first()
+        if qs_mess:
             return ChatMessageSerializer(qs_mess).data
-        except Exception as e:
+        else:
             return None
     class Meta:
         model = AppChatRoom

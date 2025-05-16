@@ -49,7 +49,7 @@ class LoginOAuth2APIView(APIView):
             access_token.save()
             staff=CompanyStaff.objects.get(user=user)
             LastCheckAPI.objects.update_or_create(
-                function_name='Login',
+                function_name='login',
                 user=staff,
                 defaults={'last_read_at': now()}
             )

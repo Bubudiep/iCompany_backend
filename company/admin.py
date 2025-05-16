@@ -180,7 +180,6 @@ class CompanyCustomerAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "fullname", "company", "email", "hotline")
     search_fields = ("name", "fullname", "email", "hotline")
     list_filter = ("company",)
-    filter_horizontal = ("staffs",)
 
 @admin.register(CompanyVendor)
 class CompanyVendorAdmin(admin.ModelAdmin):
