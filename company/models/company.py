@@ -198,6 +198,8 @@ class CompanyStaffProfile(models.Model):
     nganhang= models.CharField(max_length=200, null=True, blank=True)
     so_taikhoan= models.CharField(max_length=200, null=True, blank=True)
     chu_taikhoan= models.CharField(max_length=200, null=True, blank=True)
+    zalo= models.CharField(max_length=200, null=True, blank=True)
+    facebook= models.CharField(max_length=200, null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

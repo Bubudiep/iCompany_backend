@@ -14,6 +14,7 @@ router.register(r'positions', CompanyPossitionViewSet, basename='positions')
 router.register(r'vendors', CompanyVendorViewSet, basename='vendors')
 router.register(r'ops', CompanyOperatorViewSet, basename='ops')
 router.register(r'profile', CompanyStaffProfileViewSet, basename='profile')
+router.register(r'info', CompanyStaffProfileViewSet, basename='info')
 urlpatterns = [
     path('op/add/', AddOperatorAPIView.as_view(), name='add-op'),
     path('search/', SearchAPIView.as_view(), name='search'),
