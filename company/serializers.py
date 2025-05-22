@@ -7,7 +7,7 @@ class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyStaffProfile
         fields = [
-            'id', 'username', 'email', 'full_name', 'phone', 'gender',
+            'id', 'username', 'email', 'full_name', 'nick_name', 'phone', 'gender',
             'avatar', 'avatar_base64', 'date_of_birth', 'created_at', 'updated_at',
             'nganhang', 'so_taikhoan', 'chu_taikhoan'
         ]
