@@ -9,7 +9,7 @@ class CompanyStaffProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'full_name', 'nick_name', 'phone', 'gender',
             'avatar', 'avatar_base64', 'date_of_birth', 'created_at', 'updated_at',
-            'nganhang', 'so_taikhoan', 'chu_taikhoan'
+            'nganhang', 'so_taikhoan', 'chu_taikhoan','zalo','facebook'
         ]
         read_only_fields = ['created_at', 'updated_at']
         
@@ -156,6 +156,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 class AppChatRoomSerializer(serializers.ModelSerializer):
     not_read = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
+    # messages = serializers.SerializerMethodField()
     members = CompanyStaffSerializer(many=True)
     ghim = serializers.SerializerMethodField()
     def get_ghim(self,room):
@@ -176,6 +177,12 @@ class AppChatRoomSerializer(serializers.ModelSerializer):
             return qs_not_read
         except Exception as e:
             return 0
+    # def get_messages(self,room):
+    #     qs_mess=ChatMessage.objects.filter(room=room,isAction=False)[:30]
+    #     if qs_mess:
+    #         return ChatMessageSerializer(qs_mess,many=True).data
+    #     else:
+    #         return None
     def get_last_message(self,room):
         qs_mess=ChatMessage.objects.filter(room=room,isAction=False).first()
         if qs_mess:

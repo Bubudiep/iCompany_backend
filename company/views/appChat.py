@@ -127,6 +127,17 @@ class AppChatRoomViewSet(viewsets.ModelViewSet):
             return Response({"detail":"Thiếu thành viên trong nhóm hoặc tên nhóm"},status=status.HTTP_400_BAD_REQUEST)
         
     @action(detail=True, methods=['post'])
+    def readed(self, request, pk=None):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        room = self.get_object()
+        staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+        with transaction.atomic():
+            qs_status,_=AppChatStatus.objects.get_or_create(room=room,user=staff)
+            qs_status.last_read_at=now()
+            qs_status.save()
+            return Response({},status=status.HTTP_200_OK)
+    @action(detail=True, methods=['post'])
     def boghim(self, request, pk=None):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')

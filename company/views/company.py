@@ -87,32 +87,6 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CompanyCustomerViewSet(viewsets.ModelViewSet):
-    queryset = CompanyCustomer.objects.all()
-    serializer_class = CompanyCustomerSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get', 'patch', 'post']
-    pagination_class = StandardResultsSetPagination
-    
-    def get_queryset(self):
-        qs_staff=update_lastcheck(self,'Customer')
-        return CompanyCustomer.objects.filter(company__key=qs_staff.company.key)
-        
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        page_size = self.request.query_params.get('page_size')
-        last_update = self.request.query_params.get('last_update')
-        if last_update:
-            queryset=queryset.filter(updated_at__gt=last_update)
-        if page_size is not None:
-            self.pagination_class.page_size = int(page_size)
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-    
 class CompanyVendorViewSet(viewsets.ModelViewSet):
     queryset = CompanyVendor.objects.all()
     serializer_class = CompanyVendorSerializer
@@ -160,6 +134,32 @@ class CompanyCustomerViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'patch', 'post']
     pagination_class = StandardResultsSetPagination
 
+    @action(detail=False, methods=['post'])
+    def multi_create(self, request, pk=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            data=request.data.get('data')
+            if not data or not isinstance(data, list):
+                return Response({"detail": "Dữ liệu không hợp lệ"}, status=status.HTTP_400_BAD_REQUEST)
+            if data:
+                with transaction.atomic():
+                    for cus in data:
+                        serializer= self.get_serializer(data=cus)
+                        if serializer.is_valid():
+                            serializer.save(company=staff.company)
+                        else:
+                            return Response({
+                                "detail": f"Lỗi ở {cus.fullname}"
+                            }, status=status.HTTP_403_FORBIDDEN)
+                return Response(CompanyCustomerSerializer(CompanyCustomer.objects.filter(company=staff.company),many=True).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
     def create(self, request, *args, **kwargs):
         key = self.request.headers.get('ApplicationKey')
         qs_ven=CompanyCustomer.objects.filter(company__key=key,name=request.data.get('name'))
