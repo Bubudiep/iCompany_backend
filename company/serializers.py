@@ -90,26 +90,26 @@ class CompanySerializer(serializers.ModelSerializer):
             allStaff=CompanyStaff.objects.filter(company=company)
             return CompanyStaffSerializer(allStaff,many=True).data
         except Exception as e:
-            return None
+            return []
     def get_Vendor(self,company):
         try:
             allVendor=CompanyVendor.objects.filter(company=company)
             return CompanyVendorSerializer(allVendor,many=True).data
         except Exception as e:
-            return None
+            return []
     def get_Customer(self,company):
         try:
             allCustomer=CompanyCustomer.objects.filter(company=company)
             return CompanyCustomerSerializer(allCustomer,many=True).data
         except Exception as e:
-            return None
+            return []
     Department = serializers.SerializerMethodField(read_only=True)
     def get_Department(self,company):
         try:
             allDepartment=CompanyDepartment.objects.filter(company=company)
             return CompanyDepartmentDetailsSerializer(allDepartment,many=True).data
         except Exception as e:
-            return None
+            return []
     class Meta:
         model = Company
         fields = ['companyType','avatar','name','fullname','address',
@@ -355,16 +355,31 @@ class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
     work = serializers.SerializerMethodField(read_only=True)
     thamnien = serializers.SerializerMethodField(read_only=True)
     baoung = serializers.SerializerMethodField(read_only=True)
+    baogiu = serializers.SerializerMethodField(read_only=True)
     history = serializers.SerializerMethodField(read_only=True)
     def get_history(self, qs):
         qs_update=OperatorUpdateHistory.objects.filter(operator=qs)
         return OperatorUpdateHistorySerializer(qs_update,many=True).data
     def get_baoung(self, qs):
         try:
-            qs_baoung=AdvanceRequest.objects.filter(operator=qs)
+            qs_baoung=AdvanceRequest.objects.filter(
+                operator=qs,
+                requesttype__typecode="Báo ứng"
+            )
             return AdvanceRequestSerializer(qs_baoung,many=True).data
         except Exception as e:
-            return None
+            print(f"{e}")
+            return []
+    def get_baogiu(self, qs):
+        try:
+            qs_baogiu=AdvanceRequest.objects.filter(
+                operator=qs,
+                requesttype__typecode="Báo giữ lương"
+            )
+            return AdvanceRequestSerializer(qs_baogiu,many=True).data
+        except Exception as e:
+            print(f"{e}")
+            return []
     def get_thamnien(self, qs):
         return None
     def get_work(self, qs):

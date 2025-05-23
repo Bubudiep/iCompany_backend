@@ -143,6 +143,57 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             return Response({"detail": f"[{file_name}_{lineno}] {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
         
     @action(detail=True, methods=['post'])
+    def baogiu(self, request, pk=None):
+        try:
+            user = self.request.user
+            key = self.request.headers.get('ApplicationKey')
+            operator = self.get_object()
+            qs_com=Company.objects.get(key=key)
+            ngayUng = request.data.get('ngay',None)
+            soTien = request.data.get('sotien',None)
+            lyDo = request.data.get('lydo',None)
+            qs_staff=CompanyStaff.objects.get(user__user=user,company=qs_com)
+            if not soTien:
+                return Response({"error": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
+            qs_baogiu, _ = AdvanceType.objects.get_or_create(
+                typecode="Báo giữ lương",
+                need_operator=True,
+                company=qs_com
+            )
+            qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
+            create_request=AdvanceRequest.objects.create(company=qs_com,
+                                requester=qs_res,
+                                requesttype=qs_baogiu,
+                                operator=operator,
+                                amount=soTien,
+                                comment=lyDo,
+                                request_date= ngayUng,
+                                nguoiThuhuong= 'staff',
+                            )
+            created_data=AdvanceRequestSerializer(create_request).data
+            OperatorUpdateHistory.objects.create(
+                operator=operator,
+                changed_by=qs_staff,
+                notes=f"Báo giữ lương {soTien}"
+            )
+            AdvanceRequestHistory.objects.create(request=create_request,
+                                                user=qs_res,action="create",
+                                                old_data=None,
+                                                new_data=f"{created_data}",
+                                                comment="Khởi tạo")
+            return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
+        except Company.DoesNotExist:
+            return Response({"detail": "Không tìm thấy công ty tương ứng."}, status=status.HTTP_404_NOT_FOUND)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Người dùng không thuộc công ty hoặc chưa kích hoạt."}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            return Response({"detail": f"[{file_name}_{lineno}] {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            
+    @action(detail=True, methods=['post'])
     def baoung(self, request, pk=None):
         try:
             user = self.request.user
