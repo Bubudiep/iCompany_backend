@@ -338,6 +338,7 @@ class OperatorWorkHistory(models.Model):
     ma_nhanvien= models.CharField(max_length=200, null=True, blank=True)
     start_date = models.DateTimeField(null=True, blank=True)  # Thời gian bắt đầu làm việc
     end_date = models.DateTimeField(null=True, blank=True)    # Thời gian kết thúc làm việc
+    vitri = models.CharField(max_length=200, null=True, blank=True) # vị trí làm việc
     notes = models.TextField(null=True, blank=True)           # Ghi chú thêm nếu cần
     reason = models.TextField(null=True, blank=True)           # Ghi chú thêm nếu cần
     noihopdong = models.ForeignKey('self',on_delete=models.SET_NULL,null=True,blank=True,related_name="next_histories")

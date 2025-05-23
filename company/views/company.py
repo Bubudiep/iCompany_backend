@@ -94,6 +94,33 @@ class CompanyVendorViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'patch', 'post']
     pagination_class = StandardResultsSetPagination
     
+    @action(detail=False, methods=['post'])
+    def multi_create(self, request, pk=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            data=request.data.get('data')
+            if not data or not isinstance(data, list):
+                return Response({"detail": "Dữ liệu không hợp lệ"}, status=status.HTTP_400_BAD_REQUEST)
+            if data:
+                with transaction.atomic():
+                    for cus in data:
+                        print(f"{cus.get('name')}")
+                        qs_old=CompanyVendor.objects.filter(
+                            company=staff.company,name=cus.get('name')
+                        )
+                        if len(qs_old)==0:
+                            serializer= self.get_serializer(data=cus)
+                            if serializer.is_valid():
+                                serializer.save(company=staff.company)
+                return Response(CompanyVendorSerializer(CompanyVendor.objects.filter(company=staff.company),many=True).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
     def create(self, request, *args, **kwargs):
         key = self.request.headers.get('ApplicationKey')
         qs_ven=CompanyVendor.objects.filter(company__key=key,name=request.data.get('name'))
@@ -146,13 +173,14 @@ class CompanyCustomerViewSet(viewsets.ModelViewSet):
             if data:
                 with transaction.atomic():
                     for cus in data:
-                        serializer= self.get_serializer(data=cus)
-                        if serializer.is_valid():
-                            serializer.save(company=staff.company)
-                        else:
-                            return Response({
-                                "detail": f"Lỗi ở {cus.fullname}"
-                            }, status=status.HTTP_403_FORBIDDEN)
+                        print(f"{cus.get('name')}")
+                        qs_old=CompanyCustomer.objects.filter(
+                            company=staff.company,name=cus.get('name')
+                        )
+                        if len(qs_old)==0:
+                            serializer= self.get_serializer(data=cus)
+                            if serializer.is_valid():
+                                serializer.save(company=staff.company)
                 return Response(CompanyCustomerSerializer(CompanyCustomer.objects.filter(company=staff.company),many=True).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
