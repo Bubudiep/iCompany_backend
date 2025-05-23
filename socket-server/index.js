@@ -26,6 +26,7 @@ io.use(async (socket, next) => {
   const clientKey = headers["applicationkey"] || query.ApplicationKey;
   const clientToken = headers["authorization"] || query.Authorization;
   if (clientKey === "@OAIIA3UHUIE21vczx@faWOOCS)=123SAF") return next();
+  console.log(clientKey, clientToken);
   if (clientKey && clientToken) {
     try {
       const userdata = await axios.get(
