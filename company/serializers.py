@@ -231,7 +231,7 @@ class AppChatRoomDetailSerializer(serializers.ModelSerializer):
 class OperatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
-        fields = ['ho_ten','trangthai']
+        fields = ['id','ho_ten','trangthai']
 class CompanyOperatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator

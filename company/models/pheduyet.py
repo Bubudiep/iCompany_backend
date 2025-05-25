@@ -33,12 +33,12 @@ class AdvanceRequest(models.Model): # phê duyệt
         ('rejected', 'Từ chối'),
     ]
     PAYMENT_CHOICES = [
-        ('not', 'Chưa'),
-        ('done', 'Xong'),
+        ('not', 'Chưa giải ngân'),
+        ('done', 'Đã giải ngân'),
     ]
     RETRIEVE_CHOICES = [
-        ('not', 'Chưa'),
-        ('done', 'Xong'),
+        ('not', 'Chưa thu hồi'),
+        ('done', 'Đã thu hồi'),
     ]
     PAY_CHOICES = [
         ('bank', 'Chuyển khoản'),
@@ -49,9 +49,7 @@ class AdvanceRequest(models.Model): # phê duyệt
         ('opertor', 'Người lao động'),
         ('staff', 'Người tạo yêu cầu'),
     ]
-    company = models.ForeignKey(Company, on_delete=models.CASCADE,
-                                 null=True,blank=True)
-    # người yêu cầu
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,null=True,blank=True)
     requester = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL,
                                  null=True,blank=True, related_name="advance_requests")
     requesttype = models.ForeignKey(AdvanceType, on_delete=models.SET_NULL,
@@ -62,9 +60,7 @@ class AdvanceRequest(models.Model): # phê duyệt
     # người thụ hưởng
     operator = models.ForeignKey(CompanyOperator, on_delete=models.SET_NULL,
                                  null=True,blank=True, related_name="advance_operator")
-    # số tiền
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    # lý do
     reason = models.ForeignKey(AdvanceReasonType, on_delete=models.SET_NULL,null=True,blank=True)
     hinhthucThanhtoan = models.CharField(max_length=10, choices=PAY_CHOICES, default='bank')
     nguoiThuhuong = models.CharField(max_length=10, choices=PAYER_CHOICES, default='opertor')
