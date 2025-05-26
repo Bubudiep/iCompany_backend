@@ -92,6 +92,85 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
         return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | Q(nguoibaocao=qs_res),company=qs_res.company)
     
+    @action(detail=False, methods=['post'])
+    def add_lichsu(self, request, pk=None):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        data = request.data.get('data',[])
+        try:
+            qs_staff = CompanyStaff.objects.get(user__user=user,company__key=key)
+            with transaction.atomic():
+                list_op=[]
+                list_fail=[]
+                for op in data:
+                    try:
+                        conflict_date=False
+                        so_cccd=op.get("cccd")
+                        start_date=op.get("start")
+                        congty=op.get("congty")
+                        nhachinh=op.get("nhachinh")
+                        nguoituyen=op.get("nguoituyen")
+                        end_date=op.get("end")
+                        manhanvien=op.get("manhanvien")
+                        tendilam=op.get("fullname")
+                        congviec=op.get("congviec")
+                        qs_nhachinh=None
+                        if start_date:
+                            start_date=datetime.strptime(start_date,"%Y-%m-%d").date()
+                        if end_date:
+                            end_date=datetime.strptime(end_date,"%Y-%m-%d").date()
+                        if nhachinh:
+                            qs_nhachinh=CompanyVendor.objects.get(name=congty,company=qs_staff.company)
+                        qs_op = CompanyOperator.objects.get(so_cccd=so_cccd,
+                                                            company=qs_staff.company,
+                                                            nhachinh=qs_nhachinh)
+                        hist=OperatorWorkHistory.objects.filter(operator=qs_op).order_by('-id')
+                        for his in hist:
+                            if start_date>=his.start_date and start_date<=his.end_date:
+                                conflict_date=True
+                            if end_date>=his.start_date and end_date<=his.end_date:
+                                conflict_date=True
+                        if conflict_date==True:
+                            list_fail.append({
+                                "so_cccd":so_cccd,
+                                "congty":congty,
+                                "error": "Ngày làm việc bị trùng",
+                            })
+                        else:
+                            qs_cty=CompanyCustomer.objects.get(name=congty,company=qs_staff.company)
+                            qs_nguoituyen=None
+                            if nguoituyen:
+                                qs_nguoituyen=CompanyStaff.objects.get(id=nguoituyen,company=qs_staff.company)
+                            OperatorUpdateHistory.objects.create(
+                                operator=qs_op,
+                                changed_by=qs_staff,
+                                old_data={},
+                                new_data=op,
+                                notes=f"Thêm lịch sử đi làm ở công ty {qs_cty.name}"
+                            )
+                            OperatorWorkHistory.objects.create(nguoituyen=qs_nguoituyen,
+                                ma_nhanvien=manhanvien,operator=qs_op,
+                                ho_ten=tendilam,end_date=end_date,vitri=congviec,
+                                customer=qs_cty,nhachinh=qs_nhachinh,
+                                start_date=start_date)
+                            list_op.append(qs_op.id)
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        lineno = exc_tb.tb_lineno
+                        file_path = exc_tb.tb_frame.f_code.co_filename
+                        file_name = os.path.basename(file_path)
+                        print(f"[{file_name}_{lineno}] {str(e)}")
+                return Response({
+                    "success": CompanyOperatorMoreDetailsSerializer(list_op,many=True).data,
+                    "fail": list_fail
+                }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            return Response({"detail": f"[{file_name}_{lineno}] {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+       
     @action(detail=True, methods=['post'])
     def dilam(self, request, pk=None):
         startDate = request.data.get('ngaybatdau',now())

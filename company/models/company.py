@@ -303,9 +303,12 @@ class CompanyOperator(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         ordering = ['-id']
-        verbose_name = "Company Operators"
-        verbose_name_plural = "Company Operators"
-        unique_together = ('company', 'ma_nhanvien')
+        verbose_name = "Operator 1 List"
+        verbose_name_plural = "Operator 1 List"
+        unique_together = [
+            ('company', 'ma_nhanvien'),
+            ('so_cccd', 'nhachinh'),
+        ]
     def save(self, *args, **kwargs):
         if not self.ma_nhanvien:
             self.ma_nhanvien = f"RANDOM_{uuid.uuid4().hex.upper()[:18]}"
@@ -322,8 +325,8 @@ class OperatorUpdateHistory(models.Model):
     changed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Company Operator History"
-        verbose_name_plural = "Company Operator Histories"
+        verbose_name = "Operator 2 Update History"
+        verbose_name_plural = "Operator 2 Update Histories"
         ordering = ['-changed_at']
 
 class OperatorWorkHistory(models.Model):
@@ -336,8 +339,9 @@ class OperatorWorkHistory(models.Model):
     anh_cccd_front= models.TextField(null=True, blank=True)
     anh_cccd_back= models.TextField(null=True, blank=True)
     ma_nhanvien= models.CharField(max_length=200, null=True, blank=True)
-    start_date = models.DateTimeField(null=True, blank=True)  # Thời gian bắt đầu làm việc
-    end_date = models.DateTimeField(null=True, blank=True)    # Thời gian kết thúc làm việc
+    ho_ten= models.CharField(max_length=200, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)  # Thời gian bắt đầu làm việc
+    end_date = models.DateField(null=True, blank=True)    # Thời gian kết thúc làm việc
     vitri = models.CharField(max_length=200, null=True, blank=True) # vị trí làm việc
     notes = models.TextField(null=True, blank=True)           # Ghi chú thêm nếu cần
     reason = models.TextField(null=True, blank=True)           # Ghi chú thêm nếu cần
@@ -348,8 +352,8 @@ class OperatorWorkHistory(models.Model):
 
     class Meta:
         ordering = ['-id']  # Sắp xếp theo thời gian bắt đầu mới nhất
-        verbose_name = "Operator History"
-        verbose_name_plural = "Operator Histories"
+        verbose_name = "Operator 3 Working History"
+        verbose_name_plural = "Operator 3 Working Histories"
 
     def __str__(self):
         return f"{self.operator} -> {self.customer} ({self.start_date} - {self.end_date})"

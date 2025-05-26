@@ -4,6 +4,7 @@ from django.utils.html import format_html
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = (
         'id',
         'get_username',
@@ -31,6 +32,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     
 @admin.register(CompanyType)
 class CompanyTypeAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'name', 'code', 'user', 'created_at')
     search_fields = ('name', 'code', 'user__username')
     list_filter = ('created_at',)
@@ -39,6 +41,7 @@ class CompanyTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'name', 'companyType', 'user', 'isActive', 'isValidate', 'isOA')
     search_fields = ('name', 'companyCode', 'user__username')
     list_filter = ('isActive', 'isValidate', 'isOA', 'created_at')
@@ -47,6 +50,7 @@ class CompanyAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyDepartment)
 class CompanyDepartmentAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'name', 'company', 'parent', 'isActive')
     search_fields = ('name', 'company__name')
     list_filter = ('isActive',)
@@ -54,6 +58,7 @@ class CompanyDepartmentAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyPossition)
 class CompanyPositionAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'name', 'company', 'department', 'parent', 'isActive')
     search_fields = ('name', 'company__name')
     list_filter = ('isActive',)
@@ -61,6 +66,7 @@ class CompanyPositionAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyUser)
 class CompanyUserAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'username', 'company', 'user', 'created_at')
     search_fields = ('username', 'company__name')
     readonly_fields = ('created_at', 'updated_at')
@@ -68,6 +74,7 @@ class CompanyUserAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyStaff)
 class CompanyStaffAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'cardID', 'company', 'user', 'department', 'possition', 'isActive', 'isAdmin', 'isSuperAdmin', 'isBan')
     search_fields = ('cardID', 'user__username', 'company__name')
     list_filter = ('isActive', 'isAdmin', 'isSuperAdmin', 'isBan')
@@ -75,11 +82,13 @@ class CompanyStaffAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyStaffProfile)
 class CompanyStaffProfileAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ['staff', 'full_name', 'phone', 'gender']
     search_fields = ['full_name', 'nick_name', 'phone']
 
 @admin.register(CompanyStaffHistoryFunction)
 class StaffHistoryFunctionAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'name', 'created_at')
     search_fields = ('name',)
     readonly_fields = ('created_at', 'updated_at')
@@ -87,6 +96,7 @@ class StaffHistoryFunctionAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyStaffHistoryAction)
 class StaffHistoryActionAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'name', 'created_at')
     search_fields = ('name',)
     readonly_fields = ('created_at', 'updated_at')
@@ -94,6 +104,7 @@ class StaffHistoryActionAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyStaffHistory)
 class CompanyStaffHistoryAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('id', 'staff', 'function', 'action', 'title', 'ip_action', 'isReaded', 'created_at')
     search_fields = ('staff__name', 'title', 'message')
     list_filter = ('isReaded', 'isSended', 'isReceived', 'isHidden')
@@ -115,6 +126,7 @@ class MiniAppPricingInline(admin.TabularInline):
 # === MAIN MODEL ADMIN ===
 @admin.register(MiniApp)
 class MiniAppAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('name', 'appID', 'isActive', 'public', 'created_at', 'updated_at')
     list_filter = ('isActive', 'public')
     search_fields = ('name', 'appID', 'description')
@@ -122,29 +134,34 @@ class MiniAppAdmin(admin.ModelAdmin):
 
 @admin.register(MiniAppFunction)
 class MiniAppFunctionAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('name', 'code', 'public', 'mini_app', 'is_active', 'created_at')
     list_filter = ('is_active', 'mini_app')
     search_fields = ('name', 'code', 'mini_app__name')
 
 @admin.register(MiniAppPricing)
 class MiniAppPricingAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('mini_app', 'price', 'currency', 'duration_in_days', 'is_active', 'created_at')
     list_filter = ('currency', 'is_active', 'mini_app')
     search_fields = ('mini_app__name', )
 
 @admin.register(MiniAppSchedule)
 class MiniAppScheduleAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('mini_app', 'company', 'start_date', 'end_date', 'is_confirmed', 'created_at')
     list_filter = ('is_confirmed', 'mini_app', 'company')
     search_fields = ('mini_app__name', 'company__name')
 
 @admin.register(MiniAppRegistration)
 class MiniAppRegistrationAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('mini_app', 'company', 'registered_at', 'approved')
     list_filter = ('approved', 'mini_app', 'company')
     search_fields = ('mini_app__name', 'company__name')
     
 class ChatAdminGroup(admin.ModelAdmin):
+    list_per_page = 20
     """Nhóm các model liên quan đến Chat"""
     class Meta:
         verbose_name = "APP Chat"
@@ -152,6 +169,7 @@ class ChatAdminGroup(admin.ModelAdmin):
 
 @admin.register(AppChatRoom)
 class AppChatRoomAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('name', 'company', 'is_group', 'created_at')
     search_fields = ('name', 'company__name')
     filter_horizontal = ('members',)
@@ -159,43 +177,51 @@ class AppChatRoomAdmin(admin.ModelAdmin):
 
 @admin.register(ChatRoomMembership)
 class ChatRoomMembershipAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('user', 'room', 'role', 'joined_at')
 
 @admin.register(ChatDate)
 class ChatDateAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('room', 'date', 'total_messages')
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('room', 'sender', 'created_at')
     search_fields = ('message', 'sender__name')
     list_filter = ('created_at',)
 
 @admin.register(AppChatStatus)
 class AppChatStatusAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ('room', 'user', 'last_read_at')
 
 @admin.register(CompanyCustomer)
 class CompanyCustomerAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ("id", "name", "fullname", "company", "email", "hotline")
     search_fields = ("name", "fullname", "email", "hotline")
     list_filter = ("company",)
 
 @admin.register(CompanyVendor)
 class CompanyVendorAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ("id", "name", "fullname", "company", "email", "hotline")
     search_fields = ("name", "fullname", "email", "hotline")
     list_filter = ("company",)
 
 @admin.register(CompanyOperator)
 class CompanyOperatorAdmin(admin.ModelAdmin):
-    list_display = ("id", "ma_nhanvien", "ho_ten", "company", "sdt", "trangthai")
+    list_per_page = 20
+    list_display = ("id", "ma_nhanvien","so_cccd", "ho_ten", "company", "sdt", "trangthai")
     search_fields = ("ma_nhanvien", "ho_ten", "sdt", "so_cccd")
     list_filter = ("company", "trangthai")
     autocomplete_fields = ["congty_danglam", "nhachinh", "vendor", "nguoituyen", "nguoibaocao"]
 
 @admin.register(OperatorUpdateHistory)
 class OperatorUpdateHistoryAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ("id", "operator", "changed_by", "changed_at", "notes")
     search_fields = ("operator__ma_nhanvien", "changed_by__user__username", "notes")
     list_filter = ("changed_at",)
@@ -203,6 +229,7 @@ class OperatorUpdateHistoryAdmin(admin.ModelAdmin):
 
 @admin.register(OperatorWorkHistory)
 class OperatorWorkHistoryAdmin(admin.ModelAdmin):
+    list_per_page = 20
     list_display = ("id", "operator", "customer", "start_date", "end_date", "nguoituyen")
     search_fields = ("operator__ma_nhanvien", "customer__name", "so_cccd")
     list_filter = ("customer", "vendor", "nhachinh")

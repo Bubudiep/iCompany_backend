@@ -18,7 +18,6 @@ from rest_framework import viewsets, permissions
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
-from django.db.models import Q,F
 from rest_framework.decorators import action
 from django.db import transaction
 from django.utils.crypto import get_random_string

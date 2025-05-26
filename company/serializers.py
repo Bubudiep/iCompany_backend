@@ -1,6 +1,11 @@
 from rest_framework import serializers
 from .models import *
 
+class CompanyOperatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = '__all__'
+        
 class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
@@ -18,6 +23,13 @@ class CompanyStaffSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField(read_only=True)
     department_name = serializers.CharField(source='department.name',allow_null=True, read_only=True)
     possition_name = serializers.CharField(source='possition.name',allow_null=True, read_only=True)
+    Operator = serializers.SerializerMethodField(read_only=True)
+    def get_Operator(self,staff):
+        try:
+            qs_Operator=CompanyOperator.objects.filter(Q(nguoituyen=staff) | Q(nguoibaocao=staff),company=staff.company)
+            return CompanyOperatorSerializer(qs_Operator,many=True).data
+        except Exception as e:
+            return []
     def get_profile(self,staff):
         try:
             qs_profile=CompanyStaffProfile.objects.get(staff=staff)
@@ -232,10 +244,6 @@ class OperatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
         fields = ['id','ho_ten','trangthai']
-class CompanyOperatorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CompanyOperator
-        fields = '__all__'
         
 class CompanyStaffDetailsSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField(read_only=True)
@@ -319,30 +327,9 @@ class AdvanceRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
            
 class OP_HISTSerializer(serializers.ModelSerializer):
-    customer = serializers.SerializerMethodField(read_only=True)
-    nhachinh = serializers.SerializerMethodField(read_only=True)
-    vendor = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = OperatorWorkHistory
         fields = '__all__'
-    def get_vendor(self, qs):
-        if qs.vendor:
-            return {
-                "name":qs.vendor.name,
-                "fullname": qs.vendor.fullname,
-            }
-    def get_customer(self, qs):
-        if qs.customer:
-            return {
-                "name":qs.customer.name,
-                "fullname": qs.customer.fullname,
-            }
-    def get_nhachinh(self, qs):
-        if qs.nhachinh:
-            return {
-                "name":qs.nhachinh.name,
-                "fullname": qs.nhachinh.fullname,
-            }
             
 class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
     changed_by=CompanyStaffProfileSerializer(allow_null=True)
