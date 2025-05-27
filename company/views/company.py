@@ -365,6 +365,9 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         return AdvanceRequest.objects.filter(company=staff.company)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        qs_type = self.request.query_params.get('type')
+        if qs_type:
+            queryset=queryset.filter(requesttype__typecode=qs_type)
         last_update = self.request.query_params.get('last_update')
         if last_update:
             queryset=queryset.filter(updated_at__gt=last_update)

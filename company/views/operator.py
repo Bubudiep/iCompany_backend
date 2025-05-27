@@ -56,7 +56,7 @@ class AddOperatorAPIView(APIView):
                             operator=op,
                             old_data=None,
                             new_data=CompanyOperatorSerializer(op).data,
-                            notes="Khởi tạo tài khoản"
+                            notes="Được thêm vào hệ thống"
                         )
                         listcreated.append(op)
                     return Response(CompanyOperatorDetailsSerializer(listcreated,many=True).data,
