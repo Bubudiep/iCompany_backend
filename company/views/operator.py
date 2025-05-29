@@ -188,7 +188,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 hist=OperatorWorkHistory.objects.filter(operator=operator).order_by('-id')
                 if len(hist)!=0:
                     ctyNow=hist.first()
-                    if datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z") < ctyNow.end_date:
+                    if datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date() < ctyNow.end_date:
                         return Response({"detail": "Ngày đi làm không được nhỏ hơn ngày nghỉ ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
                     if ctyNow.end_date is None:
                         return Response({"detail": f"Chưa nghỉ làm ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -210,10 +210,75 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     nguoituyen=operator.nguoituyen
                 OperatorWorkHistory.objects.create(ma_nhanvien=employeeCode,operator=operator,
                                                 nguoituyen=nguoituyen,
-                                                customer=qs_cty,start_date=startDate)
+                                                customer=qs_cty,
+                                                start_date=datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date())
                 operator.nguoituyen=nguoituyen
                 operator.save()
                 return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            return Response({"detail": f"[{file_name}_{lineno}] {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def dilamroi(self, request, pk=None):
+        user = request.user
+        qs_op = self.get_object()
+        key = self.request.headers.get('ApplicationKey')
+        if company is None:
+            return Response({"detail": f"Chưa chọn công ty làm việc!"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            qs_staff = CompanyStaff.objects.get(user__user=user,company__key=key)
+            with transaction.atomic():
+                conflict_date=False
+                so_cccd=request.data.get("cccd")
+                start_date=request.data.get("ngaybatdau")
+                congty=request.data.get("congty")
+                nhachinh=request.data.get("nhachinh")
+                nguoituyen=request.data.get("nguoituyen")
+                end_date=request.data.get("ngaynghi")
+                manhanvien=request.data.get("manhanvien")
+                tendilam=request.data.get("fullname")
+                congviec=request.data.get("congviec")
+                qs_nhachinh=None
+                if start_date:
+                    start_date=datetime.strptime(start_date,"%Y-%m-%d").date()
+                if end_date:
+                    end_date=datetime.strptime(end_date,"%Y-%m-%d").date()
+                if nhachinh:
+                    qs_nhachinh=CompanyVendor.objects.get(name=nhachinh,company=qs_staff.company)
+                hist=OperatorWorkHistory.objects.filter(operator=qs_op).order_by('-id')
+                for his in hist:
+                    if start_date>=his.start_date and start_date<=his.end_date:
+                        conflict_date=True
+                    if end_date>=his.start_date and end_date<=his.end_date:
+                        conflict_date=True
+                if conflict_date==True:
+                    return Response({"detail": f"Bị trùng lịch sử làm việc"}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    qs_cty=CompanyCustomer.objects.get(name=congty,company=qs_staff.company)
+                    qs_nguoituyen=None
+                    if nguoituyen:
+                        qs_nguoituyen=CompanyStaff.objects.get(id=nguoituyen,company=qs_staff.company)
+                    OperatorUpdateHistory.objects.create(
+                        operator=qs_op,
+                        changed_by=qs_staff,
+                        old_data={},
+                        new_data={},
+                        notes=f"Thêm lịch sử đi làm ở công ty {qs_cty.name}"
+                    )
+                    OperatorWorkHistory.objects.create(nguoituyen=qs_nguoituyen,
+                        ma_nhanvien=manhanvien,operator=qs_op,so_cccd=so_cccd,
+                        ho_ten=tendilam,end_date=end_date,vitri=congviec,
+                        customer=qs_cty,nhachinh=qs_nhachinh,
+                        start_date=start_date)
+                return Response(CompanyOperatorMoreDetailsSerializer(qs_op).data, status=status.HTTP_200_OK)
+        except CompanyCustomer.DoesNotExist:
+            return Response({"detail": f"Không tìm thấy công ty"}, status=status.HTTP_400_BAD_REQUEST)
+        except CompanyVendor.DoesNotExist:
+            return Response({"detail": f"Không tìm thấy nhà chính"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             lineno = exc_tb.tb_lineno
@@ -288,6 +353,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             qs_baoung, _ = AdvanceType.objects.get_or_create(
                 typecode="Báo ứng",
                 need_operator=True,
+                need_retrive=True,
                 company=qs_com
             )
             qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
@@ -341,7 +407,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             if len(hist)==0:
                 return Response({"detail": f"Chưa đi làm ở công ty nào!"}, status=status.HTTP_400_BAD_REQUEST)
             ctyNow=hist.first()
-            if datetime.strptime(ngaynghi,"%Y-%m-%dT%H:%M:%S.%f%z") < ctyNow.start_date:
+            if datetime.strptime(ngaynghi,"%Y-%m-%dT%H:%M:%S.%f%z").date() < ctyNow.start_date:
                 return Response({"detail": "Ngày nghỉ phải lớn hơn ngày bắt đầu làm!"}, status=status.HTTP_400_BAD_REQUEST)
             if ctyNow.end_date:
                 operator.congty_danglam = None
@@ -354,7 +420,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 new_data={"congty_danglam":None},
                 notes=f"Báo nghỉ việc ở công ty {operator.congty_danglam.name}"
             )
-            ctyNow.end_date=ngaynghi
+            ctyNow.end_date=datetime.strptime(ngaynghi,"%Y-%m-%dT%H:%M:%S.%f%z").date()
             ctyNow.reason=lyDo
             operator.congty_danglam = None
             ctyNow.save()
@@ -401,7 +467,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             user = self.request.user
             key = self.request.headers.get('ApplicationKey')
             instance = self.get_object()
-            qs_res = company_staff.objects.get(
+            qs_res = CompanyStaff.objects.get(
                 user__user=user,
                 isActive=True,
                 company__key=key
@@ -410,8 +476,23 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"detail": "Bạn không có quyền!"}, status=status.HTTP_403_FORBIDDEN
                 )
-            if instance.nguoituyen==qs_res or instance.nguoibaocao==qs_res:
+            if instance.nguoituyen==qs_res or instance.nguoibaocao==qs_res or instance.congty_danglam in qs_res.managerCustomer.all():
                 with transaction.atomic():
+                    changed_fields = {'old':{},'new':{}}
+                    row_changed = 0
+                    for key in request.data:
+                        if str(getattr(instance, key)) != str(request.data.get(key)):
+                            row_changed = row_changed+1
+                            changed_fields['old'][key] = str(getattr(instance, key))
+                            changed_fields['new'][key] = str(request.data.get(key))
+                    if row_changed>0:
+                        OperatorUpdateHistory.objects.create(
+                            operator=instance,
+                            changed_by=qs_res,
+                            old_data=changed_fields['old'],
+                            new_data=changed_fields['new'],
+                            notes="Cập nhập thông tin người lao động"
+                        )
                     updated_instance=super().partial_update(request, *args, **kwargs)
                     instance.refresh_from_db()
                     return Response(CompanyOperatorMoreDetailsSerializer(instance).data, 

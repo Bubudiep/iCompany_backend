@@ -86,17 +86,49 @@ class CompanyCustomerSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['company']
         
+class CompanyConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =CompanyConfig
+        fields = '__all__'
+        read_only_fields = ['company']
+        
 class CompanyVendorSerializer(serializers.ModelSerializer):
     class Meta:
         model =CompanyVendor
         fields = '__all__'
-        read_only_fields = ['company']
+        read_only_fields = ['company','id']
           
 class CompanySerializer(serializers.ModelSerializer):
     Department = serializers.SerializerMethodField(read_only=True)
     Customer = serializers.SerializerMethodField(read_only=True)
     Vendor = serializers.SerializerMethodField(read_only=True)
     Staff = serializers.SerializerMethodField(read_only=True)
+    Config = serializers.SerializerMethodField(read_only=True)
+    Dashboard = serializers.SerializerMethodField(read_only=True)
+    def get_Dashboard(self,company):
+        qs_request=AdvanceRequest.objects.filter(company=company)
+        qs_baoung=qs_request.filter(requesttype__typecode="Báo ứng")
+        qs_baogiu=qs_request.filter(requesttype__typecode="Báo giữ lương")
+        qs_op=CompanyOperator.objects.filter(company=company)
+        return {
+            "approve":{
+                "total":len(qs_request),
+                "baoung": AdvanceRequestLTESerializer(qs_baoung,many=True).data,
+                "baogiu": AdvanceRequestLTESerializer(qs_baogiu,many=True).data
+            },
+            "op":{
+                "total":len(qs_op),
+                "homnay":qs_op.filter(ngay_phongvan=datetime.now().date()).count(),
+                "dilam":qs_op.filter(congty_danglam__isnull=False).count(),
+                "nhachinh":qs_op.filter(nhachinh__isnull=False).count(),
+            }
+        }
+    def get_Config(self,company):
+        try:
+            allConfig,_=CompanyConfig.objects.get_or_create(company=company)
+            return CompanyConfigSerializer(allConfig).data
+        except Exception as e:
+            return []
     def get_Staff(self,company):
         try:
             allStaff=CompanyStaff.objects.filter(company=company)
@@ -124,8 +156,8 @@ class CompanySerializer(serializers.ModelSerializer):
             return []
     class Meta:
         model = Company
-        fields = ['companyType','avatar','name','fullname','address',
-            'Department','Customer','Vendor','Staff',
+        fields = ['companyType','avatar','name','fullname','address','Dashboard',
+            'Department','Customer','Vendor','Staff','Config',
             'addressDetails','hotline','isValidate','isOA','wallpaper',
             'shortDescription','description','created_at']
 
@@ -308,6 +340,11 @@ class AdvanceRequestHistorySerializer(serializers.ModelSerializer):
         model = AdvanceRequestHistory
         fields = '__all__'
         
+class AdvanceRequestLTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdvanceRequest
+        fields = ['amount','status','payment_status','retrieve_status']
+           
 class AdvanceRequestSerializer(serializers.ModelSerializer):
     reason = AdvanceReasonTypeSerializer(allow_null=True)
     requesttype = AdvanceTypeSerializer()

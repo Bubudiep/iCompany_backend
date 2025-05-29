@@ -206,6 +206,36 @@ class CompanyStaffProfile(models.Model):
     def __str__(self):
         return f"{self.staff.cardID}_{self.staff.user.username}"
     
+class CompanyConfig(models.Model):
+    company = models.OneToOneField(Company, on_delete=models.CASCADE)
+    
+    approve_admin = models.ManyToManyField(
+        CompanyStaff,blank=True, 
+        related_name='list_admin_approve'
+        # Danh sách người quản lý mục approve
+    )
+    admin_can_approve = models.BooleanField(default=False)
+    staff_can_approve = models.ManyToManyField(
+        CompanyStaff,blank=True, 
+        related_name='list_can_approve'
+        # Danh sách người có quyền approve/reject
+    )
+    admin_can_payout = models.BooleanField(default=False)
+    staff_can_payout = models.ManyToManyField(
+        CompanyStaff,blank=True, 
+        related_name='list_can_payout'
+        # Danh sách người có quyền giải ngân và thu hồi
+    )
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+        verbose_name = "Company Configurations"
+        verbose_name_plural = "Company Configurations"
+    def __str__(self):
+        return f"{self.name}"
+    
 class CompanyStaffHistoryFunction(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)

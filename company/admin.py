@@ -235,3 +235,29 @@ class OperatorWorkHistoryAdmin(admin.ModelAdmin):
     list_filter = ("customer", "vendor", "nhachinh")
     autocomplete_fields = ["operator", "customer", "vendor", "nhachinh", "nguoituyen", "noihopdong"]
     readonly_fields = ("created_at", "updated_at")
+    
+@admin.register(AdvanceType)
+class AdvanceTypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'company', 'typecode', 'need_operator', 'need_approver', 'need_retrive', 'color', 'created_at')
+    search_fields = ('typecode',)
+    list_filter = ('company', 'need_operator', 'need_approver', 'need_retrive')
+
+@admin.register(AdvanceReasonType)
+class AdvanceReasonTypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'company', 'typename', 'created_at')
+    search_fields = ('typename',)
+    list_filter = ('company',)
+
+@admin.register(AdvanceRequest)
+class AdvanceRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'company', 'request_code', 'requester', 'amount', 'status', 'payment_status', 'retrieve_status', 'created_at')
+    search_fields = ('request_code', 'comment')
+    list_filter = ('company', 'status', 'payment_status', 'retrieve_status', 'hinhthucThanhtoan', 'nguoiThuhuong')
+    raw_id_fields = ('requester', 'approver', 'operator', 'requesttype', 'reason')
+
+@admin.register(AdvanceRequestHistory)
+class AdvanceRequestHistoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'request', 'user', 'action', 'created_at')
+    search_fields = ('comment',)
+    list_filter = ('action',)
+    raw_id_fields = ('request', 'user')

@@ -2,14 +2,15 @@ from .a import *
 from .company import *
 
 class AdvanceType(models.Model): # loại phê duyệt
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,
+                                 null=True,blank=True)
     typecode = models.CharField(max_length=100, unique=True)
     need_operator = models.BooleanField(default=False) # người thụ hưởng là công nhân
     need_approver = models.BooleanField(default=False) # cần phê duyệt
+    need_retrive = models.BooleanField(default=False) # cần thu hồi
     color = models.CharField(max_length=10, null=True,blank=True, default='#999999')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE,
-                                 null=True,blank=True)
     class Meta:
         ordering = ['-created_at']
     def __str__(self):
@@ -97,6 +98,8 @@ class AdvanceRequestHistory(models.Model): # phân loại nguyên nhân phê duy
         ('update', 'Cập nhập'),
         ('edit', 'Chỉnh sửa'),
         ('create', 'Tạo mới'),
+        ('retrieve', 'Hoàn ngân'),
+        ('payout', 'Giải ngân'),
         ('cancel', 'Hủy bỏ'),
         ('pending', 'Chờ duyệt'),
         ('approved', 'Đã duyệt'),

@@ -329,13 +329,36 @@ class CompanyStaffProfileViewSet(viewsets.ModelViewSet):
     queryset = CompanyStaffProfile.objects.all()
     serializer_class = CompanyStaffProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['patch']
+    http_method_names = ['patch','post']
     pagination_class = StandardResultsSetPagination
     def get_queryset(self):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
         staff=CompanyStaff.objects.get(company__key=key,user__user=user)
         return CompanyStaffProfile.objects.filter(staff=staff)
+    
+    def create(self, request, *args, **kwargs):
+        return Response({'detail': 'Không được phép'}, status=status.HTTP_401_UNAUTHORIZED)
+        return super().create(request, *args, **kwargs)
+    
+    @action(detail=False, methods=['post'])
+    def change_pass(self, request, pk=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        old_pass = request.data.get("old_pass")
+        new_pass = request.data.get("new_pass")
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            cuser = staff.user
+            if check_password(old_pass, cuser.password)==False:
+                return Response({'detail': 'Sai mật khẩu'}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                cuser.password=new_pass
+                cuser.save()
+            return Response({"detail": "Thành công!"}, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         last_update = self.request.query_params.get('last_update')
@@ -355,15 +378,231 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     queryset = AdvanceRequest.objects.all()
     serializer_class = AdvanceRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['patch','get','post']
+    http_method_names = ['get','post']
     pagination_class = StandardResultsSetPagination
     lookup_field = 'request_code'
-    
+
+    @action(detail=True, methods=['post'])
+    def paytrieve(self, request, request_code=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        apv = self.get_object()
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if staff in config.staff_can_payout.all():
+                pass  # Được phép
+            elif staff.isSuperAdmin:
+                pass  # Super admin luôn được phép
+            elif staff.isAdmin and config.admin_can_payout:
+                pass  # Admin được phép nếu config cho phép
+            else:
+                return Response({"detail": "Bạn không có quyền hoàn ngân",
+                                 "reason": "Không thuộc nhóm hoàn ngân và không phải admin/super admin"}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            apv.retrieve_status="done"
+            apv.save()
+            AdvanceRequestHistory.objects.create(request=apv,
+                user=staff,
+                action='retrieve',
+                comment=request.data.get('comment')
+            )
+            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    @action(detail=True, methods=['post'])
+    def payout(self, request, request_code=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        apv = self.get_object()
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if staff in config.staff_can_payout.all():
+                pass  # Được phép
+            elif staff.isSuperAdmin:
+                pass  # Super admin luôn được phép
+            elif staff.isAdmin and config.admin_can_payout:
+                pass  # Admin được phép nếu config cho phép
+            else:
+                return Response({"detail": "Bạn không có quyền giải ngân",
+                                 "reason": "Không thuộc nhóm giải ngân và không phải admin/super admin"}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            apv.payment_status="done"
+            apv.save()
+            AdvanceRequestHistory.objects.create(request=apv,
+                user=staff,
+                action='payout',
+                comment=request.data.get('comment')
+            )
+            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, request_code=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        apv = self.get_object()
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            if staff.isSuperAdmin:
+                pass
+            elif staff in config.approve_admin.all():
+                pass  # Được phép phê duyệt
+            elif staff != apv.requester:
+                return Response({"detail": "Bạn không có quyền hủy",
+                                 "reason": "Không phải người tạo yêu cầu hoặc super admin"}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            apv.status="cancel"
+            apv.save()
+            AdvanceRequestHistory.objects.create(request=apv,
+                user=staff,
+                action='cancel',
+                comment=request.data.get('comment')
+            )
+            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    @action(detail=True, methods=['post'])
+    def reject(self, request, request_code=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        apv = self.get_object()
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if staff in config.approve_admin.all():
+                pass  # Được phép phê duyệt
+            if staff in config.staff_can_approve.all():
+                pass  # Được phép phê duyệt
+            elif staff.isSuperAdmin:
+                pass  # Super admin luôn được phép
+            elif staff.isAdmin and config.admin_can_approve:
+                pass  # Admin được phép nếu config cho phép
+            else:
+                return Response({"detail": "Bạn không có quyền phê duyệt",
+                                 "reason": "Không thuộc nhóm phê duyệt và không phải admin/super admin"}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            apv.status="rejected"
+            apv.save()
+            AdvanceRequestHistory.objects.create(request=apv,
+                user=staff,
+                action='rejected',
+                comment=request.data.get('comment')
+            )
+            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    @action(detail=True, methods=['post'])
+    def apply_pay(self, request, request_code=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        apv = self.get_object()
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if staff in config.approve_admin.all():
+                pass  # Được phép phê duyệt
+            if staff in config.staff_can_approve.all() and staff in config.staff_can_payout.all():
+                pass  # Được phép phê duyệt
+            elif staff.isSuperAdmin:
+                pass  # Super admin luôn được phép
+            elif staff.isAdmin and config.admin_can_approve and config.staff_can_payout:
+                pass  # Admin được phép nếu config cho phép
+            else:
+                return Response({"detail": "Bạn không có quyền phê duyệt",
+                                 "reason": "Không thuộc nhóm phê duyệt và không phải admin/super admin"}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            apv.status="approved"
+            apv.payment_status="done"
+            apv.save()
+            AdvanceRequestHistory.objects.create(request=apv,
+                user=staff,
+                action='approved',
+                comment=request.data.get('comment')
+            )
+            AdvanceRequestHistory.objects.create(request=apv,
+                user=staff,
+                action='payout',
+                comment=request.data.get('comment')
+            )
+            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+            return Response(data={"detail":"Bạn không có quyền tạo tài khoản mới!","error":res_data}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    @action(detail=True, methods=['post'])
+    def apply(self, request, request_code=None):
+        try:
+            user = request.user
+            key = request.headers.get('ApplicationKey')
+            apv = self.get_object()
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if staff in config.approve_admin.all():
+                pass  # Được phép phê duyệt
+            if staff in config.staff_can_approve.all():
+                pass  # Được phép phê duyệt
+            elif staff.isSuperAdmin:
+                pass  # Super admin luôn được phép
+            elif staff.isAdmin and config.admin_can_approve:
+                pass  # Admin được phép nếu config cho phép
+            else:
+                return Response({"detail": "Bạn không có quyền phê duyệt",
+                                 "reason": "Không thuộc nhóm phê duyệt và không phải admin/super admin"}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            apv.status="approved"
+            apv.save()
+            AdvanceRequestHistory.objects.create(request=apv,
+                user=staff,
+                action='approved',
+                comment=request.data.get('comment')
+            )
+            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+            return Response(data={"detail":"Bạn không có quyền tạo tài khoản mới!","error":res_data}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
     def get_queryset(self):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
         staff=CompanyStaff.objects.get(company__key=key,user__user=user)
         return AdvanceRequest.objects.filter(company=staff.company)
+    
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         qs_type = self.request.query_params.get('type')
