@@ -137,7 +137,6 @@ class CompanyUser(models.Model):
     def __str__(self):
         return f"{self.username} ({self.company.key})"
     
-
 class CompanyCustomer(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, null=True, blank=True)
@@ -284,6 +283,7 @@ class CompanyStaffHistory(models.Model):
 class CompanyVendor(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, null=True, blank=True)
+    subname = models.CharField(max_length=200, null=True, blank=True)
     fullname = models.CharField(max_length=200, null=True, blank=True)
     address = models.CharField(max_length=200, null=True, blank=True)
     email = models.CharField(max_length=200, null=True, blank=True)
@@ -293,7 +293,7 @@ class CompanyVendor(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         ordering = ['-id']
-        unique_together = ('company', 'name')
+        unique_together = ('company', 'name', 'subname')
         verbose_name = "Company Vendors"
         verbose_name_plural = "Company Vendors"
     def __str__(self):
@@ -387,3 +387,87 @@ class OperatorWorkHistory(models.Model):
 
     def __str__(self):
         return f"{self.operator} -> {self.customer} ({self.start_date} - {self.end_date})"
+
+
+class Company_Salary_type(models.Model): # Phân loại lương (Lương cơ bản)
+    action_choice=[('+', 'Cộng'), ('-', 'Trừ'), ('*', 'Nhân'), ('/', 'Chia')]
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+
+    # Kế thừa từ một loại lương nữa bằng 1 phép tính
+    parent = models.ForeignKey('self',on_delete=models.SET_NULL, null=True, blank=True)
+    parent_action = models.CharField(max_length=200, null=True, blank=True)
+    parent_action_target = models.FloatField(default=1, null=True, blank=True)
+    parent_action_target_parent = models.ForeignKey('self',
+        related_name="salary_type_target",
+        on_delete=models.SET_NULL, 
+        null=True, blank=True
+    )
+    
+    # Loại lương
+    name = models.CharField(max_length=200, null=True, blank=True)
+    shortname = models.CharField(max_length=200, null=True, blank=True)
+    descriptions = models.CharField(max_length=200, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+    def __str__(self):
+        return f"{self.name}"
+    # Ví dụ: Lương cơ bản, 
+    # Lương tăng ca = Lương cơ bản * 1.5, 
+    # Lương nghỉ 70% = Lương cơ bản * 0.7,....
+    
+class Company_Hour_type(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    heso = models.IntegerField(default=100, null=True, blank=True)
+    shortname = models.CharField(max_length=200, null=True, blank=True)
+    descriptions = models.CharField(max_length=200, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+    def __str__(self):
+        return f"{self.name}"
+    
+class CompanyCustomer_salary(models.Model):
+    customer = models.ForeignKey(CompanyCustomer, on_delete=models.CASCADE,null=True, blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,null=True, blank=True)
+    dongia = models.IntegerField(default=0, null=True, blank=True)
+    ngayapdung = models.DateField(auto_now=True)
+
+    staff = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, 
+                                   null=True, blank=True)
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+    def __str__(self):
+        return f"{self.id}"
+    
+class CompanyOperator_workHours(models.Model):
+    operator = models.ForeignKey(CompanyOperator, on_delete=models.CASCADE,null=True, blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,null=True, blank=True)
+    
+    ngaylamviec = models.DateField()
+    is_single = models.BooleanField(default=True) # Ngày lẻ
+    denngay = models.DateField(null=True, blank=True)
+    heso = models.FloatField(default=0, null=True, blank=True)
+    sogio = models.FloatField(default=0, null=True, blank=True)
+    staff = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, 
+                                   null=True, blank=True)
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def save(self, *args, **kwargs):
+        if self.denngay:
+            self.is_single=False # nếu mà là giải ngày thì single = False
+        super(CompanyOperator, self).save(*args, **kwargs)
+        
+    class Meta:
+        ordering = ['-id']
+    def __str__(self):
+        return f"{self.id}"
+    
