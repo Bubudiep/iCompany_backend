@@ -424,8 +424,8 @@ class CompanyOperatorDetailsSerializer(serializers.ModelSerializer):
         def calculate_seniority(record):
             if not record.start_date:
                 return 0
-            start_date = record.start_date.date()
-            end_date = (record.end_date or now()).date()
+            start_date = record.start_date
+            end_date = record.end_date or now().date()
             delta_days = (end_date - start_date).days + 1
             if record.noihopdong:
                 delta_days += calculate_seniority(record.noihopdong)

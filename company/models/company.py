@@ -323,6 +323,7 @@ class CompanyOperator(models.Model):
     chu_taikhoan= models.CharField(max_length=200, null=True, blank=True)
     ghichu_taikhoan= models.CharField(max_length=200, null=True, blank=True)
     ghichu= models.CharField(max_length=200, null=True, blank=True)
+    import_raw= models.JSONField(max_length=9999, null=True, blank=True)
     
     nguoituyen = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nguoituyen")
     vendor = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_vendor")
