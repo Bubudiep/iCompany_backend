@@ -111,7 +111,13 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
         qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
-        return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | Q(nguoibaocao=qs_res),company=qs_res.company)
+        if qs_res.isSuperAdmin:
+            return CompanyOperator.objects.filter(company=qs_res.company)
+        return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | 
+                                              Q(nguoibaocao=qs_res) | 
+                                              Q(congty_danglam__id__in=qs_res.managerCustomer.all().values_list("id",flat=True)),
+                                              company=qs_res.company
+                                            )
     
     @action(detail=False, methods=['post'])
     def add_lichsu(self, request, pk=None):
