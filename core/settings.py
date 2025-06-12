@@ -120,3 +120,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'ApplicationKey',
     'Companykey',
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.ipays.vn",
+    "https://www.ipays.vn",  # nếu dùng cả www
+]
