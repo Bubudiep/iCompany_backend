@@ -110,7 +110,7 @@ ALLOWED_HOSTS = [
     '10.100.1.10',
     'vieclamvp.vn',
     'api.vieclamvp.vn',
-    'ipays.vn'
+    'api.ipays.vn'
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
