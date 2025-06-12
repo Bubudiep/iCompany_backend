@@ -102,6 +102,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://api.vieclamvp.vn",
     "https://hl-djc.vieclamvp.vn",
     "https://ipays.vn"
+    "https://api.ipays.vn"
 ]
 ALLOWED_HOSTS = [
     '127.0.0.1',
