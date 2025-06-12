@@ -581,6 +581,11 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
+        max_update = self.request.query_params.get('max_update')
+        if max_update:
+            qs_max=CompanyOperator.objects.filter(id=int(max_update)).first()
+            if qs_max:
+                queryset=queryset.filter(updated_at__gt=qs_max.updated_at)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
