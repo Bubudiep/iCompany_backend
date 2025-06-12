@@ -59,15 +59,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-CORS_ALLOW_ALL_ORIGINS = False  # (dev local thôi)
-ALLOWED_HOSTS = ['10.100.1.50','127.0.0.1','localhost','10.100.1.10','vieclamvp.vn','api.vieclamvp.vn']
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    'authorization',
-    'x-csrf-token',
-    'access-control-allow-origin',
-    'ApplicationKey',
-    'Companykey',
-]
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -103,3 +94,19 @@ USE_TZ = True
 STATIC_URL = 'static/'
 GOOGLE_API_KEY= config('GOOGLE_API_KEY')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CORS_ALLOW_ALL_ORIGINS = False  # (dev local thôi)
+CORS_ALLOWED_ORIGINS = [
+    "http://10.100.1.50:3000",
+    "https://vieclamvp.vn",
+    "https://api.vieclamvp.vn",
+    "https://hl-djc.vieclamvp.vn",
+]
+ALLOWED_HOSTS = ['10.100.1.50','127.0.0.1','localhost','10.100.1.10','vieclamvp.vn','api.vieclamvp.vn']
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'authorization',
+    'x-csrf-token',
+    'access-control-allow-origin',
+    'ApplicationKey',
+    'Companykey',
+]
