@@ -101,7 +101,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://vieclamvp.vn",
     "https://api.vieclamvp.vn",
     "https://hl-djc.vieclamvp.vn",
-    "https://ipays.vn"
+    "https://ipays.vn",
     "https://api.ipays.vn"
 ]
 ALLOWED_HOSTS = [
