@@ -1,6 +1,11 @@
 from rest_framework import serializers
 from .models import *
 
+class OP_HISTLTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OperatorWorkHistory
+        fields = ['ma_nhanvien','start_date','customer']
+        
 class OP_HISTSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperatorWorkHistory
@@ -14,7 +19,7 @@ class CompanyOperatorSerializer(serializers.ModelSerializer):
                                                       customer=qs.congty_danglam,
                                                       end_date__isnull=True)
             if qs_his:
-                return OP_HISTSerializer(qs_his.first()).data
+                return OP_HISTLTESerializer(qs_his.first()).data
         return None
     class Meta:
         model = CompanyOperator
