@@ -11,7 +11,7 @@ class CompanyOperatorSerializer(serializers.ModelSerializer):
     def get_congty_hientai(self, qs):
         if qs.congty_danglam:
             qs_his=OperatorWorkHistory.objects.filter(operator=qs,
-                                                      company=qs.congty_danglam,
+                                                      customer=qs.congty_danglam,
                                                       end_date__isnull=True)
             if qs_his:
                 return OP_HISTSerializer(qs_his.first()).data
