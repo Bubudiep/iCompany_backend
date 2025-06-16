@@ -130,13 +130,13 @@ class CompanySerializer(serializers.ModelSerializer):
         qs_baogiu=qs_request.filter(requesttype__typecode="Báo giữ lương")
         qs_op=CompanyOperator.objects.filter(company=company)
         by_customer={}
-        by_vendor={}
+        by_nhachinh={}
         for op in qs_op:
-            if op.vendor:
-                if op.vendor.name in by_vendor:
-                    by_vendor[op.vendor.name]=by_vendor[op.vendor.name]+1
+            if op.nhachinh:
+                if op.nhachinh.name in by_nhachinh:
+                    by_nhachinh[op.nhachinh.name]=by_nhachinh[op.nhachinh.name]+1
                 else:
-                    by_vendor[op.vendor.name]=1
+                    by_nhachinh[op.nhachinh.name]=1
             if op.congty_danglam:
                 if op.congty_danglam.name in by_customer:
                     by_customer[op.congty_danglam.name]=by_customer[op.congty_danglam.name]+1
@@ -151,7 +151,7 @@ class CompanySerializer(serializers.ModelSerializer):
             "op":{
                 "total":len(qs_op),
                 "by_customer":by_customer,
-                "by_vendor":by_vendor,
+                "by_nhachinh":by_nhachinh,
                 "homnay":qs_op.filter(ngay_phongvan=datetime.now().date()).count(),
                 "dilam":qs_op.filter(congty_danglam__isnull=False).count(),
                 "nhachinh":qs_op.filter(nhachinh__isnull=False).count(),
