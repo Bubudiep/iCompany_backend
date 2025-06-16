@@ -129,22 +129,15 @@ class CompanySerializer(serializers.ModelSerializer):
         qs_baoung=qs_request.filter(requesttype__typecode="Báo ứng")
         qs_baogiu=qs_request.filter(requesttype__typecode="Báo giữ lương")
         qs_op=CompanyOperator.objects.filter(company=company)
-        by_customer={}
-        by_nhachinh={}
+        by_nhachinh = defaultdict(int)
+        by_customer = defaultdict(lambda: defaultdict(int))
         for op in qs_op:
+            nhachinh_name = op.nhachinh.name if op.nhachinh else "other"
+            congty_name = op.congty_danglam.name if op.congty_danglam else None
             if op.nhachinh:
-                if op.nhachinh.name in by_nhachinh:
-                    by_nhachinh[op.nhachinh.name]=by_nhachinh[op.nhachinh.name]+1
-                else:
-                    by_nhachinh[op.nhachinh.name]=1
-            if op.congty_danglam:
-                if op.congty_danglam.name not in by_customer:
-                    by_customer[op.congty_danglam.name]={}
-                if op.nhachinh:
-                    if op.nhachinh.name not in by_customer[op.congty_danglam.name]:
-                        by_customer[op.congty_danglam.name][op.nhachinh.name]=1
-                else:
-                    by_customer[op.congty_danglam.name]['other']=by_customer[op.congty_danglam.name]['other']+1
+                by_nhachinh[nhachinh_name] += 1
+            if congty_name:
+                by_customer[congty_name][nhachinh_name] += 1
         return {
             "approve":{
                 "total":len(qs_request),

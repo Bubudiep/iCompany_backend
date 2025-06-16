@@ -17,6 +17,7 @@ from django.db.models import F
 import socketio
 from django.core.exceptions import ObjectDoesNotExist
 import time as time_module
+from collections import defaultdict
 
 # Khởi tạo client
 sio = socketio.Client()
