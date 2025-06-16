@@ -140,10 +140,11 @@ class CompanySerializer(serializers.ModelSerializer):
             if op.congty_danglam:
                 if op.congty_danglam.name not in by_customer:
                     by_customer[op.congty_danglam.name]={}
-                if op.nhachinh not in by_customer[op.congty_danglam.name]:
-                    by_customer[op.congty_danglam.name][op.nhachinh]=1
+                if op.nhachinh:
+                    if op.nhachinh.name not in by_customer[op.congty_danglam.name]:
+                        by_customer[op.congty_danglam.name][op.nhachinh.name]=1
                 else:
-                    by_customer[op.congty_danglam.name][op.nhachinh]=by_customer[op.congty_danglam.name][op.nhachinh]+1
+                    by_customer[op.congty_danglam.name]['other']=by_customer[op.congty_danglam.name]['other']+1
         return {
             "approve":{
                 "total":len(qs_request),
