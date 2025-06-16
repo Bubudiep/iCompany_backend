@@ -13,6 +13,7 @@ router.register(r'departments', CompanyDepartmentViewSet, basename='departments'
 router.register(r'positions', CompanyPossitionViewSet, basename='positions')
 router.register(r'vendors', CompanyVendorViewSet, basename='vendors')
 router.register(r'ops', CompanyOperatorViewSet, basename='ops')
+router.register(r'ophist', OperatorWorkHistoryViewSet, basename='ophist')
 router.register(r'profile', CompanyStaffProfileViewSet, basename='profile')
 router.register(r'info', CompanyStaffProfileViewSet, basename='info')
 router.register(r'approve', AdvanceRequestViewSet, basename='approve')

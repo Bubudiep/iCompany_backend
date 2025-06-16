@@ -53,14 +53,16 @@ class LoginOAuth2APIView(APIView):
                 user=staff,
                 defaults={'last_read_at': now()}
             )
-            return Response({
+            res_data={
                 'access_token': token,
                 'refresh_token': refresh_token_instance.token,
                 'expires_in': oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS,
                 'token_type': 'Bearer',
                 'scope': access_token.scope,
                 'user': CompanyStaffSerializer(staff).data
-            }, status=status.HTTP_200_OK)
+            }
+            print(f"{res_data}")
+            return Response(res_data, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             lineno = exc_tb.tb_lineno

@@ -407,6 +407,12 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                 action='retrieve',
                 comment=request.data.get('comment')
             )
+            if apv.operator:
+                OperatorUpdateHistory.objects.create(
+                    operator=apv.operator,
+                    changed_by=staff,
+                    notes=f"Thu hồi {apv.amount} từ phê duyệt [approve|{apv.request_code}]"
+                )
             return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
@@ -439,6 +445,12 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                 action='payout',
                 comment=request.data.get('comment')
             )
+            if apv.operator:
+                OperatorUpdateHistory.objects.create(
+                    operator=apv.operator,
+                    changed_by=staff,
+                    notes=f"Giải ngân {apv.amount} từ phê duyệt [approve|{apv.request_code}]"
+                )
             return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
@@ -468,6 +480,12 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                 action='cancel',
                 comment=request.data.get('comment')
             )
+            if apv.operator:
+                OperatorUpdateHistory.objects.create(
+                    operator=apv.operator,
+                    changed_by=staff,
+                    notes=f"Hủy yêu cầu {apv.amount} từ phê duyệt [approve|{apv.request_code}]"
+                )
             return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
@@ -502,6 +520,12 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                 action='rejected',
                 comment=request.data.get('comment')
             )
+            if apv.operator:
+                OperatorUpdateHistory.objects.create(
+                    operator=apv.operator,
+                    changed_by=staff,
+                    notes=f"Từ chối phê duyệt [approve|{apv.request_code}]"
+                )
             return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
@@ -542,6 +566,12 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                 action='payout',
                 comment=request.data.get('comment')
             )
+            if apv.operator:
+                OperatorUpdateHistory.objects.create(
+                    operator=apv.operator,
+                    changed_by=staff,
+                    notes=f"Chấp nhận và giải ngân phê duyệt [approve|{apv.request_code}]"
+                )
             return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
@@ -583,6 +613,12 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                 action='approved',
                 comment=request.data.get('comment')
             )
+            if apv.operator:
+                OperatorUpdateHistory.objects.create(
+                    operator=apv.operator,
+                    changed_by=staff,
+                    notes=f"Chấp nhận yêu cầu phê duyệt [approve|{apv.request_code}]"
+                )
             return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)

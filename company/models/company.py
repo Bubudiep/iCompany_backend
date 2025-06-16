@@ -282,6 +282,8 @@ class CompanyStaffHistory(models.Model):
     
 class CompanyVendor(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    is_sub = models.BooleanField(default=False, null=True, blank=True)
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=200, null=True, blank=True)
     subname = models.CharField(max_length=200, null=True, blank=True)
     fullname = models.CharField(max_length=200, null=True, blank=True)

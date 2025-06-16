@@ -120,6 +120,23 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                                             )
     
     @action(detail=False, methods=['post'])
+    def editlichsu(self, request, pk=None):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        data = request.data.get('data',[])
+        try:
+            qs_staff = CompanyStaff.objects.get(user__user=user,company__key=key)
+            with transaction.atomic():
+                return Response({
+                }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            return Response({"detail": f"[{file_name}_{lineno}] {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            
+    @action(detail=False, methods=['post'])
     def add_lichsu(self, request, pk=None):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
@@ -345,7 +362,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             OperatorUpdateHistory.objects.create(
                 operator=operator,
                 changed_by=qs_staff,
-                notes=f"Báo giữ lương {soTien}"
+                notes=f"Báo giữ lương {soTien}  [approve|{create_request.request_code}]"
             )
             AdvanceRequestHistory.objects.create(request=create_request,
                                                 user=qs_res,action="create",
@@ -401,7 +418,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             OperatorUpdateHistory.objects.create(
                 operator=operator,
                 changed_by=qs_staff,
-                notes=f"Báo ứng {soTien}"
+                notes=f"Báo ứng {soTien} [approve|{create_request.request_code}]"
             )
             AdvanceRequestHistory.objects.create(request=create_request,
                                                 user=qs_res,action="create",
@@ -644,3 +661,27 @@ class CompanyOperatorMoreDetailsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+class OperatorWorkHistoryViewSet(viewsets.ModelViewSet):
+    serializer_class = OP_HISTSerializer
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    http_method_names = ['get','patch']
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
+        qs_op=CompanyOperator.objects.filter(company=qs_res.company).values_list('id',flat=True)
+        return OperatorWorkHistory.objects.filter(operator__id__in=qs_op)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

@@ -45,7 +45,7 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'companyType', 'user', 'isActive', 'isValidate', 'isOA')
     search_fields = ('name', 'companyCode', 'user__username')
     list_filter = ('isActive', 'isValidate', 'isOA', 'created_at')
-    readonly_fields = ('created_at', 'updated_at', 'key')
+    readonly_fields = ('created_at', 'updated_at')
 
 
 @admin.register(CompanyDepartment)
