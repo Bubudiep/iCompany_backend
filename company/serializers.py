@@ -138,6 +138,12 @@ class CompanySerializer(serializers.ModelSerializer):
                 by_nhachinh[nhachinh_name] += 1
             if congty_name:
                 by_customer[congty_name][nhachinh_name] += 1
+        top_nguoi_tuyen = (
+            CompanyOperator.objects
+            .values('nguoituyen__id')
+            .annotate(total=Count('id'))
+            .order_by('-total')[:5]
+        )
         return {
             "approve":{
                 "total":len(qs_request),
@@ -146,6 +152,7 @@ class CompanySerializer(serializers.ModelSerializer):
             },
             "op":{
                 "total":len(qs_op),
+                "by_nguoituyen":top_nguoi_tuyen,
                 "by_customer":by_customer,
                 "by_nhachinh":by_nhachinh,
                 "homnay":qs_op.filter(ngay_phongvan=datetime.now().date()).count(),
