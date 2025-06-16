@@ -140,7 +140,7 @@ class CompanySerializer(serializers.ModelSerializer):
                 by_customer[congty_name][nhachinh_name] += 1
         top_nguoi_tuyen = (
             CompanyOperator.objects
-            .values('nguoituyen__id')
+            .values('id')
             .annotate(total=Count('id'))
             .order_by('-total')[:5]
         )
