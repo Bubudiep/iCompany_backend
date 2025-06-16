@@ -1,6 +1,11 @@
 from rest_framework import serializers
 from .models import *
 
+class OP_HISTSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OperatorWorkHistory
+        fields = '__all__'
+        
 class CompanyOperatorSerializer(serializers.ModelSerializer):
     congty_hientai = serializers.SerializerMethodField(read_only=True)
     def get_congty_hientai(self, qs):
@@ -371,12 +376,7 @@ class AdvanceRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdvanceRequest
         fields = '__all__'
-           
-class OP_HISTSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OperatorWorkHistory
-        fields = '__all__'
-            
+               
 class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
     changed_by=CompanyStaffProfileSerializer(allow_null=True)
     class Meta:
