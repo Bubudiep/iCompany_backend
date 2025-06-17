@@ -85,7 +85,8 @@ class AddOperatorAPIView(APIView):
                             return Response(CompanyOperatorDetailsSerializer(listcreated,many=True).data,
                                             status=status.HTTP_200_OK)
                     except Exception as e:
-                        return Response({"detail": f"Lỗi khi thêm người lao động: {e}"}, status=status.HTTP_200_OK)
+                        return Response({"detail": f"Lỗi với người lao động: {op.get('fullname')}, lỗi: {str(e)}"},
+                                        status=status.HTTP_400_BAD_REQUEST)
             except CompanyStaff.DoesNotExist as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 lineno = exc_tb.tb_lineno
