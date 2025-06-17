@@ -13,76 +13,79 @@ class AddOperatorAPIView(APIView):
                 staff=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
                 if len(operators)>0:
                     listcreated=[]
-                    for op in operators:
-                        last_id = CompanyOperator.objects.filter(company=staff.company).count()
-                        operatorCode=staff.company.operatorCode
-                        if not operatorCode:
-                            operatorCode="NLD"
-                        count = f"{(last_id+1):06d}"
-                        cardID=f"{operatorCode}-{count}"
-                        qs_nguoituyen=None
-                        nhacungcap=None
-                        qs_nhachinh=None
-                        if op.get("vendor"):
-                            nhacungcap=CompanyVendor.objects.get(id=op.get("vendor"))
-                        if op.get("staff"):
-                            qs_nguoituyen=CompanyStaff.objects.get(id=op.get("staff"),company__key=key)
-                        if op.get("nhachinh"):
-                            qs_nhachinh=CompanyVendor.objects.get(id=op.get("nhachinh"),company__key=key)
-                        ops=CompanyOperator.objects.create(
-                            company=staff.company,
-                            ngay_phongvan=phongvan,
-                            ma_nhanvien=cardID,
-                            ho_ten=op.get("fullname"),
-                            avatar=op.get("avatar"),
-                            sdt=op.get("phone"),
-                            so_cccd=op.get("cardid"),
-                            ngaysinh=op.get("birthday"),
-                            gioi_tinh=op.get("sex"),
-                            diachi=op.get("address"),
-                            quequan=op.get("address"),
-                            nganhang=op.get("bank_code"),
-                            so_taikhoan=op.get("bank_number"),
-                            chu_taikhoan=op.get("bank_name"),
-                            cccd_front=op.get("cccd_img"),
-                            ghichu=op.get("note"),
-                            nguoituyen=qs_nguoituyen,
-                            nguoibaocao=staff,
-                            vendor=nhacungcap,
-                            nhachinh=qs_nhachinh,
-                            import_raw=op
-                        )
-                        
-                        OperatorUpdateHistory.objects.create(
-                            changed_by=staff,
-                            operator=ops,
-                            old_data=None,
-                            new_data=CompanyOperatorSerializer(ops).data,
-                            notes="Được thêm vào hệ thống"
-                        )
-                        if op.get('customer'):
-                            qs_customer=CompanyCustomer.objects.filter(id=op.get('customer'),company=staff.company).first()
-                            if qs_customer:
-                                ops.congty_danglam=qs_customer
-                                OperatorWorkHistory.objects.create(
-                                    operator=ops,
-                                    customer=qs_customer,
+                    try:
+                        with transaction.atomic():  # nếu có lỗi thì rollback tất cả
+                            for op in operators:
+                                last_id = CompanyOperator.objects.filter(company=staff.company).count()
+                                operatorCode=staff.company.operatorCode
+                                if not operatorCode:
+                                    operatorCode="NLD"
+                                count = f"{(last_id+1):06d}"
+                                cardID=f"{operatorCode}-{count}"
+                                qs_nguoituyen=None
+                                nhacungcap=None
+                                qs_nhachinh=None
+                                if op.get("vendor"):
+                                    nhacungcap=CompanyVendor.objects.get(id=op.get("vendor"))
+                                if op.get("staff"):
+                                    qs_nguoituyen=CompanyStaff.objects.get(id=op.get("staff"),company__key=key)
+                                if op.get("nhachinh"):
+                                    qs_nhachinh=CompanyVendor.objects.get(id=op.get("nhachinh"),company__key=key)
+                                ops=CompanyOperator.objects.create(
+                                    company=staff.company,
+                                    ngay_phongvan=phongvan,
+                                    ma_nhanvien=cardID,
+                                    ho_ten=op.get("fullname"),
+                                    avatar=op.get("avatar"),
+                                    sdt=op.get("phone"),
+                                    so_cccd=op.get("cardid"),
+                                    ngaysinh=op.get("birthday"),
+                                    gioi_tinh=op.get("sex"),
+                                    diachi=op.get("address"),
+                                    quequan=op.get("address"),
+                                    nganhang=op.get("bank_code"),
+                                    so_taikhoan=op.get("bank_number"),
+                                    chu_taikhoan=op.get("bank_name"),
+                                    cccd_front=op.get("cccd_img"),
+                                    ghichu=op.get("note"),
                                     nguoituyen=qs_nguoituyen,
-                                    ma_nhanvien=op.get('work_code',ops.ma_nhanvien),
-                                    start_date=op.get('work_date',None)
+                                    nguoibaocao=staff,
+                                    vendor=nhacungcap,
+                                    nhachinh=qs_nhachinh,
+                                    import_raw=op
                                 )
-                                ops.save()
+                                
                                 OperatorUpdateHistory.objects.create(
                                     changed_by=staff,
                                     operator=ops,
                                     old_data=None,
                                     new_data=CompanyOperatorSerializer(ops).data,
-                                    notes=f"Bắt đầu đi làm tại {qs_customer.name}"
+                                    notes="Được thêm vào hệ thống"
                                 )
-                        listcreated.append(ops)
-                    return Response(CompanyOperatorDetailsSerializer(listcreated,many=True).data,
-                                    status=status.HTTP_200_OK)
-                return Response({"detail": "Lỗi khi thêm người lao động"}, status=status.HTTP_200_OK)
+                                if op.get('customer'):
+                                    qs_customer=CompanyCustomer.objects.filter(id=op.get('customer'),company=staff.company).first()
+                                    if qs_customer:
+                                        ops.congty_danglam=qs_customer
+                                        OperatorWorkHistory.objects.create(
+                                            operator=ops,
+                                            customer=qs_customer,
+                                            nguoituyen=qs_nguoituyen,
+                                            ma_nhanvien=op.get('work_code',ops.ma_nhanvien),
+                                            start_date=op.get('work_date',None)
+                                        )
+                                        ops.save()
+                                        OperatorUpdateHistory.objects.create(
+                                            changed_by=staff,
+                                            operator=ops,
+                                            old_data=None,
+                                            new_data=CompanyOperatorSerializer(ops).data,
+                                            notes=f"Bắt đầu đi làm tại {qs_customer.name}"
+                                        )
+                                listcreated.append(ops)
+                            return Response(CompanyOperatorDetailsSerializer(listcreated,many=True).data,
+                                            status=status.HTTP_200_OK)
+                    except Exception as e:
+                        return Response({"detail": f"Lỗi khi thêm người lao động: {e}"}, status=status.HTTP_200_OK)
             except CompanyStaff.DoesNotExist as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 lineno = exc_tb.tb_lineno

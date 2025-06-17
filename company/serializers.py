@@ -142,7 +142,7 @@ class CompanySerializer(serializers.ModelSerializer):
             CompanyOperator.objects
             .values('nguoituyen__id')
             .annotate(total=Count('id'))
-            .order_by('-total')[:5]
+            .order_by('-total')[:4]
         )
         return {
             "approve":{
