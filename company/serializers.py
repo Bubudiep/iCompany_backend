@@ -43,12 +43,6 @@ class CompanyStaffSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source='department.name',allow_null=True, read_only=True)
     possition_name = serializers.CharField(source='possition.name',allow_null=True, read_only=True)
     Operator = serializers.SerializerMethodField(read_only=True)
-    def get_Operator(self,staff):
-        try:
-            qs_Operator=CompanyOperator.objects.filter(Q(nguoituyen=staff) | Q(nguoibaocao=staff),company=staff.company)
-            return CompanyOperatorSerializer(qs_Operator,many=True).data
-        except Exception as e:
-            return []
     def get_profile(self,staff):
         try:
             qs_profile=CompanyStaffProfile.objects.get(staff=staff)
