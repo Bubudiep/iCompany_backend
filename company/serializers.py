@@ -12,18 +12,11 @@ class OP_HISTSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class CompanyOperatorSerializer(serializers.ModelSerializer):
-    congty_hientai = serializers.SerializerMethodField(read_only=True)
-    def get_congty_hientai(self, qs):
-        if qs.congty_danglam:
-            qs_his=OperatorWorkHistory.objects.filter(operator=qs,
-                                                      customer=qs.congty_danglam,
-                                                      end_date__isnull=True)
-            if qs_his:
-                return OP_HISTLTESerializer(qs_his.first()).data
-        return None
     class Meta:
         model = CompanyOperator
-        fields = '__all__'
+        fields = ["id","avatar","ho_ten","congty_danglam",
+                  "diachi","ghichu","ma_nhanvien","ngaysinh",
+                  "nguoibaocao","nguoituyen","nhachinh","sdt","so_cccd"]
         
 class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
