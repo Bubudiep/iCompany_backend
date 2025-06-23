@@ -349,7 +349,6 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baogiu, _ = AdvanceType.objects.get_or_create(
                 typecode="Báo giữ lương",
-                need_operator=True,
                 company=qs_com
             )
             qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
