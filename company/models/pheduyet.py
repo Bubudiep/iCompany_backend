@@ -62,6 +62,7 @@ class AdvanceRequest(models.Model): # phê duyệt
     operator = models.ForeignKey(CompanyOperator, on_delete=models.SET_NULL,
                                  null=True,blank=True, related_name="advance_operator")
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    payout_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     reason = models.ForeignKey(AdvanceReasonType, on_delete=models.SET_NULL,null=True,blank=True)
     hinhthucThanhtoan = models.CharField(max_length=10, choices=PAY_CHOICES, default='bank')
     nguoiThuhuong = models.CharField(max_length=10, choices=PAYER_CHOICES, default='opertor')
