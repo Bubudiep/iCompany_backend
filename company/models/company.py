@@ -228,6 +228,10 @@ class CompanyConfig(models.Model):
         CompanyStaff,blank=True, 
         related_name='staff_approve_admin'
     )
+    staff_can_approve = models.ManyToManyField(
+        CompanyStaff,blank=True, 
+        related_name='staff_can_approve'
+    )
     staff_can_payout = models.ManyToManyField(
         CompanyStaff,blank=True, 
         related_name='staff_can_payout'
