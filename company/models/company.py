@@ -224,6 +224,10 @@ class CompanyConfig(models.Model):
     # phê duyệt
     admin_can_payout = models.BooleanField(default=False)
     admin_can_approve = models.BooleanField(default=False)
+    staff_approve_admin = models.ManyToManyField(
+        CompanyStaff,blank=True, 
+        related_name='staff_approve_admin'
+    )
     staff_can_approve = models.ManyToManyField(
         CompanyStaff,blank=True, 
         related_name='staff_can_approve'
