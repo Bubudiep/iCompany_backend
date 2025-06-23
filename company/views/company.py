@@ -465,6 +465,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         apv = self.get_object()
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
             if staff.isSuperAdmin:
                 pass
             elif staff in config.staff_approve_admin.all():
