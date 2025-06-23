@@ -467,9 +467,10 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         apv = self.get_object()
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
             if staff.isSuperAdmin:
                 pass
-            elif staff in config.approve_admin.all():
+            elif staff in config.staff_approve_admin.all():
                 pass  # Được phép phê duyệt
             elif staff != apv.requester:
                 return Response({"detail": "Bạn không có quyền hủy",
@@ -503,7 +504,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
-            if staff in config.approve_admin.all():
+            if staff in config.staff_approve_admin.all():
                 pass  # Được phép phê duyệt
             if staff in config.staff_can_approve.all():
                 pass  # Được phép phê duyệt
@@ -543,7 +544,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
-            if staff in config.approve_admin.all():
+            if staff in config.staff_approve_admin.all():
                 pass  # Được phép phê duyệt
             if staff in config.staff_can_approve.all() and staff in config.staff_can_payout.all():
                 pass  # Được phép phê duyệt
@@ -598,7 +599,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             apv = self.get_object()
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
-            if staff in config.approve_admin.all():
+            if staff in config.staff_approve_admin.all():
                 pass  # Được phép phê duyệt
             if staff in config.staff_can_approve.all():
                 pass  # Được phép phê duyệt

@@ -4,7 +4,7 @@ from .company import *
 class AdvanceType(models.Model): # loại phê duyệt
     company = models.ForeignKey(Company, on_delete=models.CASCADE,
                                  null=True,blank=True)
-    typecode = models.CharField(max_length=100, unique=True)
+    typecode = models.CharField(max_length=100)
     need_operator = models.BooleanField(default=False) # người thụ hưởng là công nhân
     need_approver = models.BooleanField(default=False) # cần phê duyệt
     need_retrive = models.BooleanField(default=False) # cần thu hồi
@@ -12,17 +12,23 @@ class AdvanceType(models.Model): # loại phê duyệt
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
+        unique_together = [
+            ('company', 'typecode'),
+        ]
         ordering = ['-created_at']
     def __str__(self):
         return f"{self.id}"
     
 class AdvanceReasonType(models.Model): # phân loại nguyên nhân phê duyệt
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True,blank=True)
-    typename = models.CharField(max_length=100, unique=True)
+    typename = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         ordering = ['-created_at']
+        unique_together = [
+            ('company', 'typename'),
+        ]
     def __str__(self):
         return f"{self.id}"
       

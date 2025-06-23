@@ -236,11 +236,11 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 hist=OperatorWorkHistory.objects.filter(operator=operator).order_by('-id')
                 if len(hist)!=0:
                     ctyNow=hist.first()
-                    if datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date() < ctyNow.end_date:
-                        return Response({"detail": "Ngày đi làm không được nhỏ hơn ngày nghỉ ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
                     if ctyNow.end_date is None:
                         return Response({"detail": f"Chưa nghỉ làm ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
-                
+                    if datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date() < ctyNow.end_date:
+                        return Response({"detail": "Ngày đi làm không được nhỏ hơn ngày nghỉ ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
+                    
                 qs_cty=CompanyCustomer.objects.get(id=company)
                 OperatorUpdateHistory.objects.create(
                     operator=operator,
@@ -349,7 +349,6 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baogiu, _ = AdvanceType.objects.get_or_create(
                 typecode="Báo giữ lương",
-                need_operator=True,
                 company=qs_com
             )
             qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
@@ -400,8 +399,6 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baoung, _ = AdvanceType.objects.get_or_create(
                 typecode="Báo ứng",
-                need_operator=True,
-                need_retrive=True,
                 company=qs_com
             )
             qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
