@@ -207,23 +207,34 @@ class CompanyStaffProfile(models.Model):
     
 class CompanyConfig(models.Model):
     company = models.OneToOneField(Company, on_delete=models.CASCADE)
-    
-    approve_admin = models.ManyToManyField(
-        CompanyStaff,blank=True, 
-        related_name='list_admin_approve'
-        # Danh sách người quản lý mục approve
+
+    # sửa thông tin người lao động
+    staff_can_update_op_info = models.BooleanField(default=True)
+    admin_can_update_op_info = models.BooleanField(default=True)
+    staffs_can_update_op_info = models.ManyToManyField(
+        CompanyStaff,blank=True,related_name='staff_can_update_op_info'
     )
+    # lịch sử đi làm
+    staff_can_update_op_work = models.BooleanField(default=True)
+    admin_can_update_op_work = models.BooleanField(default=True)
+    staffs_can_update_op_work = models.ManyToManyField(
+        CompanyStaff,blank=True,related_name='staff_can_update_op_work'
+    )
+    
+    # phê duyệt
+    admin_can_payout = models.BooleanField(default=False)
     admin_can_approve = models.BooleanField(default=False)
     staff_can_approve = models.ManyToManyField(
         CompanyStaff,blank=True, 
-        related_name='list_can_approve'
-        # Danh sách người có quyền approve/reject
+        related_name='staff_can_approve'
     )
-    admin_can_payout = models.BooleanField(default=False)
     staff_can_payout = models.ManyToManyField(
         CompanyStaff,blank=True, 
-        related_name='list_can_payout'
-        # Danh sách người có quyền giải ngân và thu hồi
+        related_name='staff_can_payout'
+    )
+    staff_can_approve_and_payout = models.ManyToManyField(
+        CompanyStaff,blank=True, 
+        related_name='staff_can_approve_and_payout'
     )
     
     created_at = models.DateTimeField(default=timezone.now)
