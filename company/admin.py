@@ -252,7 +252,7 @@ class AdvanceReasonTypeAdmin(admin.ModelAdmin):
 class AdvanceRequestAdmin(admin.ModelAdmin):
     list_display = ('id', 'company', 'request_code', 'requester', 'amount', 'status', 'payment_status', 'retrieve_status', 'created_at')
     search_fields = ('request_code', 'comment')
-    list_filter = ('company', 'status', 'payment_status', 'retrieve_status', 'hinhthucThanhtoan', 'nguoiThuhuong')
+    list_filter = ('company', 'status', 'payment_status', 'retrieve_status', 'hinhthucThanhtoan', 'nguoiThuhuong','requester__cardID')
     raw_id_fields = ('requester', 'approver', 'operator', 'requesttype', 'reason')
 
 @admin.register(AdvanceRequestHistory)
