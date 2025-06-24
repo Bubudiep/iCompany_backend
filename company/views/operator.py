@@ -16,7 +16,9 @@ class AddOperatorAPIView(APIView):
                     try:
                         with transaction.atomic():  # nếu có lỗi thì rollback tất cả
                             for op in operators:
-                                last_id = CompanyOperator.objects.filter(company=staff.company).count()
+                                last_id = CompanyOperator.objects.filter(company=staff.company).first()
+                                if last_id and last_id.ma_nhanvien:
+                                    last_id=int(str(last_id.ma_nhanvien)[-6:])
                                 operatorCode=staff.company.operatorCode
                                 if not operatorCode:
                                     operatorCode="NLD"
@@ -167,6 +169,12 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                             start_date=datetime.strptime(start_date,"%Y-%m-%d").date()
                         if end_date:
                             end_date=datetime.strptime(end_date,"%Y-%m-%d").date()
+                        if start_date>=end_date:
+                            list_fail.append({
+                                "so_cccd":so_cccd,
+                                "congty":congty,
+                                "error": "Ngày bắt đầu không được lớn hơn ngày nghỉ",
+                            })
                         if nhachinh:
                             qs_nhachinh=CompanyVendor.objects.get(name=congty,company=qs_staff.company)
                         qs_op = CompanyOperator.objects.get(so_cccd=so_cccd,
@@ -449,7 +457,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         try:
             # xóa cty đang làm, cập nhập lịch sử làm việc tại công ty đang làm
             operator = self.get_object()
-            hist=OperatorWorkHistory.objects.filter(operator=operator).order_by('-id')
+            hist=OperatorWorkHistory.objects.filter(operator=operator,end_date__isnull=True).order_by('-id')
             if len(hist)==0:
                 return Response({"detail": f"Chưa đi làm ở công ty nào!"}, status=status.HTTP_400_BAD_REQUEST)
             ctyNow=hist.first()

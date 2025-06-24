@@ -214,8 +214,8 @@ class CompanyVendorAdmin(admin.ModelAdmin):
 @admin.register(CompanyOperator)
 class CompanyOperatorAdmin(admin.ModelAdmin):
     list_per_page = 20
-    list_display = ("id", "ma_nhanvien","so_cccd", "ho_ten", "company", "sdt", "trangthai")
-    search_fields = ("ma_nhanvien", "ho_ten", "sdt", "so_cccd")
+    list_display = ("id", "ma_nhanvien","nguoituyen","nguoibaocao","so_cccd", "ho_ten", "company", "sdt", "trangthai")
+    search_fields = ("ma_nhanvien", "ho_ten", "sdt", "so_cccd","nguoibaocao__cardID")
     list_filter = ("company", "trangthai")
     autocomplete_fields = ["congty_danglam", "nhachinh", "vendor", "nguoituyen", "nguoibaocao"]
 
@@ -251,7 +251,7 @@ class AdvanceReasonTypeAdmin(admin.ModelAdmin):
 @admin.register(AdvanceRequest)
 class AdvanceRequestAdmin(admin.ModelAdmin):
     list_display = ('id', 'company', 'request_code', 'requester', 'amount', 'status', 'payment_status', 'retrieve_status', 'created_at')
-    search_fields = ('request_code', 'comment')
+    search_fields = ('request_code', 'comment','requester__cardID')
     list_filter = ('company', 'status', 'payment_status', 'retrieve_status', 'hinhthucThanhtoan', 'nguoiThuhuong')
     raw_id_fields = ('requester', 'approver', 'operator', 'requesttype', 'reason')
 

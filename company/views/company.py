@@ -641,6 +641,11 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         return Response({
             "detail": "Không thể cập nhập"
         }, status=status.HTTP_403_FORBIDDEN)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = AdvanceRequestDetailsSerializer(instance)
+        return Response(serializer.data)
         
     def get_queryset(self):
         user = self.request.user
@@ -650,6 +655,9 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        staff = self.request.query_params.get('staff')
+        if staff:
+            queryset=queryset.filter(requester__id=int(staff))
         qs_type = self.request.query_params.get('type')
         if qs_type:
             queryset=queryset.filter(requesttype__typecode=qs_type)

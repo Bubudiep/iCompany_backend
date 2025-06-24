@@ -117,11 +117,11 @@ class CompanySerializer(serializers.ModelSerializer):
     Staff = serializers.SerializerMethodField(read_only=True)
     Config = serializers.SerializerMethodField(read_only=True)
     Dashboard = serializers.SerializerMethodField(read_only=True)
-    def get_Dashboard(self,company):
-        qs_request=AdvanceRequest.objects.filter(company=company)
-        qs_baoung=qs_request.filter(requesttype__typecode="Báo ứng")
-        qs_baogiu=qs_request.filter(requesttype__typecode="Báo giữ lương")
-        qs_op=CompanyOperator.objects.filter(company=company)
+    def get_Dashboard(self, company):
+        qs_request = AdvanceRequest.objects.filter(company=company)
+        qs_baoung = qs_request.filter(requesttype__typecode="Báo ứng")
+        qs_baogiu = qs_request.filter(requesttype__typecode="Báo giữ lương")
+        qs_op = CompanyOperator.objects.filter(company=company).select_related('nhachinh', 'congty_danglam', 'nguoituyen')
         by_nhachinh = defaultdict(int)
         by_customer = defaultdict(lambda: defaultdict(int))
         for op in qs_op:
@@ -132,25 +132,25 @@ class CompanySerializer(serializers.ModelSerializer):
             if congty_name:
                 by_customer[congty_name][nhachinh_name] += 1
         top_nguoi_tuyen = (
-            CompanyOperator.objects
-            .values('nguoituyen__id')
+            qs_op.values('nguoituyen__id')
             .annotate(total=Count('id'))
             .order_by('-total')[:4]
         )
+        today = datetime.now().date()
         return {
-            "approve":{
-                "total":len(qs_request),
-                "baoung": AdvanceRequestLTESerializer(qs_baoung,many=True).data,
-                "baogiu": AdvanceRequestLTESerializer(qs_baogiu,many=True).data
+            "approve": {
+                "total": qs_request.count(),
+                "baoung": AdvanceRequestLTESerializer(qs_baoung, many=True).data,
+                "baogiu": AdvanceRequestLTESerializer(qs_baogiu, many=True).data
             },
-            "op":{
-                "total":len(qs_op),
-                "by_nguoituyen":top_nguoi_tuyen,
-                "by_customer":by_customer,
-                "by_nhachinh":by_nhachinh,
-                "homnay":qs_op.filter(ngay_phongvan=datetime.now().date()).count(),
-                "dilam":qs_op.filter(congty_danglam__isnull=False).count(),
-                "nhachinh":qs_op.filter(nhachinh__isnull=False).count(),
+            "op": {
+                "total": qs_op.count(),
+                "by_nguoituyen": top_nguoi_tuyen,
+                "by_customer": by_customer,
+                "by_nhachinh": by_nhachinh,
+                "homnay": qs_op.filter(ngay_phongvan=today).count(),
+                "dilam": qs_op.filter(congty_danglam__isnull=False).count(),
+                "nhachinh": qs_op.filter(nhachinh__isnull=False).count(),
             },
         }
     def get_Config(self,company):
@@ -373,12 +373,23 @@ class AdvanceRequestHistorySerializer(serializers.ModelSerializer):
 class AdvanceRequestLTESerializer(serializers.ModelSerializer):
     class Meta:
         model = AdvanceRequest
-        fields = ['amount','status','payment_status','retrieve_status']
-           
+        fields = ['amount','status','payment_status','retrieve_status','created_at']
+             
 class AdvanceRequestSerializer(serializers.ModelSerializer):
+    requesttype = serializers.CharField(source='requesttype.typecode', read_only=True, allow_null=True)
+    operator = serializers.CharField(source='operator.ho_ten', read_only=True, allow_null=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    payment_status_display = serializers.CharField(source='get_payment_status_display', read_only=True)
+    retrieve_status_display = serializers.CharField(source='get_retrieve_status_display', read_only=True)
+    hinhthucThanhtoan_display = serializers.CharField(source='get_hinhthucThanhtoan_display', read_only=True)
+    nguoiThuhuong_display = serializers.CharField(source='get_nguoiThuhuong_display', read_only=True)
+    class Meta:
+        model = AdvanceRequest
+        fields = '__all__'
+        
+class AdvanceRequestDetailsSerializer(serializers.ModelSerializer):
     reason = AdvanceReasonTypeSerializer(allow_null=True)
-    requesttype = AdvanceTypeSerializer()
-    requester = CompanyStaffSmallSerializer(allow_null=True)
+    requesttype = AdvanceTypeSerializer(allow_null=True)
     operator = OperatorSerializer(allow_null=True)
     history = serializers.SerializerMethodField(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
