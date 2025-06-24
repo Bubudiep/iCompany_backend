@@ -405,12 +405,15 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             qs_staff=CompanyStaff.objects.get(user__user=user,company=qs_com)
             ngayUng = request.data.get('ngayUng',now().date())
             if not soTien:
-                return Response({"error": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baoung, _ = AdvanceType.objects.get_or_create(
                 typecode="Báo ứng",
                 company=qs_com
             )
             qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
+            qs_pending=AdvanceRequest.objects.filter(company=qs_com,operator=operator,status="pending")
+            if len(qs_pending)>0:
+                return Response({"detail": "Có yêu cầu đang chờ duyệt rồi!"}, status=status.HTTP_400_BAD_REQUEST)
             create_request=AdvanceRequest.objects.create(company=qs_com,
                                 requester=qs_res,
                                 requesttype=qs_baoung,
