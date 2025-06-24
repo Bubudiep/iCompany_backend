@@ -140,6 +140,9 @@ class CompanySerializer(serializers.ModelSerializer):
         return {
             "approve":{
                 "total":len(qs_request),
+                "pending":len(qs_request.filter(status='pending')),
+                "approved":len(qs_request.filter(status='approved')),
+                "not_pay":len(qs_request.filter(payment_status='not')),
                 "baoung": AdvanceRequestLTESerializer(qs_baoung,many=True).data,
                 "baogiu": AdvanceRequestLTESerializer(qs_baogiu,many=True).data
             },
