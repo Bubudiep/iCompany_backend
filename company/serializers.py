@@ -119,8 +119,8 @@ class CompanySerializer(serializers.ModelSerializer):
     Dashboard = serializers.SerializerMethodField(read_only=True)
     def get_Dashboard(self,company):
         qs_request=AdvanceRequest.objects.filter(company=company)
-        qs_baoung=qs_request.filter(requesttype__typecode="Báo ứng")
-        qs_baogiu=qs_request.filter(requesttype__typecode="Báo giữ lương")
+        qs_baoung=qs_request.filter(requesttype__typecode="Báo ứng",payment_status='not')
+        qs_baogiu=qs_request.filter(requesttype__typecode="Báo giữ lương",payment_status='not')
         qs_op=CompanyOperator.objects.filter(company=company)
         by_nhachinh = defaultdict(int)
         by_customer = defaultdict(lambda: defaultdict(int))
