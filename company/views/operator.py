@@ -451,7 +451,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         try:
             # xóa cty đang làm, cập nhập lịch sử làm việc tại công ty đang làm
             operator = self.get_object()
-            hist=OperatorWorkHistory.objects.filter(operator=operator).order_by('-id')
+            hist=OperatorWorkHistory.objects.filter(operator=operator,end_date__isnull=True).order_by('-id')
             if len(hist)==0:
                 return Response({"detail": f"Chưa đi làm ở công ty nào!"}, status=status.HTTP_400_BAD_REQUEST)
             ctyNow=hist.first()
