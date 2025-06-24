@@ -32,7 +32,7 @@ def generate_response_json(result:str, message:str, data:dict={}):
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50  # Số lượng đối tượng trên mỗi trang
     page_size_query_param = 'page_size'
-    max_page_size = 200  # Số lượng đối tượng tối đa trên mỗi trang
+    max_page_size = 2000  # Số lượng đối tượng tối đa trên mỗi trang
 
 def update_lastcheck(self, function_name="Accounts"):
     user = self.request.user
