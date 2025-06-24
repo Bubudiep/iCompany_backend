@@ -132,7 +132,7 @@ class CompanySerializer(serializers.ModelSerializer):
             if congty_name:
                 by_customer[congty_name][nhachinh_name] += 1
         top_nguoi_tuyen = (
-            qs_op.values('nguoituyen__id', 'nguoituyen__name')  # thêm name nếu muốn show ra
+            qs_op.values('nguoituyen__id')
             .annotate(total=Count('id'))
             .order_by('-total')[:4]
         )
