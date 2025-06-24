@@ -215,7 +215,7 @@ class CompanyVendorAdmin(admin.ModelAdmin):
 class CompanyOperatorAdmin(admin.ModelAdmin):
     list_per_page = 20
     list_display = ("id", "ma_nhanvien","so_cccd", "ho_ten", "company", "sdt", "trangthai")
-    search_fields = ("ma_nhanvien", "ho_ten", "sdt", "so_cccd")
+    search_fields = ("ma_nhanvien", "ho_ten", "sdt", "so_cccd","nguoibaocao__cardID")
     list_filter = ("company", "trangthai")
     autocomplete_fields = ["congty_danglam", "nhachinh", "vendor", "nguoituyen", "nguoibaocao"]
 
