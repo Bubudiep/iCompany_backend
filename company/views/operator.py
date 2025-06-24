@@ -16,7 +16,9 @@ class AddOperatorAPIView(APIView):
                     try:
                         with transaction.atomic():  # nếu có lỗi thì rollback tất cả
                             for op in operators:
-                                last_id = CompanyOperator.objects.filter(company=staff.company).count()
+                                last_id = CompanyOperator.objects.filter(company=staff.company).first()
+                                if last_id and last_id.ma_nhanvien:
+                                    last_id=int(str(last_id.ma_nhanvien)[-6:])
                                 operatorCode=staff.company.operatorCode
                                 if not operatorCode:
                                     operatorCode="NLD"
