@@ -169,6 +169,12 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                             start_date=datetime.strptime(start_date,"%Y-%m-%d").date()
                         if end_date:
                             end_date=datetime.strptime(end_date,"%Y-%m-%d").date()
+                        if start_date>=end_date:
+                            list_fail.append({
+                                "so_cccd":so_cccd,
+                                "congty":congty,
+                                "error": "Ngày bắt đầu không được lớn hơn ngày nghỉ",
+                            })
                         if nhachinh:
                             qs_nhachinh=CompanyVendor.objects.get(name=congty,company=qs_staff.company)
                         qs_op = CompanyOperator.objects.get(so_cccd=so_cccd,
