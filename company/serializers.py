@@ -376,7 +376,7 @@ class AdvanceRequestLTESerializer(serializers.ModelSerializer):
         fields = ['amount','status','payment_status','retrieve_status']
              
 class AdvanceRequestSerializer(serializers.ModelSerializer):
-    reason = AdvanceReasonTypeSerializer(allow_null=True)
+    requesttype = serializers.CharField(source='requesttype.typecode', read_only=True, allow_null=True)
     operator = serializers.CharField(source='operator.ho_ten', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     payment_status_display = serializers.CharField(source='get_payment_status_display', read_only=True)
@@ -389,8 +389,7 @@ class AdvanceRequestSerializer(serializers.ModelSerializer):
         
 class AdvanceRequestDetailsSerializer(serializers.ModelSerializer):
     reason = AdvanceReasonTypeSerializer(allow_null=True)
-    # requesttype = AdvanceTypeSerializer()
-    # requester = CompanyStaffSmallSerializer(allow_null=True)
+    requesttype = AdvanceTypeSerializer(allow_null=True)
     operator = OperatorSerializer(allow_null=True)
     history = serializers.SerializerMethodField(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
