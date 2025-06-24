@@ -373,7 +373,7 @@ class AdvanceRequestHistorySerializer(serializers.ModelSerializer):
 class AdvanceRequestLTESerializer(serializers.ModelSerializer):
     class Meta:
         model = AdvanceRequest
-        fields = ['amount','status','payment_status','retrieve_status']
+        fields = ['amount','status','payment_status','retrieve_status','created_at']
              
 class AdvanceRequestSerializer(serializers.ModelSerializer):
     requesttype = serializers.CharField(source='requesttype.typecode', read_only=True, allow_null=True)
