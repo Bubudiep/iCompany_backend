@@ -377,8 +377,8 @@ class AdvanceRequestLTESerializer(serializers.ModelSerializer):
            
 class AdvanceRequestSerializer(serializers.ModelSerializer):
     reason = AdvanceReasonTypeSerializer(allow_null=True)
-    requesttype = AdvanceTypeSerializer()
-    requester = CompanyStaffSmallSerializer(allow_null=True)
+    # requesttype = AdvanceTypeSerializer()
+    # requester = CompanyStaffSmallSerializer(allow_null=True)
     operator = OperatorSerializer(allow_null=True)
     history = serializers.SerializerMethodField(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
