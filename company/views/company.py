@@ -651,6 +651,9 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        staff = self.request.query_params.get('staff')
+        if staff:
+            queryset=queryset.filter(requester__id=int(staff))
         qs_type = self.request.query_params.get('type')
         if qs_type:
             queryset=queryset.filter(requesttype__typecode=qs_type)
