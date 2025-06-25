@@ -19,6 +19,9 @@ from django.core.exceptions import ObjectDoesNotExist
 import time as time_module
 from collections import defaultdict
 from django.db.models import Count
+import base64
+from PIL import Image
+from io import BytesIO
 
 # Khởi tạo client
 sio = socketio.Client()
@@ -69,3 +72,22 @@ connect_with_retry()
 
 # Tiếp tục với các thao tác tiếp theo nếu kết nối thành công
 print("Tiến hành các thao tác tiếp theo sau khi kết nối thành công.")
+
+def resize_base64_image(base64_str, size=(20, 20)):
+    try:
+        if base64_str.startswith('data:image'):
+            header, base64_data = base64_str.split(',', 1)
+        else:
+            header = 'data:image/png;base64'
+            base64_data = base64_str
+        image_data = base64.b64decode(base64_data)
+        image = Image.open(BytesIO(image_data))
+        image = image.convert("RGBA")
+        image = image.resize(size, Image.Resampling.LANCZOS)
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        resized_base64 = base64.b64encode(buffer.getvalue()).decode()
+        return f"{header},{resized_base64}"
+    except Exception as e:
+        print(f"{e}")
+        return None  # fallback nếu lỗi
