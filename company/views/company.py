@@ -1,5 +1,7 @@
 from .a import *
 
+
+
 class CompanyAccountsViewSet(viewsets.ModelViewSet):
     queryset =CompanyStaff.objects.all()
     serializer_class =CompanyStaffSerializer
@@ -86,7 +88,6 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
 
 class CompanyVendorViewSet(viewsets.ModelViewSet):
     queryset = CompanyVendor.objects.all()
@@ -667,6 +668,84 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         last_update = self.request.query_params.get('last_update')
         if last_update:
             queryset=queryset.filter(updated_at__gt=last_update)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)  
+class CompanyViewSet(viewsets.ModelViewSet):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get']
+    pagination_class = StandardResultsSetPagination
+    lookup_field = 'request_code'
+
+    @action(detail=False, methods=['get'])
+    def dashboard(self, request, request_code=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            company = staff.company
+            qs_request = AdvanceRequest.objects.filter(company=company)
+            qs_baoung = qs_request.filter(requesttype__typecode="Báo ứng")
+            qs_baogiu = qs_request.filter(requesttype__typecode="Báo giữ lương")
+            qs_baokhac = qs_request.exclude(
+                requesttype__typecode="Báo giữ lương").exclude(
+                    requesttype__typecode="Báo ứng")
+            qs_op = CompanyOperator.objects.filter(company=company).select_related('nhachinh', 'congty_danglam', 'nguoituyen')
+            by_nhachinh = defaultdict(int)
+            by_customer = defaultdict(lambda: defaultdict(int))
+            for op in qs_op:
+                nhachinh_name = op.nhachinh.name if op.nhachinh else "other"
+                congty_name = op.congty_danglam.name if op.congty_danglam else None
+                if op.nhachinh:
+                    by_nhachinh[nhachinh_name] += 1
+                if congty_name:
+                    by_customer[congty_name][nhachinh_name] += 1
+            top_nguoi_tuyen = (
+                qs_op.values('nguoituyen__id')
+                .annotate(total=Count('id'))
+                .order_by('-total')[:5]
+            )
+            today = datetime.now().date()
+            return {
+                "approve": {
+                    "total": qs_request.count(),
+                    "baoung": AdvanceRequestLTESerializer(qs_baoung, many=True).data,
+                    "baogiu": AdvanceRequestLTESerializer(qs_baogiu, many=True).data,
+                    "baokhac": AdvanceRequestLTESerializer(qs_baokhac, many=True).data
+                },
+                "op": {
+                    "total": qs_op.count(),
+                    "by_nguoituyen": top_nguoi_tuyen,
+                    "by_customer": by_customer,
+                    "by_nhachinh": by_nhachinh,
+                    "homnay": CompanyOperatorDBSerializer(qs_op.filter(ngay_phongvan=today),many=True).data,
+                    "dilam": qs_op.filter(congty_danglam__isnull=False).count(),
+                    "nhachinh": qs_op.filter(nhachinh__isnull=False).count(),
+                },
+            }
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+     
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        staff=CompanyStaff.objects.get(company__key=key,user__user=user)
+        return Company.objects.filter(id=staff.company.id)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
