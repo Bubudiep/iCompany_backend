@@ -29,7 +29,7 @@ class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     avatar_base64 = serializers.SerializerMethodField(read_only=True)
     def get_avatar_base64(self,obj):
         try:
-            return resize_base64_image(obj.avatar_base64) if obj.avatar_base64 else None
+            return resize_base64_image(obj.avatar_base64,(84,84)) if obj.avatar_base64 else None
         except Exception as e:
             return f"{e}"
     class Meta:
