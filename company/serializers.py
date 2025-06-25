@@ -26,8 +26,8 @@ class CompanyOperatorSerializer(serializers.ModelSerializer):
 class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
-    avatar_base = serializers.SerializerMethodField(read_only=True)
-    def get_avatar_base(self,obj):
+    avatar_base64 = serializers.SerializerMethodField(read_only=True)
+    def get_avatar_base64(self,obj):
         try:
             return resize_base64_image(obj.avatar_base64) if obj.avatar_base64 else None
         except Exception as e:
@@ -35,7 +35,7 @@ class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyStaffProfile
         fields = [
-            'id', 'username', 'email', 'full_name', 'nick_name', 'phone', 'gender','avatar_base',
+            'id', 'username', 'email', 'full_name', 'nick_name', 'phone', 'gender',
             'avatar', 'avatar_base64', 'date_of_birth', 'created_at', 'updated_at',
             'nganhang', 'so_taikhoan', 'chu_taikhoan','zalo','facebook'
         ]
