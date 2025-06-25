@@ -714,7 +714,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 .order_by('-total')[:5]
             )
             today = datetime.now().date()
-            return {
+            return Response({
                 "approve": {
                     "total": qs_request.count(),
                     "baoung": AdvanceRequestLTESerializer(qs_baoung, many=True).data,
@@ -730,13 +730,9 @@ class CompanyViewSet(viewsets.ModelViewSet):
                     "dilam": qs_op.filter(congty_danglam__isnull=False).count(),
                     "nhachinh": qs_op.filter(nhachinh__isnull=False).count(),
                 },
-            }
+            }, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
-        return Response({
-            "detail": "Không thể cập nhập"
-        }, status=status.HTTP_403_FORBIDDEN)
-        
      
     def get_queryset(self):
         user = self.request.user
