@@ -31,6 +31,7 @@ class CompanyStaffProfileSerializer(serializers.ModelSerializer):
         try:
             if obj.avatar_base64:
                 return resize_base64_image(obj.avatar_base64,{60,60})
+            return None
         except Exception as e:
             return f"{e}"
     class Meta:
