@@ -11,6 +11,11 @@ class OP_HISTSerializer(serializers.ModelSerializer):
         model = OperatorWorkHistory
         fields = '__all__'
         
+class CompanyOperatorDBSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = ["id","congty_danglam",
+                  "nguoibaocao","nguoituyen"]
 class CompanyOperatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
@@ -152,7 +157,7 @@ class CompanySerializer(serializers.ModelSerializer):
                 "by_nguoituyen": top_nguoi_tuyen,
                 "by_customer": by_customer,
                 "by_nhachinh": by_nhachinh,
-                "homnay": qs_op.filter(ngay_phongvan=today).count(),
+                "homnay": CompanyOperatorDBSerializer(qs_op.filter(ngay_phongvan=today),many=True).data,
                 "dilam": qs_op.filter(congty_danglam__isnull=False).count(),
                 "nhachinh": qs_op.filter(nhachinh__isnull=False).count(),
             },
