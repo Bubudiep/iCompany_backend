@@ -125,7 +125,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                                               company=qs_res.company
                                             )
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['get'])
     def export_history(self, request, pk=None):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')

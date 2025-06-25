@@ -374,7 +374,6 @@ class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
         model = OperatorUpdateHistory
         fields = '__all__'
 class CompanyOperatorWorkHistorySerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(read_only=True)
     work = serializers.SerializerMethodField(read_only=True)
     def get_work(self, qs):
         qs_work=OperatorWorkHistory.objects.filter(operator=qs)
