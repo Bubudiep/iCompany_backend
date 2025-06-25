@@ -142,7 +142,7 @@ class CompanySerializer(serializers.ModelSerializer):
         top_nguoi_tuyen = (
             qs_op.values('nguoituyen__id')
             .annotate(total=Count('id'))
-            .order_by('-total')[:4]
+            .order_by('-total')[:5]
         )
         today = datetime.now().date()
         return {
