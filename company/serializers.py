@@ -121,6 +121,9 @@ class CompanySerializer(serializers.ModelSerializer):
         qs_request = AdvanceRequest.objects.filter(company=company)
         qs_baoung = qs_request.filter(requesttype__typecode="Báo ứng")
         qs_baogiu = qs_request.filter(requesttype__typecode="Báo giữ lương")
+        qs_baokhac = qs_request.exclude(
+            requesttype__typecode="Báo giữ lương").exclude(
+                requesttype__typecode="Báo ứng")
         qs_op = CompanyOperator.objects.filter(company=company).select_related('nhachinh', 'congty_danglam', 'nguoituyen')
         by_nhachinh = defaultdict(int)
         by_customer = defaultdict(lambda: defaultdict(int))
@@ -141,7 +144,8 @@ class CompanySerializer(serializers.ModelSerializer):
             "approve": {
                 "total": qs_request.count(),
                 "baoung": AdvanceRequestLTESerializer(qs_baoung, many=True).data,
-                "baogiu": AdvanceRequestLTESerializer(qs_baogiu, many=True).data
+                "baogiu": AdvanceRequestLTESerializer(qs_baogiu, many=True).data,
+                "baokhac": AdvanceRequestLTESerializer(qs_baokhac, many=True).data
             },
             "op": {
                 "total": qs_op.count(),
