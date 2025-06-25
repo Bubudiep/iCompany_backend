@@ -26,13 +26,13 @@ class CompanyOperatorSerializer(serializers.ModelSerializer):
 class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
-    avatar_base64 = serializers.SerializerMethodField(read_only=True)
-    def get_avatar_base64(self,obj):
-        try:
-            if obj.avatar_base64:
-                return resize_base64_image(obj.avatar_base64,{60,60})
-        except Exception as e:
-            return None
+    # avatar_base64 = serializers.SerializerMethodField(read_only=True)
+    # def get_avatar_base64(self,obj):
+    #     try:
+    #         if obj.avatar_base64:
+    #             return resize_base64_image(obj.avatar_base64,{60,60})
+    #     except Exception as e:
+    #         return e
     class Meta:
         model = CompanyStaffProfile
         fields = [
