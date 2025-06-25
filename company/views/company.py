@@ -428,6 +428,8 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if apv.status!="approved":
+                return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
             if staff in config.staff_can_payout.all():
                 pass  # Được phép
             elif staff.isSuperAdmin:
@@ -541,6 +543,8 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         user = request.user
         key = request.headers.get('ApplicationKey')
         apv = self.get_object()
+        if apv.status not in ["approved","pending"]:
+            return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
@@ -654,6 +658,9 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         staff = self.request.query_params.get('staff')
         if staff:
             queryset=queryset.filter(requester__id=int(staff))
+        qs_bankType = self.request.query_params.get('banktype')
+        if qs_bankType:
+            queryset=queryset.filter(hinhthucThanhtoan=qs_bankType)
         qs_type = self.request.query_params.get('type')
         if qs_type:
             queryset=queryset.filter(requesttype__typecode=qs_type)
