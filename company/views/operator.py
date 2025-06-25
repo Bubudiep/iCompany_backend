@@ -126,6 +126,21 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                                             )
     
     @action(detail=False, methods=['post'])
+    def export_history(self, request, pk=None):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        try:
+            queryset = self.get_queryset()
+            serializer = CompanyOperatorWorkHistorySerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            return Response({"detail": f"[{file_name}_{lineno}] {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            
+    @action(detail=False, methods=['post'])
     def editlichsu(self, request, pk=None):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
