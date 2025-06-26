@@ -509,7 +509,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         bankname = request.data.get('bankname')
         banknumber = request.data.get('banknumber')
         fullname = request.data.get('fullname')
-        ghichu = request.data.get('ghichu')
+        ghichu = request.data.get('ghichu_taikhoan')
         try:
             operator = self.get_object()
             if qs_staff.isSuperAdmin==False:
