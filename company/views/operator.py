@@ -509,15 +509,39 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         bankname = request.data.get('bankname')
         banknumber = request.data.get('banknumber')
         fullname = request.data.get('fullname')
+        ghichu = request.data.get('ghichu')
         try:
             operator = self.get_object()
             if qs_staff.isSuperAdmin==False:
                 if qs_staff.isAdmin==False:
                     if qs_staff!=operator.nguoituyen and qs_staff!=operator.nguoibaocao:
                         return Response({"detail": "Bạn không có quyền!"}, status=status.HTTP_400_BAD_REQUEST)
-            operator.nganhang=bankname
-            operator.so_taikhoan=banknumber
-            operator.chu_taikhoan=fullname
+            
+            OperatorUpdateHistory.objects.create(
+                operator=operator,
+                changed_by=qs_staff,
+                old_data={
+                    "nganhang": operator.nganhang,
+                    "so_taikhoan": operator.so_taikhoan,
+                    "chu_taikhoan": operator.chu_taikhoan,
+                    "ghichu_taikhoan": operator.ghichu_taikhoan
+                },
+                new_data={
+                    "nganhang": bankname,
+                    "so_taikhoan": banknumber,
+                    "chu_taikhoan": fullname,
+                    "ghichu_taikhoan": ghichu
+                },
+                notes="Cập nhập thông tin ngân hàng của người lao động"
+            )
+            if bankname:
+                operator.nganhang=bankname
+            if banknumber:
+                operator.so_taikhoan=banknumber
+            if fullname:
+                operator.chu_taikhoan=fullname
+            if ghichu:
+                operator.ghichu_taikhoan=ghichu
             operator.save()
             return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
         except Exception as e:
