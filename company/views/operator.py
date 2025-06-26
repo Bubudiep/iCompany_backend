@@ -511,8 +511,10 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         fullname = request.data.get('fullname')
         try:
             operator = self.get_object()
-            if qs_staff!=operator.nguoituyen and qs_staff!=operator.nguoibaocao:
-                return Response({"detail": "Bạn không có quyền!"}, status=status.HTTP_400_BAD_REQUEST)
+            if qs_staff.isSuperAdmin==False:
+                if qs_staff.isAdmin==False:
+                    if qs_staff!=operator.nguoituyen and qs_staff!=operator.nguoibaocao:
+                        return Response({"detail": "Bạn không có quyền!"}, status=status.HTTP_400_BAD_REQUEST)
             operator.nganhang=bankname
             operator.so_taikhoan=banknumber
             operator.chu_taikhoan=fullname
