@@ -548,7 +548,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"detail": "Bạn không có quyền!"}, status=status.HTTP_403_FORBIDDEN
                 )
-            if instance.nguoituyen==qs_res or instance.nguoibaocao==qs_res or instance.congty_danglam in qs_res.managerCustomer.all():
+            if qs_res.isSuperAdmin or instance.nguoituyen==qs_res or instance.nguoibaocao==qs_res or instance.congty_danglam in qs_res.managerCustomer.all():
                 with transaction.atomic():
                     changed_fields = {'old':{},'new':{}}
                     row_changed = 0

@@ -155,6 +155,65 @@ class CompanyCustomer(models.Model):
     def __str__(self):
         return f"{self.name}"
     
+# Bảng lưu hợp đồng giữa Company và Customer
+class Contract(models.Model):
+    company_customer = models.ForeignKey(CompanyCustomer, on_delete=models.CASCADE, related_name='contracts')
+    contract_number = models.CharField(max_length=100, unique=True)  # Số hợp đồng
+    title = models.CharField(max_length=255, null=True, blank=True)  # Tiêu đề hợp đồng
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    details = models.TextField(null=True, blank=True)  # Mô tả hợp đồng
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Hợp đồng"
+        verbose_name_plural = "Hợp đồng"
+    def __str__(self):
+        return f"Contract {self.contract_number} with {self.company_customer.name}"
+# Bảng lưu báo giá, liên kết với hợp đồng hoặc trực tiếp khách hàng
+class Quotation(models.Model):
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='quotations', null=True, blank=True)
+    company_customer = models.ForeignKey(CompanyCustomer, on_delete=models.CASCADE, related_name='quotations')
+    quotation_number = models.CharField(max_length=100, unique=True)  # Số báo giá
+    description = models.TextField(null=True, blank=True)  # Mô tả báo giá
+    amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)  # Giá trị báo giá
+    valid_from = models.DateField(null=True, blank=True)   # Bắt đầu có hiệu lực
+    valid_until = models.DateField(null=True, blank=True)  # Hết hiệu lực
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Báo giá"
+        verbose_name_plural = "Báo giá"
+    def __str__(self):
+        return f"Quotation {self.quotation_number} for {self.company_customer.name}"
+    
+    def clean(self):
+        if not self.start_date:
+            raise ValidationError("Hợp đồng phải có ngày bắt đầu (start_date).")
+
+        # Tìm hợp đồng khác của cùng khách hàng có end_date chồng lấn hoặc chưa có end_date
+        overlapping_contracts = Contract.objects.filter(
+            company_customer=self.company_customer,
+            start_date__lte=self.start_date,
+        ).exclude(pk=self.pk)
+
+        for contract in overlapping_contracts:
+            # Nếu hợp đồng cũ chưa có end_date hoặc end_date >= start_date hợp đồng mới thì báo lỗi (hoặc xử lý)
+            if contract.end_date is None or contract.end_date >= self.start_date:
+                # Nếu chưa có end_date, sẽ update end_date thành trước start_date hợp đồng mới
+                if contract.end_date is None:
+                    contract.end_date = self.start_date - timedelta(days=1)
+                    contract.save()
+                else:
+                    raise ValidationError(
+                        f"Hợp đồng {contract.contract_number} đang chồng lấn thời gian với hợp đồng mới."
+                    )
+    def save(self, *args, **kwargs):
+        self.clean()  # gọi check trước khi save
+        super().save(*args, **kwargs)
+    
 class CompanyStaff(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     cardID = models.CharField(max_length=200, null=True, blank=True) # mã NV
