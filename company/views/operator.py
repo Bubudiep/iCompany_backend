@@ -528,13 +528,13 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 note=f"{note}ngân hàng. "
             if banknumber:
                 operator.so_taikhoan=banknumber
-                note=f"{note}số tài khoản. "
+                note=f"{note}số tài khoản thành {banknumber}. "
             if fullname:
                 operator.chu_taikhoan=fullname
-                note=f"{note}tên chủ tài khoản. "
+                note=f"{note}tên chủ tài khoản thành {fullname}. "
             if ghichu:
                 operator.ghichu_taikhoan=ghichu
-                note=f"{note}ghi chú tài khoản. "
+                note=f"{note}ghi chú tài khoản thành {ghichu}. "
             OperatorUpdateHistory.objects.create(
                 operator=operator,
                 changed_by=qs_staff,
@@ -545,7 +545,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     "chu_taikhoan": fullname,
                     "ghichu_taikhoan": ghichu
                 },
-                notes="Cập nhập thông tin ngân hàng của người lao động"
+                notes=note
             )
             operator.save()
             return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
