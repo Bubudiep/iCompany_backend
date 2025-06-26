@@ -516,16 +516,29 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 if qs_staff.isAdmin==False:
                     if qs_staff!=operator.nguoituyen and qs_staff!=operator.nguoibaocao:
                         return Response({"detail": "Bạn không có quyền!"}, status=status.HTTP_400_BAD_REQUEST)
-            
-            OperatorUpdateHistory.objects.create(
-                operator=operator,
-                changed_by=qs_staff,
-                old_data={
+            old_data={
                     "nganhang": operator.nganhang,
                     "so_taikhoan": operator.so_taikhoan,
                     "chu_taikhoan": operator.chu_taikhoan,
                     "ghichu_taikhoan": operator.ghichu_taikhoan
-                },
+                }
+            note="Cập nhập thông tin ngân hàng: "
+            if bankname:
+                operator.nganhang=bankname
+                note=f"{note}ngân hàng. "
+            if banknumber:
+                operator.so_taikhoan=banknumber
+                note=f"{note}số tài khoản. "
+            if fullname:
+                operator.chu_taikhoan=fullname
+                note=f"{note}tên chủ tài khoản. "
+            if ghichu:
+                operator.ghichu_taikhoan=ghichu
+                note=f"{note}ghi chú tài khoản. "
+            OperatorUpdateHistory.objects.create(
+                operator=operator,
+                changed_by=qs_staff,
+                old_data=old_data,
                 new_data={
                     "nganhang": bankname,
                     "so_taikhoan": banknumber,
@@ -534,14 +547,6 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 },
                 notes="Cập nhập thông tin ngân hàng của người lao động"
             )
-            if bankname:
-                operator.nganhang=bankname
-            if banknumber:
-                operator.so_taikhoan=banknumber
-            if fullname:
-                operator.chu_taikhoan=fullname
-            if ghichu:
-                operator.ghichu_taikhoan=ghichu
             operator.save()
             return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
         except Exception as e:
