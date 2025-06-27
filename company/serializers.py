@@ -7,6 +7,29 @@ class OP_HISTLTESerializer(serializers.ModelSerializer):
         fields = ['ma_nhanvien','start_date','customer']
         
 class OP_HISTSerializer(serializers.ModelSerializer):
+    def update(self, instance, validated_data):
+        request = self.context.get("request")
+        user = request.user if request else None
+        if validated_data.get('customer') is None:
+            raise "Vui lòng nhập công ty làm việc"
+        if instance.start_date is None and not validated_data.get('start_date'):
+            raise "Vui lòng nhập ngày bắt đầu"
+        if instance.end_date is None and not validated_data.get('end_date'):
+            qs_working=OperatorWorkHistory.objects.filter(
+                operator=instance.operator,
+                end_date__isnull=True
+            )
+            if len(qs_working)>0:
+                raise "Chỉ được làm việc tại 1 công ty"
+            elif validated_data.get('customer'):
+                instance.operator.congty_danglam=validated_data.get('customer')
+                instance.operator.save()
+        OperatorUpdateHistory.objects.create(
+            changed_by=user,
+            operator=instance.operator,
+            notes=f"Cập nhập lịch sử đi làm ở công ty {instance.customer.name} -> {validated_data.get('customer').get('name')}"
+        )
+        return super().update(instance, validated_data)
     class Meta:
         model = OperatorWorkHistory
         fields = '__all__'
