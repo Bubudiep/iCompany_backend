@@ -18,7 +18,7 @@ class OP_HISTSerializer(serializers.ModelSerializer):
             qs_working=OperatorWorkHistory.objects.filter(
                 operator=instance.operator,
                 end_date__isnull=True
-            )
+            ).exclude(id=instance.id)
             if len(qs_working)>0:
                 raise TypeError("Chỉ được làm việc tại 1 công ty")
             elif validated_data.get('customer'):
