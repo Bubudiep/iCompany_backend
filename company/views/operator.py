@@ -732,6 +732,9 @@ class OperatorWorkHistoryViewSet(viewsets.ModelViewSet):
         qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
         qs_op=CompanyOperator.objects.filter(company=qs_res.company).values_list('id',flat=True)
         return OperatorWorkHistory.objects.filter(operator__id__in=qs_op)
+    def update(self, request, *args, **kwargs):
+        update = super().update(request, *args, **kwargs)
+        return Response(CompanyOperatorMoreDetailsSerializer(self.get_object().operator).data)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
