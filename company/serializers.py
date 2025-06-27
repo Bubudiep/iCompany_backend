@@ -32,7 +32,8 @@ class OP_HISTSerializer(serializers.ModelSerializer):
             operator=instance.operator,
             notes=f"Cập nhập lịch sử đi làm ở công ty{note}"
         )
-        return super().update(instance, validated_data)
+        super().update(instance, validated_data)
+        return CompanyOperatorMoreDetailsSerializer(instance.operator).data
     class Meta:
         model = OperatorWorkHistory
         fields = '__all__'
