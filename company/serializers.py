@@ -27,7 +27,9 @@ class OP_HISTSerializer(serializers.ModelSerializer):
         OperatorUpdateHistory.objects.create(
             changed_by=user,
             operator=instance.operator,
-            notes=f"Cập nhập lịch sử đi làm ở công ty {instance.customer.name} -> {validated_data.get('customer').get('name')}"
+            notes=f"Cập nhập lịch sử đi làm ở công ty {
+                f"{instance.customer.name} -> {validated_data.get('customer').name}" if validated_data.get('customer') is not None else ""
+            }"
         )
         return super().update(instance, validated_data)
     class Meta:
