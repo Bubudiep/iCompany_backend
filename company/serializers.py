@@ -24,12 +24,11 @@ class OP_HISTSerializer(serializers.ModelSerializer):
             elif validated_data.get('customer'):
                 instance.operator.congty_danglam=validated_data.get('customer')
                 instance.operator.save()
+        note=f" {instance.customer.name} -> {validated_data.get('customer').name}" if validated_data.get('customer') is not None else ""
         OperatorUpdateHistory.objects.create(
             changed_by=user,
             operator=instance.operator,
-            notes=f"Cập nhập lịch sử đi làm ở công ty {
-                f"{instance.customer.name} -> {validated_data.get('customer').name}" if validated_data.get('customer') is not None else ""
-            }"
+            notes=f"Cập nhập lịch sử đi làm ở công ty{note}"
         )
         return super().update(instance, validated_data)
     class Meta:
