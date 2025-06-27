@@ -10,6 +10,8 @@ class OP_HISTSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         request = self.context.get("request")
         user = request.user if request else None
+        if user:
+            user=CompanyStaff.objects.get(user__user=user)
         if validated_data.get('customer') is None:
             raise TypeError("Vui lòng nhập công ty làm việc")
         if instance.start_date is None and not validated_data.get('start_date'):
