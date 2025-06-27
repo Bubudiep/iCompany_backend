@@ -471,6 +471,8 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if apv.status not in ["pending"]:
+                return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
             if staff.isSuperAdmin:
                 pass
             elif staff in config.staff_approve_admin.all():
@@ -505,6 +507,8 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         key = request.headers.get('ApplicationKey')
         apv = self.get_object()
         try:
+            if apv.status not in ["pending"]:
+                return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
             if staff in config.staff_approve_admin.all():
@@ -544,7 +548,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         user = request.user
         key = request.headers.get('ApplicationKey')
         apv = self.get_object()
-        if apv.status not in ["approved","pending"]:
+        if apv.status not in ["approved","pending"] and apv.payment_status!="not":
             return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
@@ -604,6 +608,8 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             apv = self.get_object()
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if apv.status not in ["pending"] and apv.payment_status!="not":
+                return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
             if staff in config.staff_approve_admin.all():
                 pass  # Được phép phê duyệt
             if staff in config.staff_can_approve.all():
