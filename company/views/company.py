@@ -401,6 +401,10 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                 return Response({"detail": "Bạn không có quyền hoàn ngân",
                                  "reason": "Không thuộc nhóm hoàn ngân và không phải admin/super admin"}, 
                                 status=status.HTTP_400_BAD_REQUEST)
+            if apv.status!="approved":
+                return Response({"detail": "Chưa được phê duyệt"}, status=status.HTTP_403_FORBIDDEN)
+            if apv.payment_status!="done":
+                return Response({"detail": "Chưa được giải ngân"}, status=status.HTTP_403_FORBIDDEN)
             apv.retrieve_status="done"
             apv.save()
             AdvanceRequestHistory.objects.create(request=apv,
@@ -430,7 +434,9 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
             if apv.status!="approved":
-                return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+                return Response({"detail": "Chưa được phê duyệt"}, status=status.HTTP_403_FORBIDDEN)
+            if apv.payment_status=="done":
+                return Response({"detail": "Đã giải ngân trước đó"}, status=status.HTTP_403_FORBIDDEN)
             if staff in config.staff_can_payout.all():
                 pass  # Được phép
             elif staff.isSuperAdmin:
@@ -548,8 +554,10 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         user = request.user
         key = request.headers.get('ApplicationKey')
         apv = self.get_object()
-        if apv.status not in ["approved","pending"] and apv.payment_status!="not":
+        if apv.status not in ["approved","pending"]:
             return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        if apv.payment_status=="done":
+            return Response({"detail": "Đã giải ngân trước đó"}, status=status.HTTP_403_FORBIDDEN)
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
