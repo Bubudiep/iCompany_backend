@@ -11,16 +11,16 @@ class OP_HISTSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = request.user if request else None
         if validated_data.get('customer') is None:
-            raise "Vui lòng nhập công ty làm việc"
+            raise TypeError("Vui lòng nhập công ty làm việc")
         if instance.start_date is None and not validated_data.get('start_date'):
-            raise "Vui lòng nhập ngày bắt đầu"
+            raise TypeError("Vui lòng nhập ngày bắt đầu")
         if instance.end_date is None and not validated_data.get('end_date'):
             qs_working=OperatorWorkHistory.objects.filter(
                 operator=instance.operator,
                 end_date__isnull=True
             )
             if len(qs_working)>0:
-                raise "Chỉ được làm việc tại 1 công ty"
+                raise TypeError("Chỉ được làm việc tại 1 công ty")
             elif validated_data.get('customer'):
                 instance.operator.congty_danglam=validated_data.get('customer')
                 instance.operator.save()
