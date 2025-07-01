@@ -142,7 +142,7 @@ class CompanySerializer(serializers.ModelSerializer):
     def get_Operator(self,company):
         try:
             ops=CompanyOperator.objects.filter(company=company)
-            return CompanyOperatorLTESerializer(ops).data
+            return CompanyOperatorLTESerializer(ops,many=True).data
         except Exception as e:
             return []
     def get_Config(self,company):
