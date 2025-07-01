@@ -42,12 +42,6 @@ class CompanyOperatorDBSerializer(serializers.ModelSerializer):
         model = CompanyOperator
         fields = ["id","congty_danglam",
                   "nguoibaocao","nguoituyen"]
-class CompanyOperatorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CompanyOperator
-        fields = ["id","avatar","ho_ten","congty_danglam",
-                  "diachi","ghichu","ma_nhanvien","ngaysinh",
-                  "nguoibaocao","nguoituyen","nhachinh","sdt","so_cccd"]
         
 class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
@@ -144,6 +138,13 @@ class CompanySerializer(serializers.ModelSerializer):
     Vendor = serializers.SerializerMethodField(read_only=True)
     Staff = serializers.SerializerMethodField(read_only=True)
     Config = serializers.SerializerMethodField(read_only=True)
+    Operator = serializers.SerializerMethodField(read_only=True)
+    def get_Operator(self,company):
+        try:
+            ops=CompanyOperator.objects.filter(company=company)
+            return CompanyOperatorLTESerializer(ops).data
+        except Exception as e:
+            return []
     def get_Config(self,company):
         try:
             allConfig,_=CompanyConfig.objects.get_or_create(company=company)
@@ -399,6 +400,20 @@ class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = OperatorUpdateHistory
         fields = '__all__'
+        
+class CompanyOperatorLTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = ["id","ho_ten","ma_nhanvien"]
+class CompanyOperatorSerializer(serializers.ModelSerializer):
+    work = serializers.SerializerMethodField(read_only=True)
+    def get_work(self, qs):
+        qs_work=OperatorWorkHistory.objects.filter(operator=qs)
+        return OP_HISTSerializer(qs_work,many=True).data
+    class Meta:
+        model = CompanyOperator
+        fields = '__all__'
+            
 class CompanyOperatorWorkHistorySerializer(serializers.ModelSerializer):
     work = serializers.SerializerMethodField(read_only=True)
     def get_work(self, qs):
