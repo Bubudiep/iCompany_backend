@@ -368,7 +368,6 @@ class AdvanceRequestLTESerializer(serializers.ModelSerializer):
              
 class AdvanceRequestSerializer(serializers.ModelSerializer):
     requesttype = serializers.CharField(source='requesttype.typecode', read_only=True, allow_null=True)
-    operator = serializers.CharField(source='operator.ho_ten', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     payment_status_display = serializers.CharField(source='get_payment_status_display', read_only=True)
     retrieve_status_display = serializers.CharField(source='get_retrieve_status_display', read_only=True)
