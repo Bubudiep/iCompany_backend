@@ -676,6 +676,12 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         qs_bankType = self.request.query_params.get('banktype')
         if qs_bankType:
             queryset=queryset.filter(hinhthucThanhtoan=qs_bankType)
+        qs_operator = self.request.query_params.get('operator')
+        if qs_operator:
+            queryset=queryset.filter(operator__id=qs_operator)
+        qs_request_code = self.request.query_params.get('request_code')
+        if qs_request_code:
+            queryset=queryset.filter(request_code=qs_request_code)
         qs_type = self.request.query_params.get('type')
         if qs_type:
             queryset=queryset.filter(requesttype__typecode=qs_type)
