@@ -806,7 +806,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 class AdvanceRequestHistoryViewSet(viewsets.ModelViewSet):
     queryset = AdvanceRequestHistory.objects.all()
-    serializer_class = AdvanceRequestHistorySerializer
+    serializer_class = AdvanceRequestHistoryLTESerializer
     permission_classes = [permissions.IsAuthenticated]
     http_method_names = ['get']
     pagination_class = StandardResultsSetPagination
