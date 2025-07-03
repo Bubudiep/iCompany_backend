@@ -19,6 +19,7 @@ router.register(r'profile', CompanyStaffProfileViewSet, basename='profile')
 router.register(r'info', CompanyStaffProfileViewSet, basename='info')
 router.register(r'approve', AdvanceRequestViewSet, basename='approve')
 router.register(r'com', CompanyViewSet, basename='com')
+router.register(r'op_all', CompanyOperatorAllDetailsViewSet, basename='op_all')
 urlpatterns = [
     path('op/add/', AddOperatorAPIView.as_view(), name='add-op'),
     path('search/', SearchAPIView.as_view(), name='search'),
