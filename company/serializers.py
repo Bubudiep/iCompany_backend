@@ -358,6 +358,8 @@ class AdvanceReasonTypeSerializer(serializers.ModelSerializer):
 class AdvanceRequestHistoryLTESerializer(serializers.ModelSerializer):
     amount = serializers.CharField(source='request.amount', read_only=True, allow_null=True)
     code = serializers.CharField(source='request.request_code', read_only=True, allow_null=True)
+    requester = serializers.CharField(source='request.requester', read_only=True, allow_null=True)
+    operator = serializers.CharField(source='request.operator', read_only=True, allow_null=True)
     class Meta:
         model = AdvanceRequestHistory
         fields = '__all__'
