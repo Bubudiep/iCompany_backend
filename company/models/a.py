@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from datetime import time
 from rest_framework import exceptions
 import uuid
+from django.utils.timezone import make_aware, datetime
+from django.utils.dateparse import parse_date
 from django.db.models import Q,F
 from decouple import config
 from django.core.exceptions import ValidationError
