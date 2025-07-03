@@ -355,6 +355,12 @@ class AdvanceReasonTypeSerializer(serializers.ModelSerializer):
         model = AdvanceReasonType
         fields = '__all__'
         
+class AdvanceRequestHistoryLTESerializer(serializers.ModelSerializer):
+    amount = serializers.CharField(source='request.amount', read_only=True, allow_null=True)
+    class Meta:
+        model = AdvanceRequestHistory
+        fields = '__all__'
+        
 class AdvanceRequestHistorySerializer(serializers.ModelSerializer):
     user = CompanyStaffDetailsSerializer(allow_null=True)  
     class Meta:
