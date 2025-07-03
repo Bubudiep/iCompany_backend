@@ -655,11 +655,30 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     {"detail": "Lỗi khởi tạo!"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
+                
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.is_deleted = True
-        instance.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            user = self.request.user
+            key = self.request.headers.get('ApplicationKey')
+            qs_res = CompanyStaff.objects.get(
+                user__user=user,
+                isActive=True,
+                company__key=key
+            )
+            if qs_res.isSuperAdmin:
+                instance = self.get_object()
+                instance.is_deleted = True
+                instance.save()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {"detail": "Bạn không có quyền!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except IntegrityError as e:
+            return Response(
+                {"detail": "Bạn không có quyền!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
