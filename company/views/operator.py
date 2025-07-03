@@ -122,7 +122,8 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | 
                                               Q(nguoibaocao=qs_res) | 
                                               Q(congty_danglam__id__in=qs_res.managerCustomer.all().values_list("id",flat=True)),
-                                              company=qs_res.company
+                                              company=qs_res.company,
+                                              is_deleted=False
                                             )
     
     @action(detail=False, methods=['get'])
@@ -654,6 +655,12 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     {"detail": "Lỗi khởi tạo!"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_deleted = True
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
