@@ -746,6 +746,28 @@ class CompanyOperatorMoreDetailsViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
+        created_at = request.query_params.get('created_at')
+        created_at_from = request.query_params.get('created_at_from')
+        created_at_to = request.query_params.get('created_at_to')
+        if created_at_from:
+            try:
+                date_from = make_aware(datetime.combine(parse_date(created_at_from), datetime.min.time()))
+                queryset = queryset.filter(created_at__gte=date_from)
+            except:
+                pass
+        if created_at_to:
+            try:
+                date_to = make_aware(datetime.combine(parse_date(created_at_to), datetime.max.time()))
+                queryset = queryset.filter(created_at__lte=date_to)
+            except:
+                pass
+        if created_at:
+            try:
+                date = make_aware(datetime.combine(parse_date(created_at), datetime.min.time()))
+                next_day = make_aware(datetime.combine(parse_date(created_at), datetime.max.time()))
+                queryset = queryset.filter(created_at__range=(date, next_day))
+            except:
+                pass
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
