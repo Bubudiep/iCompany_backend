@@ -434,7 +434,20 @@ class CompanyOperatorWorkHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
         fields = '__all__'
-            
+class CompanyOperatorLTE3Serializer(serializers.ModelSerializer):
+    work = serializers.SerializerMethodField(read_only=True)
+    def get_work(self, qs):
+        qs_work=OperatorWorkHistory.objects.filter(operator=qs,end_date__isnull=True)
+        if len(qs_work)>0:
+            return OP_HISTSerializer(qs_work.first()).data
+        else:
+            return None
+    class Meta:
+        model = CompanyOperator
+        fields = ["id","ho_ten","ma_nhanvien",'nguoituyen',
+                  'nguoibaocao','vendor',"work",
+                  'created_at','updated_at']
+      
 class AdvanceRequestExportSerializer(serializers.ModelSerializer):
     requesttype = serializers.CharField(source='requesttype.typecode', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -442,7 +455,7 @@ class AdvanceRequestExportSerializer(serializers.ModelSerializer):
     retrieve_status_display = serializers.CharField(source='get_retrieve_status_display', read_only=True)
     hinhthucThanhtoan_display = serializers.CharField(source='get_hinhthucThanhtoan_display', read_only=True)
     nguoiThuhuong_display = serializers.CharField(source='get_nguoiThuhuong_display', read_only=True)
-    operator = CompanyOperatorLTE2Serializer(allow_null=True)
+    operator = CompanyOperatorLTE3Serializer(allow_null=True)
     class Meta:
         model = AdvanceRequest
         fields = '__all__'
