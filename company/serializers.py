@@ -402,7 +402,7 @@ class AdvanceRequestDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdvanceRequest
         fields = '__all__'
-               
+          
 class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
     changed_by=CompanyStaffProfileSerializer(allow_null=True)
     class Meta:
@@ -433,6 +433,12 @@ class CompanyOperatorWorkHistorySerializer(serializers.ModelSerializer):
         return OP_HISTSerializer(qs_work,many=True).data
     class Meta:
         model = CompanyOperator
+        fields = '__all__'
+            
+class AdvanceRequestExportSerializer(serializers.ModelSerializer):
+    operator = CompanyOperatorLTE2Serializer(allow_null=True)
+    class Meta:
+        model = AdvanceRequest
         fields = '__all__'
             
 class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
