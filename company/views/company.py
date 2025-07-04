@@ -729,7 +729,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)  
     
-class AdvanceRequestViewSet(viewsets.ModelViewSet):
+class AdvanceRequestExportViewSet(viewsets.ModelViewSet):
     queryset = AdvanceRequest.objects.all()
     serializer_class = AdvanceRequestExportSerializer
     permission_classes = [permissions.IsAuthenticated]
