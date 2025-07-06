@@ -250,6 +250,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         cccd_truoc = request.data.get('cccd_truoc',None)
         cccd_sau = request.data.get('cccd_sau',None)
         so_cccd=request.data.get("cccd")
+        nhachinh=request.data.get("nhachinh")
         key = self.request.headers.get('ApplicationKey')
         if company is None:
             return Response({"detail": f"Chưa chọn công ty làm việc!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -281,7 +282,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 else:
                     nguoituyen=operator.nguoituyen
                 OperatorWorkHistory.objects.create(ma_nhanvien=employeeCode,operator=operator,
-                                                nguoituyen=nguoituyen,
+                                                nguoituyen=nguoituyen,nhachinh=nhachinh,
                                                 customer=qs_cty,so_cccd=so_cccd,
                                                 start_date=datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date())
                 operator.nguoituyen=nguoituyen
