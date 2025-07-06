@@ -33,6 +33,11 @@ class AddOperatorAPIView(APIView):
                                     qs_nguoituyen=CompanyStaff.objects.get(id=op.get("staff"),company__key=key)
                                 if op.get("nhachinh"):
                                     qs_nhachinh=CompanyVendor.objects.get(id=op.get("nhachinh"),company__key=key)
+                                if qs_nhachinh:
+                                    qs_old=CompanyOperator.objects.filter(nhachinh=qs_nhachinh,so_cccd=op.get("cardid"))
+                                    if len(qs_old)>0:
+                                        return Response({"detail": f"{op.get('fullname')} đã có trên hệ thống"},
+                                                        status=status.HTTP_400_BAD_REQUEST)
                                 ops=CompanyOperator.objects.create(
                                     company=staff.company,
                                     ngay_phongvan=phongvan,
