@@ -406,6 +406,7 @@ class CompanyOperator(models.Model):
     congty_danglam = models.ForeignKey(CompanyCustomer, on_delete=models.SET_NULL, null=True, blank=True)
     nhachinh = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nhachinh")
     nguoibaocao = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nguoibaocao")
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:

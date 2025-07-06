@@ -122,7 +122,8 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | 
                                               Q(nguoibaocao=qs_res) | 
                                               Q(congty_danglam__id__in=qs_res.managerCustomer.all().values_list("id",flat=True)),
-                                              company=qs_res.company
+                                              company=qs_res.company,
+                                              is_deleted=False
                                             )
     
     @action(detail=False, methods=['get'])
@@ -655,6 +656,31 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     {"detail": "Lỗi khởi tạo!"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
+                
+    def destroy(self, request, *args, **kwargs):
+        try:
+            user = self.request.user
+            key = self.request.headers.get('ApplicationKey')
+            qs_res = CompanyStaff.objects.get(
+                user__user=user,
+                isActive=True,
+                company__key=key
+            )
+            if qs_res.isSuperAdmin:
+                instance = self.get_object()
+                instance.is_deleted = True
+                instance.save()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {"detail": "Bạn không có quyền!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except IntegrityError as e:
+            return Response(
+                {"detail": "Bạn không có quyền!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
@@ -683,7 +709,12 @@ class CompanyOperatorDetailsViewSet(viewsets.ModelViewSet):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
         qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
-        return CompanyOperator.objects.filter(company=qs_res.company)
+        return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | 
+                                              Q(nguoibaocao=qs_res) | 
+                                              Q(congty_danglam__id__in=qs_res.managerCustomer.all().values_list("id",flat=True)),
+                                              company=qs_res.company,
+                                              is_deleted=False
+                                            )
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
@@ -707,10 +738,83 @@ class CompanyOperatorMoreDetailsViewSet(viewsets.ModelViewSet):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
         qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
-        return CompanyOperator.objects.filter(company=qs_res.company)
+        return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | 
+                                              Q(nguoibaocao=qs_res) | 
+                                              Q(congty_danglam__id__in=qs_res.managerCustomer.all().values_list("id",flat=True)),
+                                              company=qs_res.company,
+                                              is_deleted=False
+                                            )
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
+        created_at = request.query_params.get('created_at')
+        created_at_from = request.query_params.get('created_at_from')
+        created_at_to = request.query_params.get('created_at_to')
+        if created_at_from:
+            try:
+                date_from = make_aware(datetime.combine(parse_date(created_at_from), datetime.min.time()))
+                queryset = queryset.filter(created_at__gte=date_from)
+            except:
+                pass
+        if created_at_to:
+            try:
+                date_to = make_aware(datetime.combine(parse_date(created_at_to), datetime.max.time()))
+                queryset = queryset.filter(created_at__lte=date_to)
+            except:
+                pass
+        if created_at:
+            try:
+                date = make_aware(datetime.combine(parse_date(created_at), datetime.min.time()))
+                next_day = make_aware(datetime.combine(parse_date(created_at), datetime.max.time()))
+                queryset = queryset.filter(created_at__range=(date, next_day))
+            except:
+                pass
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+        
+class CompanyOperatorAllDetailsViewSet(viewsets.ModelViewSet):
+    serializer_class = CompanyOperatorLTE2Serializer
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    http_method_names = ['get']
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
+        return CompanyOperator.objects.filter(company=qs_res.company,is_deleted=False)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
+        created_at = request.query_params.get('created_at')
+        created_at_from = request.query_params.get('created_at_from')
+        created_at_to = request.query_params.get('created_at_to')
+        if created_at_from:
+            try:
+                date_from = make_aware(datetime.combine(parse_date(created_at_from), datetime.min.time()))
+                queryset = queryset.filter(created_at__gte=date_from)
+            except:
+                pass
+        if created_at_to:
+            try:
+                date_to = make_aware(datetime.combine(parse_date(created_at_to), datetime.max.time()))
+                queryset = queryset.filter(created_at__lte=date_to)
+            except:
+                pass
+        if created_at:
+            try:
+                date = make_aware(datetime.combine(parse_date(created_at), datetime.min.time()))
+                next_day = make_aware(datetime.combine(parse_date(created_at), datetime.max.time()))
+                queryset = queryset.filter(created_at__range=(date, next_day))
+            except:
+                pass
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)

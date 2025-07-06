@@ -670,12 +670,40 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        created_at = request.query_params.get('created_at')
+        created_at_from = request.query_params.get('created_at_from')
+        created_at_to = request.query_params.get('created_at_to')
+        if created_at_from:
+            try:
+                date_from = make_aware(datetime.combine(parse_date(created_at_from), datetime.min.time()))
+                queryset = queryset.filter(created_at__gte=date_from)
+            except:
+                pass
+        if created_at_to:
+            try:
+                date_to = make_aware(datetime.combine(parse_date(created_at_to), datetime.max.time()))
+                queryset = queryset.filter(created_at__lte=date_to)
+            except:
+                pass
+        if created_at:
+            try:
+                date = make_aware(datetime.combine(parse_date(created_at), datetime.min.time()))
+                next_day = make_aware(datetime.combine(parse_date(created_at), datetime.max.time()))
+                queryset = queryset.filter(created_at__range=(date, next_day))
+            except:
+                pass
         staff = self.request.query_params.get('staff')
         if staff:
             queryset=queryset.filter(requester__id=int(staff))
         qs_bankType = self.request.query_params.get('banktype')
         if qs_bankType:
             queryset=queryset.filter(hinhthucThanhtoan=qs_bankType)
+        qs_operator = self.request.query_params.get('operator')
+        if qs_operator:
+            queryset=queryset.filter(operator__id=qs_operator)
+        qs_request_code = self.request.query_params.get('request_code')
+        if qs_request_code:
+            queryset=queryset.filter(request_code__contains=qs_request_code)
         qs_type = self.request.query_params.get('type')
         if qs_type:
             queryset=queryset.filter(requesttype__typecode=qs_type)
@@ -700,6 +728,81 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)  
+    
+class AdvanceRequestExportViewSet(viewsets.ModelViewSet):
+    queryset = AdvanceRequest.objects.all()
+    serializer_class = AdvanceRequestExportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get','post']
+    pagination_class = StandardResultsSetPagination
+    lookup_field = 'request_code'
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        staff=CompanyStaff.objects.get(company__key=key,user__user=user)
+        return AdvanceRequest.objects.filter(company=staff.company)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        created_at = request.query_params.get('created_at')
+        created_at_from = request.query_params.get('created_at_from')
+        created_at_to = request.query_params.get('created_at_to')
+        if created_at_from:
+            try:
+                date_from = make_aware(datetime.combine(parse_date(created_at_from), datetime.min.time()))
+                queryset = queryset.filter(created_at__gte=date_from)
+            except:
+                pass
+        if created_at_to:
+            try:
+                date_to = make_aware(datetime.combine(parse_date(created_at_to), datetime.max.time()))
+                queryset = queryset.filter(created_at__lte=date_to)
+            except:
+                pass
+        if created_at:
+            try:
+                date = make_aware(datetime.combine(parse_date(created_at), datetime.min.time()))
+                next_day = make_aware(datetime.combine(parse_date(created_at), datetime.max.time()))
+                queryset = queryset.filter(created_at__range=(date, next_day))
+            except:
+                pass
+        staff = self.request.query_params.get('staff')
+        if staff:
+            queryset=queryset.filter(requester__id=int(staff))
+        qs_bankType = self.request.query_params.get('banktype')
+        if qs_bankType:
+            queryset=queryset.filter(hinhthucThanhtoan=qs_bankType)
+        qs_operator = self.request.query_params.get('operator')
+        if qs_operator:
+            queryset=queryset.filter(operator__id=qs_operator)
+        qs_request_code = self.request.query_params.get('request_code')
+        if qs_request_code:
+            queryset=queryset.filter(request_code__contains=qs_request_code)
+        qs_type = self.request.query_params.get('type')
+        if qs_type:
+            queryset=queryset.filter(requesttype__typecode=qs_type)
+        is_pending = self.request.query_params.get('is_pending')
+        if is_pending:
+            queryset=queryset.filter(payment_status='not',status__in=['pending','approved'])
+        payment_status = self.request.query_params.get('payout')
+        if payment_status:
+            queryset=queryset.filter(payment_status=payment_status)
+        qs_status = self.request.query_params.get('status')
+        if qs_status:
+            queryset=queryset.filter(status=qs_status)
+        last_update = self.request.query_params.get('last_update')
+        if last_update:
+            queryset=queryset.filter(updated_at__gt=last_update)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)  
+   
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
@@ -765,6 +868,56 @@ class CompanyViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+class AdvanceRequestHistoryViewSet(viewsets.ModelViewSet):
+    queryset = AdvanceRequestHistory.objects.all()
+    serializer_class = AdvanceRequestHistoryLTESerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get']
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        staff=CompanyStaff.objects.get(company__key=key,user__user=user)
+        return AdvanceRequestHistory.objects.filter(request__company=staff.company)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        is_payout = request.query_params.get('payout')
+        if is_payout:
+            queryset = queryset.filter(request__payment_status='done')
+        created_at = request.query_params.get('created_at')
+        created_at_from = request.query_params.get('created_at_from')
+        created_at_to = request.query_params.get('created_at_to')
+        if created_at_from:
+            try:
+                date_from = make_aware(datetime.combine(parse_date(created_at_from), datetime.min.time()))
+                queryset = queryset.filter(created_at__gte=date_from)
+            except:
+                pass
+        if created_at_to:
+            try:
+                date_to = make_aware(datetime.combine(parse_date(created_at_to), datetime.max.time()))
+                queryset = queryset.filter(created_at__lte=date_to)
+            except:
+                pass
+        if created_at:
+            try:
+                date = make_aware(datetime.combine(parse_date(created_at), datetime.min.time()))
+                next_day = make_aware(datetime.combine(parse_date(created_at), datetime.max.time()))
+                queryset = queryset.filter(created_at__range=(date, next_day))
+            except:
+                pass
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)

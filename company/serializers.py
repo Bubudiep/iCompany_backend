@@ -42,12 +42,6 @@ class CompanyOperatorDBSerializer(serializers.ModelSerializer):
         model = CompanyOperator
         fields = ["id","congty_danglam",
                   "nguoibaocao","nguoituyen"]
-class CompanyOperatorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CompanyOperator
-        fields = ["id","avatar","ho_ten","congty_danglam",
-                  "diachi","ghichu","ma_nhanvien","ngaysinh",
-                  "nguoibaocao","nguoituyen","nhachinh","sdt","so_cccd"]
         
 class CompanyStaffProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
@@ -144,6 +138,13 @@ class CompanySerializer(serializers.ModelSerializer):
     Vendor = serializers.SerializerMethodField(read_only=True)
     Staff = serializers.SerializerMethodField(read_only=True)
     Config = serializers.SerializerMethodField(read_only=True)
+    Operator = serializers.SerializerMethodField(read_only=True)
+    def get_Operator(self,company):
+        try:
+            ops=CompanyOperator.objects.filter(company=company)
+            return CompanyOperatorLTESerializer(ops,many=True).data
+        except Exception as e:
+            return []
     def get_Config(self,company):
         try:
             allConfig,_=CompanyConfig.objects.get_or_create(company=company)
@@ -178,7 +179,7 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ['companyType','avatar','name','fullname','address',
-            'Department','Customer','Vendor','Staff','Config',
+            'Department','Customer','Vendor','Staff','Config','Operator',
             'addressDetails','hotline','isValidate','isOA','wallpaper',
             'shortDescription','description','created_at']
         
@@ -354,6 +355,15 @@ class AdvanceReasonTypeSerializer(serializers.ModelSerializer):
         model = AdvanceReasonType
         fields = '__all__'
         
+class AdvanceRequestHistoryLTESerializer(serializers.ModelSerializer):
+    amount = serializers.CharField(source='request.amount', read_only=True, allow_null=True)
+    code = serializers.CharField(source='request.request_code', read_only=True, allow_null=True)
+    requester = serializers.CharField(source='request.requester.id', read_only=True, allow_null=True)
+    operator = serializers.CharField(source='request.operator.id', read_only=True, allow_null=True)
+    class Meta:
+        model = AdvanceRequestHistory
+        fields = '__all__'
+        
 class AdvanceRequestHistorySerializer(serializers.ModelSerializer):
     user = CompanyStaffDetailsSerializer(allow_null=True)  
     class Meta:
@@ -367,7 +377,6 @@ class AdvanceRequestLTESerializer(serializers.ModelSerializer):
              
 class AdvanceRequestSerializer(serializers.ModelSerializer):
     requesttype = serializers.CharField(source='requesttype.typecode', read_only=True, allow_null=True)
-    operator = serializers.CharField(source='operator.ho_ten', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     payment_status_display = serializers.CharField(source='get_payment_status_display', read_only=True)
     retrieve_status_display = serializers.CharField(source='get_retrieve_status_display', read_only=True)
@@ -393,12 +402,30 @@ class AdvanceRequestDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdvanceRequest
         fields = '__all__'
-               
+          
 class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
     changed_by=CompanyStaffProfileSerializer(allow_null=True)
     class Meta:
         model = OperatorUpdateHistory
         fields = '__all__'
+        
+class CompanyOperatorLTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = ["id","ho_ten","ma_nhanvien"]
+class CompanyOperatorLTE2Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = ["id","ho_ten","ma_nhanvien",'nguoituyen','nguoibaocao','vendor','created_at','updated_at']
+class CompanyOperatorSerializer(serializers.ModelSerializer):
+    work = serializers.SerializerMethodField(read_only=True)
+    def get_work(self, qs):
+        qs_work=OperatorWorkHistory.objects.filter(operator=qs)
+        return OP_HISTSerializer(qs_work,many=True).data
+    class Meta:
+        model = CompanyOperator
+        fields = '__all__'
+            
 class CompanyOperatorWorkHistorySerializer(serializers.ModelSerializer):
     work = serializers.SerializerMethodField(read_only=True)
     def get_work(self, qs):
@@ -406,6 +433,31 @@ class CompanyOperatorWorkHistorySerializer(serializers.ModelSerializer):
         return OP_HISTSerializer(qs_work,many=True).data
     class Meta:
         model = CompanyOperator
+        fields = '__all__'
+class CompanyOperatorLTE3Serializer(serializers.ModelSerializer):
+    work = serializers.SerializerMethodField(read_only=True)
+    def get_work(self, qs):
+        qs_work=OperatorWorkHistory.objects.filter(operator=qs,end_date__isnull=True)
+        if len(qs_work)>0:
+            return OP_HISTSerializer(qs_work.first()).data
+        else:
+            return None
+    class Meta:
+        model = CompanyOperator
+        fields = ["id","ho_ten","ma_nhanvien",'nguoituyen',
+                  'nguoibaocao','vendor',"work",
+                  'created_at','updated_at']
+      
+class AdvanceRequestExportSerializer(serializers.ModelSerializer):
+    requesttype = serializers.CharField(source='requesttype.typecode', read_only=True, allow_null=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    payment_status_display = serializers.CharField(source='get_payment_status_display', read_only=True)
+    retrieve_status_display = serializers.CharField(source='get_retrieve_status_display', read_only=True)
+    hinhthucThanhtoan_display = serializers.CharField(source='get_hinhthucThanhtoan_display', read_only=True)
+    nguoiThuhuong_display = serializers.CharField(source='get_nguoiThuhuong_display', read_only=True)
+    operator = CompanyOperatorLTE3Serializer(allow_null=True)
+    class Meta:
+        model = AdvanceRequest
         fields = '__all__'
             
 class CompanyOperatorMoreDetailsSerializer(serializers.ModelSerializer):
