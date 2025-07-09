@@ -815,10 +815,15 @@ class CompanyViewSet(viewsets.ModelViewSet):
     def dashboard(self, request, request_code=None):
         user = request.user
         key = request.headers.get('ApplicationKey')
+        today = now().date()
+        seven_days_ago = today - timedelta(days=7)
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             company = staff.company
-            qs_request = AdvanceRequest.objects.filter(company=company)
+            qs_request = AdvanceRequest.objects.filter(
+                company=company,
+                created_date__date__range=(seven_days_ago, today)
+            )
             qs_baoung = qs_request.filter(requesttype__typecode="Báo ứng")
             qs_baogiu = qs_request.filter(requesttype__typecode="Báo giữ lương")
             qs_baokhac = qs_request.exclude(
