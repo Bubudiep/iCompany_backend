@@ -822,13 +822,14 @@ class CompanyViewSet(viewsets.ModelViewSet):
             company = staff.company
             qs_request = AdvanceRequest.objects.filter(
                 company=company,
-                created_date__date__range=(seven_days_ago, today)
+                created_at__date__range=(seven_days_ago, today)
             )
             qs_baoung = qs_request.filter(requesttype__typecode="Báo ứng")
             qs_baogiu = qs_request.filter(requesttype__typecode="Báo giữ lương")
             qs_baokhac = qs_request.exclude(
                 requesttype__typecode="Báo giữ lương").exclude(
-                    requesttype__typecode="Báo ứng")
+                requesttype__typecode="Báo ứng"
+            )
             qs_op = CompanyOperator.objects.filter(company=company).select_related('nhachinh', 'congty_danglam', 'nguoituyen')
             by_nhachinh = defaultdict(int)
             by_customer = defaultdict(lambda: defaultdict(int))
