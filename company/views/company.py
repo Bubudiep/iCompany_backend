@@ -818,7 +818,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             serializer = CompanyConfigSerializer(qs_config, data=data_config, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(CompanySerializer(company).data)
+            return Response(serializer.data)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
