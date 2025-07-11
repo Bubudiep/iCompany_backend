@@ -279,7 +279,11 @@ class CompanyConfig(models.Model):
     staffs_can_update_op_work = models.ManyToManyField(
         CompanyStaff,blank=True,related_name='staff_can_update_op_work'
     )
-    
+    # báo ứng
+    baoung_active = models.BooleanField(default=True)
+    baoung_active_time = models.BooleanField(default=False)
+    baoung_active_start = models.DateTimeField(blank=True,null=True)
+    baoung_active_end = models.DateTimeField(blank=True,null=True)
     # phê duyệt
     admin_can_payout = models.BooleanField(default=False)
     admin_can_approve = models.BooleanField(default=False)

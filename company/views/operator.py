@@ -428,6 +428,16 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             lyDo = request.data.get('lyDo',None)
             qs_staff=CompanyStaff.objects.get(user__user=user,company=qs_com)
             ngayUng = request.data.get('ngayUng',now().date())
+            config = CompanyConfig.objects.get_or_create(company=qs_com)
+            if config and config.baoung_active is False:
+                return Response({"detail": "Chức năng báo ứng bị tắt"}, status=status.HTTP_400_BAD_REQUEST)
+            if (config and 
+                config.baoung_active_time is True and 
+                config.baoung_active_start and 
+                config.baoung_active_end and
+                not (config.baoung_active_start <= now <= config.baoung_active_end)
+            ):
+                return Response({"detail": "Ngoài giờ báo ứng"}, status=status.HTTP_400_BAD_REQUEST)
             if not soTien:
                 return Response({"detail": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baoung, _ = AdvanceType.objects.get_or_create(
