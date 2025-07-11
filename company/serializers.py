@@ -1,7 +1,18 @@
 from rest_framework import serializers
 from .models import *
 
+class CompanyBookHistoryLTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyBookHistory
+        fields = ['version','note','edited_by']
 class CompanyBookSerializer(serializers.ModelSerializer):
+    history = serializers.SerializerMethodField(read_only=True)
+    def get_history(self,obj):
+        try:
+            qs_hist=CompanyBookHistory.objects.filter(book=obj)
+            return CompanyBookHistoryLTESerializer(qs_hist,many=True).data
+        except Exception as e:
+            return f"{e}"
     class Meta:
         model = CompanyBook
         fields = '__all__'
