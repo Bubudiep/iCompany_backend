@@ -1024,6 +1024,7 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
                 qs_book.content = data
                 qs_book.edited_by = staff
                 qs_book.save()
+            return Response(CompanyBookSerializer(qs_book).data)
         
     def get_queryset(self):
         user = self.request.user
