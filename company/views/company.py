@@ -828,7 +828,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
         user = request.user
         key = request.headers.get('ApplicationKey')
         start_date = request.data.get("start_date",now().date())
-        end_date = request.data.get("end_date",today - timedelta(days=7))
+        end_date = request.data.get("end_date",start_date - timedelta(days=7))
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             company = staff.company
