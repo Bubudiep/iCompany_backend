@@ -435,11 +435,11 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 if config.baoung_active_type=="week":
                     weekday = now().isoweekday()
                     if config.baoung_active_date and weekday not in config.baoung_active_date:
-                        return Response({"detail": "Báo ứng đã đóng ở hôm nay"}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({"detail": "Chức năng báo ứng bị tắt"}, status=status.HTTP_400_BAD_REQUEST)
                 if config.baoung_active_type=="month":
                     today = now().day  # Ngày hiện tại (1 - 31)
                     if config.baoung_active_date and today not in config.baoung_active_date:
-                        return Response({"detail": "Báo ứng đã đóng ở hôm nay"}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({"detail": "Chức năng báo ứng bị tắt"}, status=status.HTTP_400_BAD_REQUEST)
             if not soTien:
                 return Response({"detail": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baoung, _ = AdvanceType.objects.get_or_create(
