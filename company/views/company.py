@@ -1014,9 +1014,16 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
             return Response(CompanyBookSerializer(qs_book).data)
         elif request.method == 'POST':
             data = request.data.get("data", '')
-            qs_book.content = data
-            qs_book.save()
-            return Response(CompanyBookSerializer(qs_book).data)
+            old_content = qs_book.content
+            if old_content != data:
+                CompanyBookHistory.objects.create(
+                    book=qs_book,
+                    content=old_content,
+                    edited_by=staff,
+                )
+                qs_book.content = data
+                qs_book.edited_by = staff
+                qs_book.save()
         
     def get_queryset(self):
         user = self.request.user

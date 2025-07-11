@@ -386,12 +386,26 @@ class CompanyBook(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     title = models.CharField(max_length=220,default="Tiêu đề",blank=True,null=True)
     content = models.TextField(blank=True,null=True)
+    edited_by = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL,blank=True,null=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         ordering = ['-id']
         verbose_name = "Company Books"
         verbose_name_plural = "Company Books"
+    def __str__(self):
+        return f"{self.id}"
+     
+class CompanyBookHistory(models.Model):
+    book = models.ForeignKey(CompanyBook, on_delete=models.CASCADE)
+    content = models.CharField(max_length=220,default="Tiêu đề",blank=True,null=True)
+    edited_by = models.ForeignKey(CompanyStaff, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+        verbose_name = "Company Books Historys"
+        verbose_name_plural = "Company Books Historys"
     def __str__(self):
         return f"{self.id}"
     

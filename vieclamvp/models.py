@@ -19,7 +19,6 @@ from django.db.models.signals import post_save, pre_save, post_migrate
 from django.dispatch import receiver
 from rest_framework.exceptions import NotFound
 from django.db import transaction
-
 # tên column cách nhau bởi _ và không có viết hoa
      
 class JobsUser(models.Model):

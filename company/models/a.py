@@ -24,7 +24,7 @@ from django.db.models import Count
 import base64
 from PIL import Image
 from io import BytesIO
-
+import difflib
 # Khởi tạo client
 sio = socketio.Client()
 
