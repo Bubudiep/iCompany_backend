@@ -206,7 +206,7 @@ class CompanySerializer(serializers.ModelSerializer):
             return []
     class Meta:
         model = Company
-        fields = ['companyType','avatar','name','fullname','address',
+        fields = ['id','companyType','avatar','name','fullname','address',
             'Department','Customer','Vendor','Staff','Config','Operator',
             'addressDetails','hotline','isValidate','isOA','wallpaper',
             'shortDescription','description','created_at']

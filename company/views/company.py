@@ -807,12 +807,10 @@ class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get']
+    http_method_names = ['get','post']
     pagination_class = StandardResultsSetPagination
-    lookup_field = 'request_code'
-
     @action(detail=True, methods=['post'])
-    def config(self, request, request_code=None):
+    def config(self, request,pk=None):
         company = self.get_object()
         data_config = request.data
         try:
@@ -826,7 +824,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     @action(detail=False, methods=['get'])
-    def dashboard(self, request, request_code=None):
+    def dashboard(self, request,pk=None):
         user = request.user
         key = request.headers.get('ApplicationKey')
         start_date = request.data.get("start_date",now().date())
@@ -885,7 +883,9 @@ class CompanyViewSet(viewsets.ModelViewSet):
         key = self.request.headers.get('ApplicationKey')
         staff=CompanyStaff.objects.get(company__key=key,user__user=user)
         return Company.objects.filter(id=staff.company.id)
-    
+    def create(self, request, *args, **kwargs):
+        return Response({"detail": "Không được phép tạo mới"}, status=status.HTTP_403_FORBIDDEN)
+        # return super().create(request, *args, **kwargs)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         page_size = self.request.query_params.get('page_size')
