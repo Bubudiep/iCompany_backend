@@ -313,7 +313,7 @@ class CompanyConfig(models.Model):
         verbose_name = "Company Configurations"
         verbose_name_plural = "Company Configurations"
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.id}"
     
 class CompanyStaffHistoryFunction(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
