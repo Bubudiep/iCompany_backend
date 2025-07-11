@@ -428,7 +428,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             lyDo = request.data.get('lyDo',None)
             qs_staff=CompanyStaff.objects.get(user__user=user,company=qs_com)
             ngayUng = request.data.get('ngayUng',now().date())
-            config = CompanyConfig.objects.get_or_create(company=qs_com)
+            config,_ = CompanyConfig.objects.get_or_create(company=qs_com)
             if config and config.baoung_active is False:
                 return Response({"detail": "Chức năng báo ứng bị tắt"}, status=status.HTTP_400_BAD_REQUEST)
             if config and config.baoung_active_time is True:
