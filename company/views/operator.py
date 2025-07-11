@@ -493,11 +493,10 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
         ngaynghi = request.data.get('ngayNghi',now())
         lyDo = request.data.get('lyDo',None)
+        operator = self.get_object()
         if operator.congty_danglam is None:
             return Response({"detail": f"NLĐ chưa đi làm!"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            # xóa cty đang làm, cập nhập lịch sử làm việc tại công ty đang làm
-            operator = self.get_object()
             hist=OperatorWorkHistory.objects.filter(operator=operator,end_date__isnull=True).order_by('-id')
             if len(hist)==0:
                 return Response({"detail": f"Chưa đi làm ở công ty nào!"}, status=status.HTTP_400_BAD_REQUEST)
