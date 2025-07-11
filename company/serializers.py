@@ -4,7 +4,7 @@ from .models import *
 class CompanyBookHistoryLTESerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyBookHistory
-        fields = ['version','note','edited_by']
+        fields = ['version','note','edited_by','created_at']
 class CompanyBookSerializer(serializers.ModelSerializer):
     history = serializers.SerializerMethodField(read_only=True)
     def get_history(self,obj):
