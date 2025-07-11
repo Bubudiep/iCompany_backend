@@ -261,3 +261,6 @@ class AdvanceRequestHistoryAdmin(admin.ModelAdmin):
     search_fields = ('comment',)
     list_filter = ('action',)
     raw_id_fields = ('request', 'user')
+@admin.register(CompanyConfig)
+class CompanyConfigAdmin(admin.ModelAdmin):
+    raw_id_fields = ('company')
