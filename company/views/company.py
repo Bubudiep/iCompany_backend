@@ -996,15 +996,43 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
     queryset = CompanyBook.objects.all()
     serializer_class = CompanyBookSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get']
+    http_method_names = ['get','post']
     pagination_class = StandardResultsSetPagination
-
+    
+    @action(detail=False, methods=['get'])
+    def notebook(self, request,pk=None):
+        try:
+            user = self.request.user
+            key = self.request.headers.get('ApplicationKey')
+            staff=CompanyStaff.objects.get(company__key=key,user__user=user)
+            qs_book,_=CompanyBook.objects.get_or_create(title="Note_records",company=staff.company)
+            return Response(CompanyBookSerializer(qs_book).data)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=False, methods=['post'])
+    def notebook(self, request,pk=None):
+        data = request.data.get("data",'')
+        try:
+            user = self.request.user
+            key = self.request.headers.get('ApplicationKey')
+            staff=CompanyStaff.objects.get(company__key=key,user__user=user)
+            qs_book,_=CompanyBook.objects.get_or_create(title="Note_records",company=staff.company)
+            qs_book.content=data
+            qs_book.save()
+            return Response(CompanyBookSerializer(qs_book).data)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     def get_queryset(self):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
         staff=CompanyStaff.objects.get(company__key=key,user__user=user)
         return CompanyBook.objects.filter(company=staff.company)
-    
+    def create(self, request, *args, **kwargs):
+        return Response({"detail": "Không được phép tạo mới"}, status=status.HTTP_403_FORBIDDEN)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         title = request.query_params.get('title')
