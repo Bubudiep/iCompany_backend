@@ -1025,16 +1025,20 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
                         lineterm=''
                     )
                 )
-                diff_text = '\n'.join(diff)
-                added = sum(1 for line in diff if line.startswith('+') and not line.startswith('+++'))
-                removed = sum(1 for line in diff if line.startswith('-') and not line.startswith('---'))
-                note_parts = []
-                if added: note_parts.append(f"Thêm {added} dòng")
-                if removed: note_parts.append(f"Xoá {removed} dòng")
-                if not note_parts: note_parts.append("Không thay đổi")
-                note = ", ".join(note_parts)
-                last_history = qs_book.history.first()
-                new_version = (last_history.version + 1) if last_history else 1
+                last_history = CompanyBookHistory.objects.filter(book=qs_book).first()
+                new_version = 0
+                diff_text = ""
+                if last_history:
+                    diff_text = '\n'.join(diff)
+                    added = sum(1 for line in diff if line.startswith('+') and not line.startswith('+++'))
+                    removed = sum(1 for line in diff if line.startswith('-') and not line.startswith('---'))
+                    note_parts = []
+                    if added: note_parts.append(f"Thêm {added} dòng")
+                    if removed: note_parts.append(f"Xoá {removed} dòng")
+                    if not note_parts: note_parts.append("Không thay đổi")
+                    note = ", ".join(note_parts)
+                    last_history = CompanyBookHistory.objects.filter(book=qs_book).first()
+                    new_version = (last_history.version + 1)
                 CompanyBookHistory.objects.create(
                     book=qs_book,
                     version=new_version,
