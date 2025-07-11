@@ -268,6 +268,7 @@ class CompanyConfig(models.Model):
     company = models.OneToOneField(Company, on_delete=models.CASCADE)
 
     # sửa thông tin người lao động
+    editop_active = models.BooleanField(default=True)
     staff_can_update_op_info = models.BooleanField(default=True)
     admin_can_update_op_info = models.BooleanField(default=True)
     staffs_can_update_op_info = models.ManyToManyField(
@@ -285,6 +286,7 @@ class CompanyConfig(models.Model):
     baoung_active_start = models.DateTimeField(blank=True,null=True)
     baoung_active_end = models.DateTimeField(blank=True,null=True)
     # phê duyệt
+    approve_active = models.BooleanField(default=True)
     admin_can_payout = models.BooleanField(default=False)
     admin_can_approve = models.BooleanField(default=False)
     staff_approve_admin = models.ManyToManyField(
