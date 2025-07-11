@@ -264,3 +264,6 @@ class AdvanceRequestHistoryAdmin(admin.ModelAdmin):
 @admin.register(CompanyConfig)
 class CompanyConfigAdmin(admin.ModelAdmin):
     raw_id_fields = ('company',)
+@admin.register(CompanyBook)
+class CompanyBookAdmin(admin.ModelAdmin):
+    raw_id_fields = ('company',)
