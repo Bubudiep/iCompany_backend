@@ -911,9 +911,6 @@ class AdvanceRequestLTEViewSet(viewsets.ModelViewSet):
         return AdvanceRequest.objects.filter(request__company=staff.company)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        is_payout = request.query_params.get('payout')
-        if is_payout:
-            queryset = queryset.filter(request__payment_status='done')
         created_at = request.query_params.get('created_at')
         created_at_from = request.query_params.get('created_at_from')
         created_at_to = request.query_params.get('created_at_to')
