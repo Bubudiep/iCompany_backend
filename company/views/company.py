@@ -999,33 +999,25 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
     http_method_names = ['get','post']
     pagination_class = StandardResultsSetPagination
     
-    @action(detail=False, methods=['get'])
-    def notebook(self, request,pk=None):
+    @action(detail=False, methods=['get', 'post'])
+    def notebook(self, request):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
         try:
-            user = self.request.user
-            key = self.request.headers.get('ApplicationKey')
-            staff=CompanyStaff.objects.get(company__key=key,user__user=user)
-            qs_book,_=CompanyBook.objects.get_or_create(title="Note_records",company=staff.company)
-            return Response(CompanyBookSerializer(qs_book).data)
+            staff = CompanyStaff.objects.get(company__key=key, user__user=user)
+            qs_book, _ = CompanyBook.objects.get_or_create(title="Note_records", company=staff.company)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    @action(detail=False, methods=['post'])
-    def notebook(self, request,pk=None):
-        data = request.data.get("data",'')
-        try:
-            user = self.request.user
-            key = self.request.headers.get('ApplicationKey')
-            staff=CompanyStaff.objects.get(company__key=key,user__user=user)
-            qs_book,_=CompanyBook.objects.get_or_create(title="Note_records",company=staff.company)
-            qs_book.content=data
+        if request.method == 'GET':
+            return Response(CompanyBookSerializer(qs_book).data)
+        elif request.method == 'POST':
+            data = request.data.get("data", '')
+            qs_book.content = data
             qs_book.save()
             return Response(CompanyBookSerializer(qs_book).data)
-        except CompanyStaff.DoesNotExist:
-            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
     def get_queryset(self):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
