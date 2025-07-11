@@ -1014,12 +1014,34 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
             return Response(CompanyBookSerializer(qs_book).data)
         elif request.method == 'POST':
             data = request.data.get("data", '')
-            old_content = qs_book.content
+            old_content = qs_book.content or ''
             if old_content != data:
+                diff = list(
+                    difflib.unified_diff(
+                        old_content.splitlines(),
+                        data.splitlines(),
+                        fromfile='old',
+                        tofile='new',
+                        lineterm=''
+                    )
+                )
+                diff_text = '\n'.join(diff)
+                added = sum(1 for line in diff if line.startswith('+') and not line.startswith('+++'))
+                removed = sum(1 for line in diff if line.startswith('-') and not line.startswith('---'))
+                note_parts = []
+                if added: note_parts.append(f"Thêm {added} dòng")
+                if removed: note_parts.append(f"Xoá {removed} dòng")
+                if not note_parts: note_parts.append("Không thay đổi")
+                note = ", ".join(note_parts)
+                last_history = qs_book.history.first()
+                new_version = (last_history.version + 1) if last_history else 1
                 CompanyBookHistory.objects.create(
                     book=qs_book,
-                    content=old_content,
+                    version=new_version,
+                    content=data,
+                    diff_text=diff_text,
                     edited_by=staff,
+                    note=note,
                 )
                 qs_book.content = data
                 qs_book.edited_by = staff
