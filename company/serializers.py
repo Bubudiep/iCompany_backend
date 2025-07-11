@@ -7,6 +7,34 @@ class OP_HISTLTESerializer(serializers.ModelSerializer):
         fields = ['ma_nhanvien','start_date','customer']
         
 class OP_HISTSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = request.user if request else None
+        if user:
+            user=CompanyStaff.objects.get(user__user=user)
+        if validated_data.get('customer') is None:
+            raise TypeError("Vui lòng nhập công ty làm việc")
+        if not validated_data.get('start_date'):
+            raise TypeError("Vui lòng nhập ngày bắt đầu")
+        if validated_data.get('operator',None) is None:
+            raise TypeError("Vui lòng chọn người lao động")
+        op=validated_data.get('operator',None)
+        if validated_data.get('end_date',None) is None:
+            qs_working=OperatorWorkHistory.objects.filter(
+                operator=op,
+                end_date__isnull=True
+            )
+            if len(qs_working)>0:
+                raise TypeError("Chỉ được làm việc tại 1 công ty")
+            elif validated_data.get('customer'):
+                op.congty_danglam=validated_data.get('customer')
+                op.save()
+        OperatorUpdateHistory.objects.create(
+            changed_by=user,
+            operator=op,
+            notes=f"Thêm lịch sử đi làm ở công ty {validated_data.get('customer')}"
+        )
+        return super().create(validated_data)
     def update(self, instance, validated_data):
         request = self.context.get("request")
         user = request.user if request else None
@@ -16,7 +44,7 @@ class OP_HISTSerializer(serializers.ModelSerializer):
             raise TypeError("Vui lòng nhập công ty làm việc")
         if instance.start_date is None and not validated_data.get('start_date'):
             raise TypeError("Vui lòng nhập ngày bắt đầu")
-        if instance.end_date is None and not validated_data.get('end_date'):
+        if instance.end_date is None and validated_data.get('end_date',None) is None:
             qs_working=OperatorWorkHistory.objects.filter(
                 operator=instance.operator,
                 end_date__isnull=True

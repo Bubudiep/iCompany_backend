@@ -258,12 +258,14 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         so_cccd=request.data.get("cccd")
         nhachinh=request.data.get("nhachinh")
         key = self.request.headers.get('ApplicationKey')
+        operator = self.get_object()
+        if operator.congty_danglam:
+            return Response({"detail": f"NLĐ vẫn đang đi làm!"}, status=status.HTTP_400_BAD_REQUEST)
         if company is None:
             return Response({"detail": f"Chưa chọn công ty làm việc!"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             qs_staff = CompanyStaff.objects.get(user__user=request.user,company__key=key)
             with transaction.atomic():
-                operator = self.get_object()
                 hist=OperatorWorkHistory.objects.filter(operator=operator).order_by('-id')
                 if len(hist)!=0:
                     ctyNow=hist.first()
@@ -479,6 +481,8 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
         ngaynghi = request.data.get('ngayNghi',now())
         lyDo = request.data.get('lyDo',None)
+        if operator.congty_danglam is None:
+            return Response({"detail": f"NLĐ chưa đi làm!"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             # xóa cty đang làm, cập nhập lịch sử làm việc tại công ty đang làm
             operator = self.get_object()
