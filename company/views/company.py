@@ -908,7 +908,7 @@ class AdvanceRequestLTEViewSet(viewsets.ModelViewSet):
         user = self.request.user
         key = self.request.headers.get('ApplicationKey')
         staff=CompanyStaff.objects.get(company__key=key,user__user=user)
-        return AdvanceRequest.objects.filter(request__company=staff.company)
+        return AdvanceRequest.objects.filter(company=staff.company)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         created_at = request.query_params.get('created_at')
