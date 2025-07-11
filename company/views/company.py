@@ -811,6 +811,20 @@ class CompanyViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
     lookup_field = 'request_code'
 
+    @action(detail=True, methods=['post'])
+    def config(self, request, request_code=None):
+        company = self.get_object()
+        data_config = request.data
+        try:
+            qs_config=CompanyConfig.objects.get(company=company)
+            serializer = CompanyConfigSerializer(qs_config, data=data_config, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(CompanySerializer(company).data)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     @action(detail=False, methods=['get'])
     def dashboard(self, request, request_code=None):
         user = request.user

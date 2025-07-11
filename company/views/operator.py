@@ -431,7 +431,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             config = CompanyConfig.objects.get_or_create(company=qs_com)
             if config and config.baoung_active is False:
                 return Response({"detail": "Chức năng báo ứng bị tắt"}, status=status.HTTP_400_BAD_REQUEST)
-            if (config and config.baoung_active_time is True):
+            if config and config.baoung_active_time is True:
                 if config.baoung_active_type=="week":
                     weekday = now().isoweekday()
                     if config.baoung_active_date and weekday not in config.baoung_active_date:
@@ -594,6 +594,8 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 isActive=True,
                 company__key=key
             )
+            if qs_config.editop_active is False:
+                return Response({'detail':"Chức năng cập nhập thông tin NLĐ đang bị tắt"},status=status.HTTP_400_BAD_REQUEST)
             if not qs_res:
                 return Response(
                     {"detail": "Bạn không có quyền!"}, status=status.HTTP_403_FORBIDDEN
@@ -859,7 +861,13 @@ class OperatorWorkHistoryViewSet(viewsets.ModelViewSet):
         qs_op=CompanyOperator.objects.filter(company=qs_res.company).values_list('id',flat=True)
         return OperatorWorkHistory.objects.filter(operator__id__in=qs_op)
     def update(self, request, *args, **kwargs):
-        update = super().update(request, *args, **kwargs)
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        staff=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
+        qs_config=CompanyConfig.objects.get(company=staff.company)
+        if qs_config.editopwork_active is False:
+            return Response({'detail':"Chức năng cập nhập lịch sử đi làm đang bị tắt"},status=status.HTTP_400_BAD_REQUEST)
+        super().update(request, *args, **kwargs)
         return Response(CompanyOperatorMoreDetailsSerializer(self.get_object().operator).data)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
