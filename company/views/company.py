@@ -1028,6 +1028,7 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
                 last_history = CompanyBookHistory.objects.filter(book=qs_book).first()
                 new_version = 0
                 diff_text = ""
+                note = ""
                 if last_history:
                     diff_text = '\n'.join(diff)
                     added = sum(1 for line in diff if line.startswith('+') and not line.startswith('+++'))
