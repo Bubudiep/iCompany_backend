@@ -400,7 +400,7 @@ class CompanyBookHistory(models.Model):
     book = models.ForeignKey(CompanyBook, on_delete=models.CASCADE)
     content = models.CharField(max_length=220,default="Tiêu đề",blank=True,null=True)
     edited_by = models.ForeignKey(CompanyStaff, on_delete=models.CASCADE)
-    version = models.PositiveIntegerField()
+    version = models.PositiveIntegerField(default=0)
     note = models.CharField(max_length=255, blank=True)  # ✅
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
