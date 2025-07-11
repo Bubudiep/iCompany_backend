@@ -21,6 +21,7 @@ router.register(r'approve', AdvanceRequestViewSet, basename='approve')
 router.register(r'approvel', AdvanceRequestLTEViewSet, basename='approvel')
 router.register(r'approveX', AdvanceRequestExportViewSet, basename='approveX')
 router.register(r'com', CompanyViewSet, basename='com')
+router.register(r'note', CompanyBookViewSet, basename='note')
 router.register(r'op_all', CompanyOperatorAllDetailsViewSet, basename='op_all')
 urlpatterns = [
     path('op/add/', AddOperatorAPIView.as_view(), name='add-op'),

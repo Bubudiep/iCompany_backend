@@ -991,3 +991,31 @@ class AdvanceRequestHistoryViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+class CompanyBookViewSet(viewsets.ModelViewSet):
+    queryset = CompanyBook.objects.all()
+    serializer_class = CompanyBookSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get']
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        staff=CompanyStaff.objects.get(company__key=key,user__user=user)
+        return CompanyBook.objects.filter(company=staff.company)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        title = request.query_params.get('title')
+        if title:
+            queryset = queryset.filter(title='title')
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

@@ -1,6 +1,12 @@
 from rest_framework import serializers
 from .models import *
 
+class CompanyBookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyBook
+        fields = '__all__'
+        read_only_fields = ['company']
+        
 class OP_HISTLTESerializer(serializers.ModelSerializer):
     class Meta:
         model = OperatorWorkHistory

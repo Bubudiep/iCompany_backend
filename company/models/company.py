@@ -382,6 +382,19 @@ class CompanyVendor(models.Model):
     def __str__(self):
         return f"{self.name}"
     
+class CompanyBook(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    title = models.CharField(max_length=220,default="Tiêu đề",blank=True,null=True)
+    content = models.TextField(blank=True,null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-id']
+        verbose_name = "Company Books"
+        verbose_name_plural = "Company Books"
+    def __str__(self):
+        return f"{self.id}"
+    
 class CompanyOperator(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     ma_nhanvien= models.CharField(max_length=200, null=True, blank=True)
