@@ -398,7 +398,7 @@ class CompanyBook(models.Model):
      
 class CompanyBookHistory(models.Model):
     book = models.ForeignKey(CompanyBook, on_delete=models.CASCADE)
-    content = models.CharField(max_length=220,default="Tiêu đề",blank=True,null=True)
+    content = models.TextField(blank=True,null=True)
     edited_by = models.ForeignKey(CompanyStaff, on_delete=models.CASCADE)
     version = models.PositiveIntegerField(default=0)
     diff_text = models.TextField(blank=True)  # Lưu diff dạng text
