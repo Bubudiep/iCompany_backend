@@ -275,6 +275,7 @@ class CompanyConfig(models.Model):
         CompanyStaff,blank=True,related_name='staff_can_update_op_info'
     )
     # lịch sử đi làm
+    editopwork_active = models.BooleanField(default=True)
     staff_can_update_op_work = models.BooleanField(default=True)
     admin_can_update_op_work = models.BooleanField(default=True)
     staffs_can_update_op_work = models.ManyToManyField(
@@ -283,8 +284,8 @@ class CompanyConfig(models.Model):
     # báo ứng
     baoung_active = models.BooleanField(default=True)
     baoung_active_time = models.BooleanField(default=False)
-    baoung_active_start = models.DateTimeField(blank=True,null=True)
-    baoung_active_end = models.DateTimeField(blank=True,null=True)
+    baoung_active_type = models.CharField(max_length=10,default="week",blank=True,null=True) # month/week
+    baoung_active_date = models.JSONField(null=True, blank=True)
     # phê duyệt
     approve_active = models.BooleanField(default=True)
     admin_can_payout = models.BooleanField(default=False)

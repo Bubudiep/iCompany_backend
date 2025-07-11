@@ -431,13 +431,15 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             config = CompanyConfig.objects.get_or_create(company=qs_com)
             if config and config.baoung_active is False:
                 return Response({"detail": "Chức năng báo ứng bị tắt"}, status=status.HTTP_400_BAD_REQUEST)
-            if (config and 
-                config.baoung_active_time is True and 
-                config.baoung_active_start and 
-                config.baoung_active_end and
-                not (config.baoung_active_start <= now <= config.baoung_active_end)
-            ):
-                return Response({"detail": "Ngoài giờ báo ứng"}, status=status.HTTP_400_BAD_REQUEST)
+            if (config and config.baoung_active_time is True):
+                if config.baoung_active_type=="week":
+                    weekday = now().isoweekday()
+                    if config.baoung_active_date and weekday not in config.baoung_active_date:
+                        return Response({"detail": "Ngoài thứ báo ứng"}, status=status.HTTP_400_BAD_REQUEST)
+                if config.baoung_active_type=="month":
+                    today = now().day  # Ngày hiện tại (1 - 31)
+                    if config.baoung_active_date and today not in config.baoung_active_date:
+                        return Response({"detail": "Ngoài ngày báo ứng"}, status=status.HTTP_400_BAD_REQUEST)
             if not soTien:
                 return Response({"detail": "Thiếu thông tin số tiền."}, status=status.HTTP_400_BAD_REQUEST)
             qs_baoung, _ = AdvanceType.objects.get_or_create(
