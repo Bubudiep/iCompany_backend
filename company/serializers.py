@@ -9,8 +9,11 @@ class CompanyOperatorLTE4Serializer(serializers.ModelSerializer):
     congty_danglam = serializers.SerializerMethodField(read_only=True)
     def get_congty_danglam(self,obj):
         try:
-            qs_hist=CompanyOperatorWorkHistorySerializer.objects.get(operator=obj,end_date__isnull=True)
-            return CompanyBookHistoryLTESerializer(qs_hist).data
+            qs_hist=OperatorWorkHistory.objects.get(operator=obj,end_date__isnull=True)
+            return {
+                "id":qs_hist.customer.id,
+                "ma_nhanvien":qs_hist.ma_nhanvien
+            }
         except Exception as e:
             return None
     class Meta:
