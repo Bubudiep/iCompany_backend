@@ -6,6 +6,13 @@ class CompanyBookHistoryLTESerializer(serializers.ModelSerializer):
         model = CompanyBookHistory
         fields = ['version','note','edited_by','created_at']
 class CompanyOperatorLTE4Serializer(serializers.ModelSerializer):
+    congty_danglam = serializers.SerializerMethodField(read_only=True)
+    def get_congty_danglam(self,obj):
+        try:
+            qs_hist=CompanyOperatorWorkHistorySerializer.objects.get(operator=obj,end_date__isnull=True)
+            return CompanyBookHistoryLTESerializer(qs_hist).data
+        except Exception as e:
+            return None
     class Meta:
         model = CompanyOperator
         fields = ["id","ho_ten","ma_nhanvien",
