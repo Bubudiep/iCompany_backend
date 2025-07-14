@@ -5,6 +5,11 @@ class CompanyBookHistoryLTESerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyBookHistory
         fields = ['version','note','edited_by','created_at']
+class CompanyOperatorLTE4Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = ["id","ho_ten","ma_nhanvien",
+                  "congty_danglam",]
 class CompanyBookSerializer(serializers.ModelSerializer):
     history = serializers.SerializerMethodField(read_only=True)
     def get_history(self,obj):
@@ -430,6 +435,7 @@ class AdvanceRequestLTESerializer(serializers.ModelSerializer):
         fields = ['amount','requesttype','status','payment_status','retrieve_status','created_at']
              
 class AdvanceRequestSerializer(serializers.ModelSerializer):
+    operator = CompanyOperatorLTE4Serializer(allow_null=True)
     requesttype = serializers.CharField(source='requesttype.typecode', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     payment_status_display = serializers.CharField(source='get_payment_status_display', read_only=True)
