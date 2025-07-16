@@ -72,8 +72,9 @@ class CompanyAccountsViewSet(viewsets.ModelViewSet):
         return super().partial_update(request, *args, **kwargs)
     def list(self, request, *args, **kwargs):
         qs_staff=update_lastcheck(self,'Account')
-        if qs_staff.isAdmin==False:
-          return Response({"detail":"Bạn không có quyền truy cập"},status=status.HTTP_400_BAD_REQUEST)
+        if qs_staff.isSuperAdmin==False:
+            if qs_staff.isAdmin==False:
+                return Response({"detail":"Bạn không có quyền truy cập"},status=status.HTTP_400_BAD_REQUEST)
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
         last_update = self.request.query_params.get('last_update')
