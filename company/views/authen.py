@@ -70,7 +70,8 @@ class LoginOAuth2APIView(APIView):
             file_name = os.path.basename(file_path)
             res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
             return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
-       
+           
+  
 class GetUserAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
     permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)

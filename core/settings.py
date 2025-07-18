@@ -5,6 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('WORK_MODE')
 INSTALLED_APPS = [
+    'vieZ',
     'vieclamvp',
     'django_filters',
     'company',
@@ -28,7 +29,9 @@ REST_FRAMEWORK = {
     ),
 }
 OAUTH2_PROVIDER = {
-    'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 15
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 15,
+    'REFRESH_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 30,  # 7 ngày
+    'ROTATE_REFRESH_TOKEN': True,            # mỗi lần refresh sẽ đổi refresh_token
 }
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

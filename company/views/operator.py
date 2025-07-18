@@ -593,6 +593,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 isActive=True,
                 company__key=key
             )
+            qs_config=CompanyConfig.objects.get(company=qs_res.company)
             if qs_config.editop_active is False:
                 return Response({'detail':"Chức năng cập nhập thông tin NLĐ đang bị tắt"},status=status.HTTP_400_BAD_REQUEST)
             if not qs_res:
