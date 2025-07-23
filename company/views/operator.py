@@ -273,11 +273,10 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                         return Response({"detail": f"Chưa nghỉ làm ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
                     if datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date() < ctyNow.end_date:
                         return Response({"detail": "Ngày đi làm không được nhỏ hơn ngày nghỉ ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
-
+                qs_nhachinh=None
                 if nhachinh:
                     qs_nhachinh=CompanyVendor.objects.get(id=nhachinh,company=qs_staff.company)
-                else:
-                    qs_nhachinh=None
+                    
                 qs_cty=CompanyCustomer.objects.get(id=company)
                 OperatorUpdateHistory.objects.create(
                     operator=operator,
@@ -294,7 +293,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 else:
                     nguoituyen=operator.nguoituyen
                 OperatorWorkHistory.objects.create(ma_nhanvien=employeeCode,operator=operator,
-                                                nguoituyen=nguoituyen,nhachinh=nhachinh,
+                                                nguoituyen=nguoituyen,nhachinh=qs_nhachinh,
                                                 customer=qs_cty,so_cccd=so_cccd,
                                                 start_date=datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date())
                 operator.nguoituyen=nguoituyen
