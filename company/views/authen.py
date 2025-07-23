@@ -163,7 +163,7 @@ class GetUserAPIView(APIView):
                     company_code="MNV"
                 count = f"{last_id:06d}"
                 cardID=f"{company_code}-{count}"
-            if qs_user_company.isAdmin:
+            if qs_user_company.isAdmin or qs_user_company.isSuperAdmin:
                 if not qs_user:
                     with transaction.atomic():
                         new_user=User.objects.create(username=f"{key}_{username}",password=uuid.uuid4().hex.upper())
