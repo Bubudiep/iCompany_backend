@@ -388,6 +388,12 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 typecode="Báo giữ lương",
                 company=qs_com
             )
+            qs_work=OperatorWorkHistory.objects.filter(operator=operator,end_date__isnull=True).first()
+            if qs_work:
+                if qs_work.ma_nhanvien is None:
+                    return Response({"detail": "Chưa có mã nhân viên cho công ty đang đi làm"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"detail": "Người lao động chưa đi làm"}, status=status.HTTP_400_BAD_REQUEST)
             qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
             create_request=AdvanceRequest.objects.create(company=qs_com,
                                 requester=qs_res,
