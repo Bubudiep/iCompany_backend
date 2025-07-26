@@ -878,8 +878,11 @@ class OperatorWorkHistoryViewSet(viewsets.ModelViewSet):
         qs_config=CompanyConfig.objects.get(company=staff.company)
         if qs_config.editopwork_active is False:
             return Response({'detail':"Chức năng cập nhập lịch sử đi làm đang bị tắt"},status=status.HTTP_400_BAD_REQUEST)
-        super().update(request, *args, **kwargs)
-        return Response(CompanyOperatorMoreDetailsSerializer(self.get_object().operator).data)
+        try:
+            super().update(request, *args, **kwargs)
+            return Response(CompanyOperatorMoreDetailsSerializer(self.get_object().operator).data)
+        except Exception as e:
+            return Response({"detail":f"{e}"},status=status.HTTP_403_FORBIDDEN)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
