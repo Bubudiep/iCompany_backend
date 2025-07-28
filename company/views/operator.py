@@ -337,7 +337,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 for his in hist:
                     if start_date>=his.start_date and start_date<=his.end_date:
                         conflict_date=True
-                    if end_date>=his.start_date and end_date<=his.end_date:
+                    if end_date>=his.start_date and end_date<=(now() if his.end_date is None else his.end_date):
                         conflict_date=True
                 if conflict_date==True:
                     return Response({"detail": f"Bị trùng lịch sử làm việc"}, status=status.HTTP_400_BAD_REQUEST)
