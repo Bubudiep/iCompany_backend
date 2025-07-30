@@ -70,7 +70,8 @@ class LoginOAuth2APIView(APIView):
             file_name = os.path.basename(file_path)
             res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
             return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
-       
+           
+  
 class GetUserAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
     permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
@@ -162,7 +163,7 @@ class GetUserAPIView(APIView):
                     company_code="MNV"
                 count = f"{last_id:06d}"
                 cardID=f"{company_code}-{count}"
-            if qs_user_company.isAdmin:
+            if qs_user_company.isAdmin or qs_user_company.isSuperAdmin:
                 if not qs_user:
                     with transaction.atomic():
                         new_user=User.objects.create(username=f"{key}_{username}",password=uuid.uuid4().hex.upper())

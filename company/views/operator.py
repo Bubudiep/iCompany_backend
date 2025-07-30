@@ -273,11 +273,10 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                         return Response({"detail": f"Chưa nghỉ làm ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
                     if datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date() < ctyNow.end_date:
                         return Response({"detail": "Ngày đi làm không được nhỏ hơn ngày nghỉ ở công ty cũ!"}, status=status.HTTP_400_BAD_REQUEST)
-
+                qs_nhachinh=None
                 if nhachinh:
                     qs_nhachinh=CompanyVendor.objects.get(id=nhachinh,company=qs_staff.company)
-                else:
-                    qs_nhachinh=None
+                    
                 qs_cty=CompanyCustomer.objects.get(id=company)
                 OperatorUpdateHistory.objects.create(
                     operator=operator,
@@ -294,7 +293,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 else:
                     nguoituyen=operator.nguoituyen
                 OperatorWorkHistory.objects.create(ma_nhanvien=employeeCode,operator=operator,
-                                                nguoituyen=nguoituyen,nhachinh=nhachinh,
+                                                nguoituyen=nguoituyen,nhachinh=qs_nhachinh,
                                                 customer=qs_cty,so_cccd=so_cccd,
                                                 start_date=datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date())
                 operator.nguoituyen=nguoituyen
@@ -338,7 +337,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 for his in hist:
                     if start_date>=his.start_date and start_date<=his.end_date:
                         conflict_date=True
-                    if end_date>=his.start_date and end_date<=his.end_date:
+                    if end_date>=his.start_date and end_date<=(now() if his.end_date is None else his.end_date):
                         conflict_date=True
                 if conflict_date==True:
                     return Response({"detail": f"Bị trùng lịch sử làm việc"}, status=status.HTTP_400_BAD_REQUEST)
@@ -388,6 +387,12 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 typecode="Báo giữ lương",
                 company=qs_com
             )
+            qs_work=OperatorWorkHistory.objects.filter(operator=operator,end_date__isnull=True).first()
+            if qs_work:
+                if qs_work.ma_nhanvien is None:
+                    return Response({"detail": "Chưa có mã nhân viên cho công ty đang đi làm"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"detail": "Người lao động chưa đi làm"}, status=status.HTTP_400_BAD_REQUEST)
             qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
             create_request=AdvanceRequest.objects.create(company=qs_com,
                                 requester=qs_res,
@@ -450,6 +455,12 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 typecode="Báo ứng",
                 company=qs_com
             )
+            qs_work=OperatorWorkHistory.objects.filter(operator=operator,end_date__isnull=True).first()
+            if qs_work:
+                if qs_work.ma_nhanvien is None:
+                    return Response({"detail": "Chưa có mã nhân viên cho công ty đang đi làm"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"detail": "Người lao động chưa đi làm"}, status=status.HTTP_400_BAD_REQUEST)
             qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
             qs_pending=AdvanceRequest.objects.filter(company=qs_com,operator=operator,status="pending")
             if len(qs_pending)>0:
@@ -549,14 +560,10 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     "ghichu_taikhoan": operator.ghichu_taikhoan
                 }
             note="Cập nhập thông tin ngân hàng!"
-            if bankname:
-                operator.nganhang=bankname
-            if banknumber:
-                operator.so_taikhoan=banknumber
-            if fullname:
-                operator.chu_taikhoan=fullname
-            if ghichu:
-                operator.ghichu_taikhoan=ghichu
+            operator.nganhang=bankname
+            operator.so_taikhoan=banknumber
+            operator.chu_taikhoan=fullname
+            operator.ghichu_taikhoan=ghichu
             OperatorUpdateHistory.objects.create(
                 operator=operator,
                 changed_by=qs_staff,
@@ -597,6 +604,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 isActive=True,
                 company__key=key
             )
+            qs_config=CompanyConfig.objects.get(company=qs_res.company)
             if qs_config.editop_active is False:
                 return Response({'detail':"Chức năng cập nhập thông tin NLĐ đang bị tắt"},status=status.HTTP_400_BAD_REQUEST)
             if not qs_res:
@@ -870,8 +878,11 @@ class OperatorWorkHistoryViewSet(viewsets.ModelViewSet):
         qs_config=CompanyConfig.objects.get(company=staff.company)
         if qs_config.editopwork_active is False:
             return Response({'detail':"Chức năng cập nhập lịch sử đi làm đang bị tắt"},status=status.HTTP_400_BAD_REQUEST)
-        super().update(request, *args, **kwargs)
-        return Response(CompanyOperatorMoreDetailsSerializer(self.get_object().operator).data)
+        try:
+            super().update(request, *args, **kwargs)
+            return Response(CompanyOperatorMoreDetailsSerializer(self.get_object().operator).data)
+        except Exception as e:
+            return Response({"detail":f"{e}"},status=status.HTTP_403_FORBIDDEN)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
