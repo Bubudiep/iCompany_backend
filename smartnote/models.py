@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 # Create your models here.
 class NoteUser(models.Model):
-    oauth_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="note_profile")
+    oauth_user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     username = models.CharField(max_length=150, unique=True)
     password = models.CharField(max_length=128)  # bạn có thể hash hoặc không tùy nhu cầu
     def __str__(self):
