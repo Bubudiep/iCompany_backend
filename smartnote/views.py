@@ -14,11 +14,11 @@ from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
+
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50  # Số lượng đối tượng trên mỗi trang
     page_size_query_param = 'page_size'
     max_page_size = 200  # Số lượng đối tượng tối đa trên mỗi trang
-
 
 class NoteUserRegisterView(APIView):
     def post(self, request):

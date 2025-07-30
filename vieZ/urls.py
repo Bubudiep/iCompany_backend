@@ -3,6 +3,7 @@ from rest_framework import routers
 from .views import *
 
 router = routers.DefaultRouter()
+router.register(r'user-files', UserFileViewSet, basename='userfile')
 urlpatterns = [
     path('me/', MyInfo.as_view(), name='me'),
     path('login/', Login.as_view(), name='login'),

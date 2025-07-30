@@ -30,7 +30,7 @@ from django.db.models import Count
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50  # Số lượng đối tượng trên mỗi trang
     page_size_query_param = 'page_size'
-    max_page_size = 2000  # Số lượng đối tượng tối đa trên mỗi trang
+    max_page_size = 200  # Số lượng đối tượng tối đa trên mỗi trang
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

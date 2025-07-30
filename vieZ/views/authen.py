@@ -5,12 +5,12 @@ class MyInfo(APIView):
     permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
     def get(self, request):
         key = request.headers.get('ApplicationKey')
-        
         if request.user.is_authenticated:
-            user=request.user
+            user = Users.objects.get(oauth_user=request.user)
             return Response(UserSerializer(user).data)
         else:
             return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+            
 class Login(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -21,21 +21,21 @@ class Login(APIView):
             password = request.data.get('password')
             key = request.headers.get('ApplicationKey')
             application = Application.objects.get(client_id=key)
-            user=User.objects.get(username=f"{key}_{username}")
+            user=Users.objects.get(username=username)
             user.last_login=now()
             user.save()
             if check_password(password, user.password)==False:
                     return Response({'detail': 'Sai mật khẩu'}, status=status.HTTP_401_UNAUTHORIZED)
             token = generate_token()
             access_token = AccessToken.objects.create(
-                user=user,
+                user=user.oauth_user,
                 token=token,
                 application=application,
                 expires=now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS),
                 scope='read write'
             )
             refresh_token_instance = RefreshToken.objects.create(
-                user=user,
+                user=user.oauth_user,
                 token=generate_token(),
                 access_token=access_token,
                 application=application
@@ -47,7 +47,7 @@ class Login(APIView):
                 'refresh_token': refresh_token_instance.token
             }
             return Response(res_data, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
+        except Users.DoesNotExist:
             return Response({"message":"Tài khoản không tồn tại"}, 
               status=status.HTTP_400_BAD_REQUEST
             )
@@ -64,5 +64,37 @@ class Login(APIView):
               }, 
               status=status.HTTP_400_BAD_REQUEST
             )
-           
   
+class UserFileViewSet(viewsets.ModelViewSet):
+    serializer_class = UserFileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserFile.objects.filter(user=self.request.user).order_by('-uploaded_at')
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        uploaded_file = self.request.FILES.get('file')
+
+        if not uploaded_file:
+            raise serializers.ValidationError({'file': 'File is required'})
+
+        # Kiểm tra dung lượng đã dùng
+        used = UserFile.objects.filter(user=user).aggregate(total=models.Sum('file_size'))['total'] or 0
+        max_mb = user.userconfigs.plan.max_storage_mb if hasattr(user, 'userconfigs') and user.userconfigs.plan else 0
+        if used + uploaded_file.size > max_mb * 1024 * 1024:
+            raise serializers.ValidationError({'detail': 'Vượt quá dung lượng cho phép của gói'})
+        serializer.save(user=user)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
