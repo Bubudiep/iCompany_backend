@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('company.urls')),
     path('api/pheduyet/', include('pheduyet_zalo.urls')),
+    path("note/", include("smartnote.urls")),
 ]
