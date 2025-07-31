@@ -506,7 +506,7 @@ class OperatorWorkHistory(models.Model):
                 self.operator.save()
         except Exception as e:
             ...
-        super(CompanyOperator, self).save(*args, **kwargs)
+        super(OperatorWorkHistory, self).save(*args, **kwargs)
     def __str__(self):
         return f"{self.operator} -> {self.customer} ({self.start_date} - {self.end_date})"
 
