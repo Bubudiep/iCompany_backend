@@ -13,13 +13,20 @@ from .serializers import *
 from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50  # Số lượng đối tượng trên mỗi trang
     page_size_query_param = 'page_size'
     max_page_size = 200  # Số lượng đối tượng tối đa trên mỗi trang
 
+class UserView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        user = NoteUser.objects.get(oauth_user=request.user)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    
 class NoteUserRegisterView(APIView):
     def post(self, request):
         serializer = NoteUserRegisterSerializer(data=request.data)
@@ -27,6 +34,7 @@ class NoteUserRegisterView(APIView):
             note_user = serializer.save()
             return Response({"message": "NoteUser created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class NoteUserLoginView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
