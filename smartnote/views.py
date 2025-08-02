@@ -28,6 +28,7 @@ class UserView(APIView):
         return Response(serializer.data)
     
 class NoteUserRegisterView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = NoteUserRegisterSerializer(data=request.data)
         if serializer.is_valid():
