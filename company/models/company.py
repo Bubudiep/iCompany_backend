@@ -499,14 +499,14 @@ class OperatorWorkHistory(models.Model):
         ordering = ['-id']  # Sắp xếp theo thời gian bắt đầu mới nhất
         verbose_name = "Operator 3 Working History"
         verbose_name_plural = "Operator 3 Working Histories"
-    def save(self, force_insert = ..., force_update = ..., using = ..., update_fields = ...):
+    def save(self, *args, **kwargs):
         try:
             if self.operator:
                 self.operator.updated_at = now()
                 self.operator.save()
         except Exception as e:
             ...
-        return super().save(force_insert, force_update, using, update_fields)
+        super(OperatorWorkHistory, self).save(*args, **kwargs)
     def __str__(self):
         return f"{self.operator} -> {self.customer} ({self.start_date} - {self.end_date})"
 
