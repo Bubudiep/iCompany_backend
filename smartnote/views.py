@@ -33,7 +33,10 @@ class NoteUserRegisterView(APIView):
         serializer = NoteUserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             note_user = serializer.save()
-            return Response({"message": "NoteUser created successfully"}, status=status.HTTP_201_CREATED)
+            return Response({
+                "message": "NoteUser created successfully",
+                "data":UserSerializer(note_user).data
+            }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class NoteUserLoginView(APIView):
