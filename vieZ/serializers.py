@@ -62,7 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFile
-        fields = ['id', 'file', 'file_name', 'file_size', 'uploaded_at']
+        fields = ['id', 'file','file_type', 'file_name', 'file_size', 'uploaded_at']
         read_only_fields = ['file_name', 'file_size', 'uploaded_at']
         
 class UserAppsSerializer(serializers.ModelSerializer):

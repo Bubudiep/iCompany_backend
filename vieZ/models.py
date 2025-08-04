@@ -24,6 +24,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 import difflib
+import os
 from django.core.files.storage import default_storage
 
 class Users(models.Model):
@@ -95,6 +96,7 @@ class UserFile(models.Model):
     file = models.FileField(upload_to='uploads/viez/%Y/%m/%d/')
     file_name = models.CharField(max_length=255)
     file_size = models.BigIntegerField()  # lưu theo byte
+    file_type = models.CharField(max_length=20, blank=True)  # thêm trường này
     uploaded_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         ordering = ['-uploaded_at']
@@ -102,6 +104,7 @@ class UserFile(models.Model):
         if self.file: # Tự động lấy kích thước và tên file
             self.file_name = self.file.name
             self.file_size = self.file.size
+            self.file_type = os.path.splitext(self.file.name)[1].lower().replace('.', '')
         super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.user.username} - {self.file_name} ({self.file_size / 1024:.1f} KB)"
@@ -158,3 +161,78 @@ class UserAppsConfigs(models.Model):
     def __str__(self):
         return f"Cấu hình của {self.app.name}"
     
+class ProductsCategorys(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    category_name = models.CharField(max_length=50)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.category_name}"
+
+class UserProducts(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    danhmuc = models.ForeignKey(ProductsCategorys,on_delete=models.SET_NULL,null=True,blank=True)
+    avatar = models.ForeignKey(UserFile,on_delete=models.SET_NULL,null=True,blank=True)
+    product_name = models.CharField(max_length=50)
+    info = models.CharField(max_length=225)
+    descriptions = models.TextField(max_length=1000)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.product_name}"
+
+class UserProductsType(models.Model):
+    product = models.ForeignKey(UserProducts, on_delete=models.CASCADE)
+    type_name = models.CharField(max_length=50)
+    unit = models.CharField(max_length=50)
+    oldprice = models.IntegerField(default=0)
+    price = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.product.product_name} {self.type_name}"
+
+class Warehouse(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return self.name
+    
+class Area(models.Model):
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"{self.warehouse.name} - {self.name}"
+    
+class Rack(models.Model):
+    area = models.ForeignKey(Area, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    def __str__(self):
+        return f"{self.warehouse.name} - {self.name}"
+    
+class Shelf(models.Model):
+    rack = models.ForeignKey(Rack, on_delete=models.CASCADE, related_name='shelves')
+    name = models.CharField(max_length=50)
+    def __str__(self):
+        return f"{self.rack} - {self.name}"
+    
+class Bin(models.Model):  # Ngăn trong kệ
+    shelf = models.ForeignKey(Shelf, on_delete=models.CASCADE, related_name='bins')
+    name = models.CharField(max_length=50)  # Ví dụ: "Ngăn A", "Ngăn B"
+    description = models.TextField(blank=True, null=True)
+    def __str__(self):
+        return f"{self.shelf} - {self.name}"
