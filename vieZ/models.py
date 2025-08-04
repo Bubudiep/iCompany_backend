@@ -45,6 +45,8 @@ class Users(models.Model):
         super().save(*args, **kwargs)
     def __str__(self):
         return self.username
+    class Meta:
+        ordering = ['-updated_at']
     
 class UserProfile(models.Model):
     user = models.OneToOneField(Users, on_delete=models.CASCADE)
@@ -60,6 +62,8 @@ class UserProfile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Profile of {self.user.username}"
+    class Meta:
+        ordering = ['-updated_at']
       
 class UserPlan(models.Model):
     name = models.CharField(max_length=100, unique=True)  # "Free", "Pro", "Enterprise"...
@@ -72,6 +76,8 @@ class UserPlan(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.name
+    class Meta:
+        ordering = ['-updated_at']
     
 class UserConfigs(models.Model):
     user = models.OneToOneField(Users, on_delete=models.CASCADE)
@@ -79,6 +85,8 @@ class UserConfigs(models.Model):
     config = models.JSONField(default=dict,null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
     def __str__(self):
         return f"Cấu hình của {self.user.username}"
     
@@ -88,6 +96,8 @@ class UserFile(models.Model):
     file_name = models.CharField(max_length=255)
     file_size = models.BigIntegerField()  # lưu theo byte
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-uploaded_at']
     def save(self, *args, **kwargs):
         if self.file: # Tự động lấy kích thước và tên file
             self.file_name = self.file.name
@@ -100,3 +110,51 @@ class UserFile(models.Model):
             if default_storage.exists(self.file.name):
                 default_storage.delete(self.file.name) # Xoá file vật lý khi record bị xoá
         super().delete(*args, **kwargs)
+
+def generate_app_id():
+    while True:
+        prefix = "170"
+        suffix = ''.join(str(random.randint(0, 9)) for _ in range(15))
+        app_id = prefix + suffix
+        if not UserApps.objects.filter(app_id=app_id).exists():
+            return app_id
+
+class AppCategorys(models.Model):
+    name = models.CharField(max_length=50)
+    descriptions = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.name}"
+    
+class UserApps(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    is_active = models.BooleanField(default=False)
+    is_approve = models.BooleanField(default=False)
+    is_live = models.BooleanField(default=False)
+    category = models.ForeignKey(AppCategorys, on_delete=models.SET_NULL, null=True, blank=True)
+    app_id = models.CharField(max_length=50,unique=True,default=generate_app_id)
+    avatar = models.TextField(null=True, blank=True)
+    descriptions = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"Cấu hình của {self.user.username}"
+    
+class UserAppsConfigs(models.Model):
+    app = models.ForeignKey(UserApps, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    is_active = models.BooleanField(default=False)
+    configs = models.JSONField(default=dict,null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"Cấu hình của {self.app.name}"
+    

@@ -27,6 +27,11 @@ from io import BytesIO
 from django.http import HttpResponse
 from django.db.models import Count
 
+class StandardPagesPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 200
+
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50  # Số lượng đối tượng trên mỗi trang
     page_size_query_param = 'page_size'
@@ -40,3 +45,12 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
   
+def generate_app_id(prefix,length):
+    suffix = ''.join(str(random.randint(0, 9)) for _ in range(length-len(prefix)))
+    return prefix + suffix
+
+def generate_unique_app_id():
+    while True:
+        app_id = generate_app_id('170',18)
+        if not UserApps.objects.filter(app_id=app_id).exists():
+            return app_id

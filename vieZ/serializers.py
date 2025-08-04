@@ -21,6 +21,13 @@ class UserSerializer(serializers.ModelSerializer):
     files=serializers.SerializerMethodField(read_only=True)
     config=serializers.SerializerMethodField(read_only=True)
     plan=serializers.SerializerMethodField(read_only=True)
+    categorys=serializers.SerializerMethodField(read_only=True)
+    def get_categorys(self,obj):
+        try:
+            qs_categody=AppCategorys.objects.all()
+            return AppCategorysSerializer(qs_categody,many=True).data
+        except Exception as e:
+            return {"detail":f"{e}"}
     def get_plan(self,obj):
         try:
             qs_plan=UserPlan.objects.all()
@@ -48,7 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = [
-            'id','profile','files','config','plan',
+            'id','profile','files','config','plan','categorys',
             'created_at','last_login'
         ]
         
@@ -57,3 +64,34 @@ class UserFileSerializer(serializers.ModelSerializer):
         model = UserFile
         fields = ['id', 'file', 'file_name', 'file_size', 'uploaded_at']
         read_only_fields = ['file_name', 'file_size', 'uploaded_at']
+        
+class UserAppsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserApps
+        fields = '__all__'
+        read_only_fields = ['app_id', 'created_at', 'updated_at', 'user']
+        
+class UserAppsConfigsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAppsConfigs
+        fields = '__all__'
+        
+class UserAppDetailSerializer(serializers.ModelSerializer):
+    configs=serializers.SerializerMethodField(read_only=True)
+    def get_configs(self,obj):
+        try:
+            qs_config=UserAppsConfigs.objects.filter(app=obj)
+            return UserAppsConfigsSerializer(qs_config,many=True).data
+        except Exception as e:
+            return {"detail":f"{e}"}
+    class Meta:
+        model = UserApps
+        fields = ['name','is_active','is_approve','is_live','configs',
+                  'category','app_id','avatar','descriptions',
+                  'created_at','updated_at']
+        read_only_fields = ['app_id', 'created_at', 'updated_at', 'user']
+        
+class AppCategorysSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppCategorys
+        fields = '__all__'
