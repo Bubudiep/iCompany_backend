@@ -1,12 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 # Create your models here.
+
 class NoteUser(models.Model):
     oauth_user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     username = models.CharField(max_length=150, unique=True)
     password = models.CharField(max_length=128)  # bạn có thể hash hoặc không tùy nhu cầu
     def __str__(self):
         return self.username
+    
 class UserProfile(models.Model):
     user = models.OneToOneField(NoteUser, on_delete=models.CASCADE, related_name='profile')
     full_name = models.CharField(max_length=255, blank=True)
@@ -24,6 +26,7 @@ class UserConfigs(models.Model):
 
     def __str__(self):
         return f"Cấu hình của {self.user.username}"
+    
 class UserNotes(models.Model):
     user = models.ForeignKey(NoteUser, on_delete=models.CASCADE, related_name="owned_notes")
     title = models.CharField(max_length=255)
@@ -39,6 +42,7 @@ class UserNotes(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.title
+    
 class SharedNote(models.Model):
     note = models.ForeignKey(UserNotes, on_delete=models.CASCADE)
     shared_with = models.ForeignKey(NoteUser, on_delete=models.CASCADE)
