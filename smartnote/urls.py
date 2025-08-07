@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 
 router = DefaultRouter()
-# router.register(r'user', UserView, basename='user')
+router.register(r'note', UserNotesViewSet, basename='note')
 urlpatterns = [
     path("user/", UserView.as_view()),
     path("register/", NoteUserRegisterView.as_view()),
