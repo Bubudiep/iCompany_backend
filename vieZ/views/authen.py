@@ -68,10 +68,40 @@ class Login(APIView):
 class UserFileViewSet(viewsets.ModelViewSet):
     serializer_class = UserFileSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardPagesPagination
 
     def get_queryset(self):
-        return UserFile.objects.filter(user=self.request.user).order_by('-uploaded_at')
+        user=Users.objects.get(oauth_user=self.request.user)
+        return UserFile.objects.filter(user=user).order_by('-uploaded_at')
 
+    def create(self, request, *args, **kwargs):
+        user=Users.objects.get(oauth_user=request.user)
+        uploaded_files = request.FILES.getlist('file')  # nhận nhiều file cùng lúc
+        if not uploaded_files:
+            raise serializers.ValidationError({'file': 'Cần ít nhất một file để upload'})
+        # Tính tổng dung lượng đã dùng
+        used = UserFile.objects.filter(user=user).aggregate(total=models.Sum('file_size'))['total'] or 0
+        max_mb = user.userconfigs.plan.max_storage_mb if hasattr(user, 'userconfigs') and user.userconfigs.plan else 0
+        max_bytes = max_mb * 1024 * 1024
+
+        saved_instances = []
+        total_upload_size = sum(f.size for f in uploaded_files)
+
+        if used + total_upload_size > max_bytes:
+            raise serializers.ValidationError({'detail': 'Vượt quá dung lượng cho phép của gói'})
+
+        for file in uploaded_files:
+            data = {
+                'file': file,
+                'file_name': file.name,
+                'file_size': file.size,
+            }
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(user=user)
+            saved_instances.append(serializer.data)
+
+        return Response(saved_instances, status=status.HTTP_201_CREATED)
     def perform_create(self, serializer):
         user = self.request.user
         uploaded_file = self.request.FILES.get('file')
@@ -86,6 +116,33 @@ class UserFileViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError({'detail': 'Vượt quá dung lượng cho phép của gói'})
         serializer.save(user=user)
     
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+class UserAppsViewSet(viewsets.ModelViewSet):
+    queryset = UserApps.objects.all()
+    serializer_class = UserAppsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    lookup_field="app_id"
+    def perform_create(self, serializer):
+        user=Users.objects.get(oauth_user=self.request.user)
+        serializer.save(user=user, app_id=generate_unique_app_id())
+    def get_queryset(self):
+        user=Users.objects.get(oauth_user=self.request.user)
+        return UserApps.objects.filter(user=user).order_by('-updated_at')
+    def retrieve(self, request, *args, **kwargs):
+        return Response(UserAppDetailSerializer(self.get_object()).data)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)

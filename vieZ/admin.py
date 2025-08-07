@@ -32,3 +32,16 @@ class UserFileAdmin(admin.ModelAdmin):
     list_display = ('user', 'file_name', 'file_size', 'uploaded_at')
     readonly_fields = ('file_size', 'file_name')
     search_fields = ('user__username', 'file_name')
+
+@admin.register(AppCategorys)
+class AppCategorysAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'descriptions', 'created_at', 'updated_at')
+    search_fields = ('name',)
+    ordering = ('-created_at',)
+
+@admin.register(UserApps)
+class UserAppsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'name', 'category', 'app_id', 'created_at', 'updated_at')
+    search_fields = ('name', 'user__username', 'app_id')
+    list_filter = ('category', 'created_at')
+    ordering = ('-created_at',)

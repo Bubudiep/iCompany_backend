@@ -1,0 +1,88 @@
+{
+  "full_screen": false,
+  "danhmuc": {
+    "goiy": {
+      "enable": true,
+      "number": 5
+    },
+    "banchay": {
+      "enable": true,
+      "number": 5
+    }
+  },
+  "logo": {
+    "enable": true,
+    "logo": "",
+    "top": {
+      "enable": true,
+      "text": "VIET.Z",
+      "color": "#000000",
+      "font": "default"
+    },
+    "sub": {
+      "enable": true,
+      "text": "Không ngừng sáng tạo",
+      "color": "#000000",
+      "font": "default"
+    }
+  },
+  "body": {
+    "enable": true,
+    "shadown": true,
+    "contact": {
+      "enable": true
+    },
+    "user_card": {
+      "possition": "default",
+      "pre_text": "Xin chào",
+      "tools": {
+        "color": "#999999",
+        "bg_color": "#555555",
+        "icon_color": "#ffffff",
+        "enable_icon_color": true
+      }
+    },
+    "danhmuc": {
+      "enable": true,
+      "color": "#999999",
+      "icon": {
+        "bg_enable": true,
+        "bg_color": "#c2c2c2"
+      }
+    }
+  },
+  "top_bar": {
+    "text_color": "#fff",
+    "bg_color": "#5e6573",
+    "bg_color_to": "#ffffff"
+  },
+  "task_bar": {
+    "enable": true,
+    "shadown": true,
+    "bg_color": "#ffffff",
+    "icon": {
+      "color": "#ffffff",
+      "bg_color": "#5e6573",
+      "size": null
+    },
+    "text": {
+      "color": "#5e6573"
+    }
+  },
+  "style": {
+    "enable": true,
+    "background": {
+      "color": "#5e6573",
+      "type": "default",
+      "height": "150px",
+      "color_type": "default"
+    }
+  },
+  "slider": {
+    "enable": true,
+    "auto": true,
+    "full_screen": false,
+    "show_bar": true,
+    "auto_time": 5000
+  }
+}
