@@ -327,7 +327,7 @@ class StoreCollabs(models.Model):
     class Meta:
         ordering = ['-updated_at']
     def __str__(self):
-        return f"{self.title}"
+        return f"{self.name}"
     
 class StoreNews(models.Model):
     store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
