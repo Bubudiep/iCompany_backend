@@ -362,6 +362,9 @@ class StoreProducts(models.Model):
     title = models.CharField(max_length=50,blank=True,null=True)
     short = models.CharField(max_length=225,blank=True,null=True)
     img_base64 = models.TextField(blank=True,null=True)
+    price = models.IntegerField(default=0)
+    min_unit = models.IntegerField(default=1)
+    unit = models.CharField(default="cái",max_length=20,blank=True,null=True)
     descriptions = models.TextField(max_length=1000,blank=True,null=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -370,3 +373,48 @@ class StoreProducts(models.Model):
         ordering = ['-updated_at']
     def __str__(self):
         return f"{self.title}"
+    
+class Order(models.Model):
+    customer = models.ForeignKey(StoreMember, on_delete=models.CASCADE)  # khách hàng
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)  # cửa hàng
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)  # tổng tiền
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Chờ xử lý'),
+            ('processing', 'Đang xử lý'),
+            ('completed', 'Hoàn thành'),
+            ('cancelled', 'Đã hủy')
+        ],
+        default='pending'
+    )
+    note = models.TextField(blank=True, null=True)  # ghi chú
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-created_at']
+    def __str__(self):
+        return f"Order #{self.id} - {self.customer}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey('StoreProducts', on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+    price = models.IntegerField(default=0)  # giá tại thời điểm mua
+    subtotal = models.IntegerField(default=0)  # thành tiền
+    def save(self, *args, **kwargs):
+        self.subtotal = self.price * self.quantity
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"{self.product.title} x {self.quantity}"
+    
+class OrderHistory(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="history")
+    user = models.ForeignKey(StoreMember, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=255)
+    note = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+    def __str__(self):
+        return f"{self.action} bởi {self.user} lúc {self.created_at}"
