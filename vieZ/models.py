@@ -236,3 +236,75 @@ class Bin(models.Model):  # Ngăn trong kệ
     description = models.TextField(blank=True, null=True)
     def __str__(self):
         return f"{self.shelf} - {self.name}"
+    
+class UserStore(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    store_id = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    store_name = models.CharField(max_length=50,blank=True,null=True)
+    store_logo = models.CharField(max_length=50,blank=True,null=True)
+    descriptions = models.CharField(max_length=225,blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def save(self, *args, **kwargs):
+        if not self.store_id:
+            while True:
+                new_id = uuid.uuid4().hex[:18]
+                if not UserStore.objects.filter(store_id=new_id).exists():
+                    self.store_id = new_id
+                    break
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"{self.store_name}"
+    
+class StoreMember(models.Model):
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
+    oauth_user = models.OneToOneField(User, on_delete=models.CASCADE)
+    username = models.CharField(max_length=50,blank=True,null=True)
+    password = models.CharField(max_length=50,blank=True,null=True)
+    zalo_id = models.CharField(max_length=50,blank=True,null=True)
+    email = models.CharField(max_length=50,blank=True,null=True)
+    phone = models.CharField(max_length=50,blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def save(self, *args, **kwargs):
+        if not self.password.startswith("pbkdf2_"):
+            self.password = make_password(self.password)
+        if not self.oauth_user:
+            user = User.objects.create(
+                username=f"{self.store.store_id}_{self.username}",
+                password=self.password,
+            )
+            self.oauth_user = user
+        super().save(*args, **kwargs)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.store.store_name} {self.username}"
+    
+class UserNewsCtl(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50,blank=True,null=True)
+    code = models.CharField(max_length=50,blank=True,null=True)
+    descriptions = models.CharField(max_length=225,blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.name}"
+    
+class UserNews(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    category = models.ForeignKey(UserNewsCtl, on_delete=models.SET_NULL,blank=True,null=True)
+    title = models.CharField(max_length=50,blank=True,null=True)
+    short = models.CharField(max_length=225,blank=True,null=True)
+    descriptions = models.TextField(max_length=1000,blank=True,null=True)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.title}"

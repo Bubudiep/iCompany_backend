@@ -102,12 +102,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = False  # (dev local thôi)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5175",
+    "http://localhost:4687",
     "http://10.100.1.50:3000",
     "https://vieclamvp.vn",
     "https://api.vieclamvp.vn",
     "https://hl-djc.vieclamvp.vn",
     "https://ipays.vn",
-    "https://api.ipays.vn"
+    "https://api.ipays.vn",
+    'https://h5.zadn.vn',
+    'zbrowser://h5.zadn.vn',
 ]
 ALLOWED_HOSTS = [
     '127.0.0.1',
@@ -116,7 +119,9 @@ ALLOWED_HOSTS = [
     '10.100.1.10',
     'vieclamvp.vn',
     'api.vieclamvp.vn',
-    'api.ipays.vn'
+    'api.ipays.vn',
+    'https://h5.zadn.vn',
+    'zbrowser://h5.zadn.vn',
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
@@ -124,8 +129,9 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'access-control-allow-origin',
     'ApplicationKey',
     'Companykey',
+    'StoreKey',
 ]
 CSRF_TRUSTED_ORIGINS = [
     "https://api.ipays.vn",
-    "https://www.ipays.vn",  # nếu dùng cả www
+    "https://www.ipays.vn",
 ]
