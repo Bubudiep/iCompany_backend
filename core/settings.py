@@ -109,6 +109,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://hl-djc.vieclamvp.vn",
     "https://ipays.vn",
     "https://api.ipays.vn",
+    'https://h5.zdn.vn',
+    'zbrowser://h5.zdn.vn',
     'https://h5.zadn.vn',
     'zbrowser://h5.zadn.vn',
 ]
@@ -121,6 +123,7 @@ ALLOWED_HOSTS = [
     'api.vieclamvp.vn',
     'api.ipays.vn',
     'h5.zadn.vn',
+    'h5.zdn.vn',
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
