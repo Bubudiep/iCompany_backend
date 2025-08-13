@@ -8,6 +8,7 @@ router.register(r'apps', UserAppsViewSet, basename='userapps')
 urlpatterns = [
     path('me/', MyInfo.as_view(), name='me'),
     path('login/', Login.as_view(), name='login'),
+    path('zlogin/', ZaloMemberLogin.as_view(), name='zlogin'),
     path('', include(router.urls)),
 ]
 # 48MghDAMhSXJoPZKwQ7BZoRVIjQJLowv7QFrtT08

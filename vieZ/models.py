@@ -4,6 +4,7 @@ from django.utils.timezone import now
 from django.contrib.auth.models import User
 from datetime import time
 from rest_framework import exceptions
+import secrets
 import uuid
 from django.utils.timezone import make_aware, datetime
 from django.utils.dateparse import parse_date
@@ -241,8 +242,10 @@ class UserStore(models.Model):
     user = models.ForeignKey(Users, on_delete=models.CASCADE)
     store_id = models.CharField(max_length=50, blank=True, null=True, unique=True)
     store_name = models.CharField(max_length=50,blank=True,null=True)
-    store_logo = models.CharField(max_length=50,blank=True,null=True)
+    store_logo = models.TextField(blank=True,null=True)
+    store_hotline = models.CharField(max_length=50,blank=True,null=True)
     descriptions = models.CharField(max_length=225,blank=True,null=True)
+    preview_img = models.TextField(blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
@@ -260,20 +263,25 @@ class UserStore(models.Model):
     
 class StoreMember(models.Model):
     store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
-    oauth_user = models.OneToOneField(User, on_delete=models.CASCADE)
+    oauth_user = models.OneToOneField(User, on_delete=models.CASCADE,blank=True,null=True)
     username = models.CharField(max_length=50,blank=True,null=True)
     password = models.CharField(max_length=50,blank=True,null=True)
     zalo_id = models.CharField(max_length=50,blank=True,null=True)
     email = models.CharField(max_length=50,blank=True,null=True)
     phone = models.CharField(max_length=50,blank=True,null=True)
+    last_login = models.DateTimeField(auto_now_add=True,blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def save(self, *args, **kwargs):
-        if not self.password.startswith("pbkdf2_"):
-            self.password = make_password(self.password)
+        if not self.password:
+            self.password = ''.join(
+                secrets.choice(
+                    string.ascii_letters + string.digits
+                ) for _ in range(12)
+            )
         if not self.oauth_user:
             user = User.objects.create(
-                username=f"{self.store.store_id}_{self.username}",
+                username=f"{self.store.store_id}_{self.zalo_id}",
                 password=self.password,
             )
             self.oauth_user = user
@@ -283,8 +291,8 @@ class StoreMember(models.Model):
     def __str__(self):
         return f"{self.store.store_name} {self.username}"
     
-class UserNewsCtl(models.Model):
-    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+class StoreNewsCtl(models.Model):
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
     name = models.CharField(max_length=50,blank=True,null=True)
     code = models.CharField(max_length=50,blank=True,null=True)
     descriptions = models.CharField(max_length=225,blank=True,null=True)
@@ -295,11 +303,65 @@ class UserNewsCtl(models.Model):
     def __str__(self):
         return f"{self.name}"
     
-class UserNews(models.Model):
-    user = models.ForeignKey(Users, on_delete=models.CASCADE)
-    category = models.ForeignKey(UserNewsCtl, on_delete=models.SET_NULL,blank=True,null=True)
+class StoreSlides(models.Model):
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
     title = models.CharField(max_length=50,blank=True,null=True)
     short = models.CharField(max_length=225,blank=True,null=True)
+    img_base64 = models.TextField(blank=True,null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.title}"
+    
+class StoreCollabs(models.Model):
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100,blank=True,null=True)
+    address = models.CharField(max_length=225,blank=True,null=True)
+    img_base64 = models.TextField(blank=True,null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.title}"
+    
+class StoreNews(models.Model):
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
+    image_base64 = models.TextField(blank=True,null=True)
+    category = models.ForeignKey(StoreNewsCtl, on_delete=models.SET_NULL,blank=True,null=True)
+    title = models.CharField(max_length=50,blank=True,null=True)
+    short = models.CharField(max_length=225,blank=True,null=True)
+    descriptions = models.TextField(blank=True,null=True)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.title}"
+    
+class StoreProductsCtl(models.Model):
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50,blank=True,null=True)
+    code = models.CharField(max_length=50,blank=True,null=True)
+    descriptions = models.CharField(max_length=225,blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.name}"
+    
+class StoreProducts(models.Model):
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
+    category = models.ForeignKey(StoreProductsCtl, on_delete=models.CASCADE)
+    title = models.CharField(max_length=50,blank=True,null=True)
+    short = models.CharField(max_length=225,blank=True,null=True)
+    img_base64 = models.TextField(blank=True,null=True)
     descriptions = models.TextField(max_length=1000,blank=True,null=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

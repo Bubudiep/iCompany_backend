@@ -45,3 +45,66 @@ class UserAppsAdmin(admin.ModelAdmin):
     search_fields = ('name', 'user__username', 'app_id')
     list_filter = ('category', 'created_at')
     ordering = ('-created_at',)
+
+@admin.register(UserStore)
+class UserStoreAdmin(admin.ModelAdmin):
+    list_display = ('store_name', 'store_id', 'user', 'store_hotline', 'created_at', 'updated_at')
+    search_fields = ('store_name', 'store_id', 'user__username', 'store_hotline')
+    list_filter = ('created_at', 'updated_at')
+    readonly_fields = ('store_id', 'created_at', 'updated_at')
+
+
+@admin.register(StoreMember)
+class StoreMemberAdmin(admin.ModelAdmin):
+    list_display = ('store', 'username', 'oauth_user', 'zalo_id', 'email', 'phone', 'last_login', 'created_at', 'updated_at')
+    search_fields = ('username', 'zalo_id', 'email', 'phone', 'store__store_name', 'oauth_user__username')
+    list_filter = ('created_at', 'updated_at')
+    readonly_fields = ('oauth_user', 'last_login', 'created_at', 'updated_at')
+
+
+@admin.register(StoreNewsCtl)
+class StoreNewsCtlAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'store', 'created_at', 'updated_at')
+    search_fields = ('name', 'code', 'store__store_name')
+    list_filter = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(StoreSlides)
+class StoreSlidesAdmin(admin.ModelAdmin):
+    list_display = ('title', 'store', 'is_active', 'created_at', 'updated_at')
+    search_fields = ('title', 'store__store_name')
+    list_filter = ('is_active', 'created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(StoreCollabs)
+class StoreCollabsAdmin(admin.ModelAdmin):
+    list_display = ('name', 'store', 'address', 'is_active', 'created_at', 'updated_at')
+    search_fields = ('name', 'store__store_name', 'address')
+    list_filter = ('is_active', 'created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(StoreNews)
+class StoreNewsAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'store', 'is_active', 'created_at', 'updated_at')
+    search_fields = ('title', 'short', 'store__store_name', 'category__name')
+    list_filter = ('is_active', 'created_at', 'updated_at', 'category')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(StoreProductsCtl)
+class StoreProductsCtlAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'store', 'created_at', 'updated_at')
+    search_fields = ('name', 'code', 'store__store_name')
+    list_filter = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(StoreProducts)
+class StoreProductsAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'store', 'is_active', 'created_at', 'updated_at')
+    search_fields = ('title', 'short', 'store__store_name', 'category__name')
+    list_filter = ('is_active', 'created_at', 'updated_at', 'category')
+    readonly_fields = ('created_at', 'updated_at')

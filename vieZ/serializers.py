@@ -95,3 +95,59 @@ class AppCategorysSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppCategorys
         fields = '__all__'
+
+class StoreMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreMember
+        fields = ['id','email','phone']
+     
+class StoreNewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreNews
+        fields = "__all__"
+class StoreSlidesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreSlides
+        fields = "__all__"
+class StoreProductsCtlSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreProductsCtl
+        fields = "__all__"
+class StoreProductsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreProducts
+        fields = "__all__"
+class StoreCollabsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreCollabs
+        fields = "__all__"
+        
+class StoreNewsLTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreNews
+        fields = ["id","image_base64","title","short","created_at"]
+class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
+    slices=serializers.SerializerMethodField(read_only=True)
+    news=serializers.SerializerMethodField(read_only=True)
+    collabs=serializers.SerializerMethodField(read_only=True)
+    products=serializers.SerializerMethodField(read_only=True)
+    products_cate=serializers.SerializerMethodField(read_only=True)
+    def get_news(self,obj):
+        qs_news=StoreNews.objects.filter(store=obj,is_active=True)
+        return StoreNewsLTESerializer(qs_news,many=True).data
+    def get_slices(self,obj):
+        qs_slices=StoreSlides.objects.filter(store=obj,is_active=True)
+        return StoreSlidesSerializer(qs_slices,many=True).data
+    def get_collabs(self,obj):
+        qs_collabs=StoreCollabs.objects.filter(store=obj,is_active=True)
+        return StoreCollabsSerializer(qs_collabs,many=True).data
+    def get_products(self,obj):
+        qs_products=StoreProducts.objects.filter(store=obj,is_active=True)
+        return StoreProductsSerializer(qs_products,many=True).data
+    def get_products_cate(self,obj):
+        qs_products_cate=StoreProductsCtl.objects.filter(store=obj)
+        return StoreProductsCtlSerializer(qs_products_cate,many=True).data
+    class Meta:
+        model = UserStore
+        fields = ["store_logo","preview_img","descriptions","store_name","slices","news",
+                  "collabs","products","products_cate"]

@@ -10,6 +10,63 @@ class MyInfo(APIView):
             return Response(UserSerializer(user).data)
         else:
             return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+               
+class ZaloMemberLogin(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        try:
+            print("Đang đăng nhập")
+            ip=get_client_ip(request)
+            key = request.headers.get('StoreKey')
+            app_key = request.headers.get('ApplicationKey')
+            application = Application.objects.get(client_id=app_key)
+            store = UserStore.objects.get(store_id=key)
+            user, _ = StoreMember.objects.get_or_create(
+                zalo_id=request.data.get('z_id'),
+                store=store
+            )
+            user.last_login=now()
+            user.save()
+            token = generate_token()
+            access_token = AccessToken.objects.create(
+                user=user.oauth_user,
+                token=token,
+                application=application,
+                expires=now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS),
+                scope='read write'
+            )
+            refresh_token_instance = RefreshToken.objects.create(
+                user=user.oauth_user,
+                token=generate_token(),
+                access_token=access_token,
+                application=application
+            )
+            access_token.refresh_token = refresh_token_instance
+            access_token.save()
+            res_data={
+                'access_token': token,
+                'refresh_token': refresh_token_instance.token,
+                'user': StoreMemberSerializer(user).data,
+                'store': UserStoreMemberViewsSerializer(user.store).data
+            }
+            return Response(res_data, status=status.HTTP_200_OK)
+        except StoreMember.DoesNotExist:
+            return Response({"message":"Tài khoản không tồn tại"}, 
+              status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            return Response(
+              {
+                "message":"Phát sinh lỗi khi đăng nhập!",
+                "possition":f"{file_name}_{lineno}",
+                "detail":str(e)
+              }, 
+              status=status.HTTP_400_BAD_REQUEST
+            )
             
 class Login(APIView):
     permission_classes = [AllowAny]
