@@ -133,16 +133,16 @@ class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
     products=serializers.SerializerMethodField(read_only=True)
     products_cate=serializers.SerializerMethodField(read_only=True)
     def get_news(self,obj):
-        qs_news=StoreNews.objects.filter(store=obj,is_active=True)
+        qs_news=StoreNews.objects.filter(store=obj,is_active=True)[:5]
         return StoreNewsLTESerializer(qs_news,many=True).data
     def get_slices(self,obj):
-        qs_slices=StoreSlides.objects.filter(store=obj,is_active=True)
+        qs_slices=StoreSlides.objects.filter(store=obj,is_active=True)[:5]
         return StoreSlidesSerializer(qs_slices,many=True).data
     def get_collabs(self,obj):
-        qs_collabs=StoreCollabs.objects.filter(store=obj,is_active=True)
+        qs_collabs=StoreCollabs.objects.filter(store=obj,is_active=True)[:6]
         return StoreCollabsSerializer(qs_collabs,many=True).data
     def get_products(self,obj):
-        qs_products=StoreProducts.objects.filter(store=obj,is_active=True)
+        qs_products=StoreProducts.objects.filter(store=obj,is_active=True)[:5]
         return StoreProductsSerializer(qs_products,many=True).data
     def get_products_cate(self,obj):
         qs_products_cate=StoreProductsCtl.objects.filter(store=obj)
@@ -150,4 +150,4 @@ class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserStore
         fields = ["store_logo","preview_img","descriptions","store_name","slices","news",
-                  "collabs","products","products_cate"]
+                  "collabs","products","products_cate","updated_at"]
