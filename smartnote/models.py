@@ -29,7 +29,11 @@ class UserConfigs(models.Model):
     
 class UserNotes(models.Model):
     user = models.ForeignKey(NoteUser, on_delete=models.CASCADE, related_name="owned_notes")
-    title = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    note_type = models.CharField(max_length=22,null=True, blank=True)
+    sdt = models.CharField(max_length=12,null=True, blank=True)
+    customer = models.CharField(max_length=50,null=True, blank=True)
+    sotien = models.IntegerField(default=0)
     content = models.TextField()
     pinned = models.BooleanField(default=False)
     shared_with = models.ManyToManyField(
