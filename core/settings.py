@@ -120,8 +120,7 @@ ALLOWED_HOSTS = [
     'vieclamvp.vn',
     'api.vieclamvp.vn',
     'api.ipays.vn',
-    'https://h5.zadn.vn',
-    'zbrowser://h5.zadn.vn',
+    'h5.zadn.vn',
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
