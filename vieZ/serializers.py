@@ -145,7 +145,11 @@ class StoreProductsSerializer(serializers.ModelSerializer):
             return f"data:image/png;base64,{thumb_base64}"
         except Exception:
             return None
-        
+         
+class StoreFeedbacksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreFeedbacks
+        fields = "__all__"
 class StoreCollabsSerializer(serializers.ModelSerializer):
     class Meta:
         model = StoreCollabs
