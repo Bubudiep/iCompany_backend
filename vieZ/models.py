@@ -179,7 +179,7 @@ class UserProducts(models.Model):
     avatar = models.ForeignKey(UserFile,on_delete=models.SET_NULL,null=True,blank=True)
     product_name = models.CharField(max_length=50)
     info = models.CharField(max_length=225)
-    descriptions = models.TextField(max_length=1000)
+    descriptions = models.TextField(max_length=2000,null=True,blank=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
