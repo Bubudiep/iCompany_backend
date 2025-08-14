@@ -138,12 +138,12 @@ class StoreCollabsSerializer(serializers.ModelSerializer):
         fields = "__all__"
         
 class StoreNewsLTESerializer(serializers.ModelSerializer):
-    img_base64 = serializers.SerializerMethodField()
-    def get_img_base64(self, obj):
-        if not obj.img_base64:
+    image_base64 = serializers.SerializerMethodField()
+    def get_image_base64(self, obj):
+        if not obj.image_base64:
             return None
         try:
-            img_data = base64.b64decode(obj.img_base64.split(",")[-1])
+            img_data = base64.b64decode(obj.image_base64.split(",")[-1])
             image = Image.open(BytesIO(img_data))
             image.thumbnail((88, 88))
             buffer = BytesIO()
