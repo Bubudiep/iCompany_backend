@@ -183,6 +183,7 @@ class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
         fields = [
             "descriptions",
             "store_name",
+            'avatar','username',
             "products_cate",
             "updated_at"
         ]
