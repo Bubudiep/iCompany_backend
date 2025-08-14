@@ -19,12 +19,19 @@ class ZaloMemberLogin(APIView):
             ip=get_client_ip(request)
             key = request.headers.get('StoreKey')
             app_key = request.headers.get('ApplicationKey')
+            z_name=request.data.get('name')
+            z_avatar=request.data.get('avatar')
+            request.data.get('z_id')
             application = Application.objects.get(client_id=app_key)
             store = UserStore.objects.get(store_id=key)
             user, _ = StoreMember.objects.get_or_create(
                 zalo_id=request.data.get('z_id'),
                 store=store
             )
+            if z_name:
+                user.username=z_name
+            if z_avatar:
+                user.avatar=z_avatar
             user.last_login=now()
             user.save()
             token = generate_token()

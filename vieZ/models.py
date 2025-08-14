@@ -265,6 +265,7 @@ class StoreMember(models.Model):
     store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
     oauth_user = models.OneToOneField(User, on_delete=models.CASCADE,blank=True,null=True)
     username = models.CharField(max_length=50,blank=True,null=True)
+    avatar = models.CharField(max_length=255,blank=True,null=True)
     password = models.CharField(max_length=50,blank=True,null=True)
     zalo_id = models.CharField(max_length=50,blank=True,null=True)
     email = models.CharField(max_length=50,blank=True,null=True)
@@ -328,6 +329,22 @@ class StoreCollabs(models.Model):
         ordering = ['-updated_at']
     def __str__(self):
         return f"{self.name}"
+    
+class StoreFeedbacks(models.Model):
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
+    member = models.ForeignKey(StoreMember, on_delete=models.CASCADE)
+    
+    image = models.TextField(blank=True,null=True)
+    comment = models.CharField(max_length=50,blank=True,null=True)
+    rate = models.IntegerField(default=5)
+    
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.title}"
     
 class StoreNews(models.Model):
     store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
@@ -418,3 +435,4 @@ class OrderHistory(models.Model):
         ordering = ['-created_at']
     def __str__(self):
         return f"{self.action} bởi {self.user} lúc {self.created_at}"
+    
