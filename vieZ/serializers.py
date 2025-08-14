@@ -99,7 +99,7 @@ class AppCategorysSerializer(serializers.ModelSerializer):
 class StoreMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = StoreMember
-        fields = ['id','email','phone']
+        fields = ['id','email','phone','avatar','username',]
      
 class StoreNewsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -183,7 +183,6 @@ class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
         fields = [
             "descriptions",
             "store_name",
-            'avatar','username',
             "products_cate",
             "updated_at"
         ]
