@@ -365,7 +365,7 @@ class StoreProducts(models.Model):
     price = models.IntegerField(default=0)
     min_unit = models.IntegerField(default=1)
     unit = models.CharField(default="cái",max_length=20,blank=True,null=True)
-    descriptions = models.TextField(max_length=1000,blank=True,null=True)
+    descriptions = models.TextField(blank=True,null=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
