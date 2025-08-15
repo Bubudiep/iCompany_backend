@@ -504,16 +504,14 @@ class OperatorWorkHistory(models.Model):
             if self.operator:
                 self.operator.updated_at = now()
                 self.operator.save()
-            if not self.end_date:
-                qs_work=OperatorWorkHistory.objects.filter(
-                    operator=self.operator,
-                    end_date__isnull=True
-                )
-                if len(qs_work)>0:
-                    return
-                elif self.operator:
-                    self.operator.congty_danglam = self.customer
-                    self.operator.save()
+                if not self.end_date:
+                    qs_work=OperatorWorkHistory.objects.filter(
+                        operator=self.operator,
+                        end_date__isnull=True
+                    ).first()
+                    if qs_work:
+                        self.operator.congty_danglam = self.customer
+                        self.operator.save()
         except Exception as e:
             ...
         super(OperatorWorkHistory, self).save(*args, **kwargs)
