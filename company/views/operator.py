@@ -190,6 +190,11 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                             start_date=datetime.strptime(start_date,"%Y-%m-%d").date()
                         if end_date:
                             end_date=datetime.strptime(end_date,"%Y-%m-%d").date()
+                        else:
+                            working=OperatorWorkHistory.objects.filter(operator=qs_op,end_date__isnull=True)
+                            if len(working)>0:
+                                return Response({"detail": f"Người lao động đang đi làm rồi!"}, status=status.HTTP_400_BAD_REQUEST)
+                        
                         if start_date>=end_date:
                             list_fail.append({
                                 "so_cccd":so_cccd,
@@ -331,6 +336,10 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     start_date=datetime.strptime(start_date,"%Y-%m-%d").date()
                 if end_date:
                     end_date=datetime.strptime(end_date,"%Y-%m-%d").date()
+                else:
+                    working=OperatorWorkHistory.objects.filter(operator=qs_op,end_date__isnull=True)
+                    if len(working)>0:
+                        return Response({"detail": f"Người lao động đang đi làm rồi!"}, status=status.HTTP_400_BAD_REQUEST)
                 if nhachinh:
                     qs_nhachinh=CompanyVendor.objects.get(name=nhachinh,company=qs_staff.company)
                 hist=OperatorWorkHistory.objects.filter(operator=qs_op).order_by('-id')
@@ -457,7 +466,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             )
             qs_work=OperatorWorkHistory.objects.filter(operator=operator,end_date__isnull=True).first()
             if qs_work:
-                if qs_work.ma_nhanvien is None:
+                if not qs_work.ma_nhanvien:
                     return Response({"detail": "Chưa có mã nhân viên cho công ty đang đi làm"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"detail": "Người lao động chưa đi làm"}, status=status.HTTP_400_BAD_REQUEST)
