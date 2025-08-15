@@ -662,8 +662,6 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.is_deleted:
-            return Response({})
         qs_work=OperatorWorkHistory.objects.filter(operator=instance,end_date__isnull=True).first()
         if qs_work and instance.congty_danglam != qs_work.customer:
             instance.congty_danglam=qs_work.customer
