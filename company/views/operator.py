@@ -661,6 +661,10 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        qs_work=OperatorWorkHistory.objects.filter(operator=instance,end_date__isnull=True).first()
+        if qs_work and instance.congty_danglam != qs_work.customer:
+            instance.congty_danglam=qs_work.customer
+            instance.save()
         serializer = CompanyOperatorMoreDetailsSerializer(instance)
         return Response(serializer.data)
     
