@@ -487,7 +487,8 @@ class CompanyOperatorLTESerializer(serializers.ModelSerializer):
 class CompanyOperatorLTE2Serializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
-        fields = ["id","ho_ten","ma_nhanvien",'nguoituyen','nguoibaocao','vendor','created_at','updated_at']
+        fields = ["id","ho_ten","ma_nhanvien",'nguoituyen','congty_danglam',
+                  'nguoibaocao','vendor','created_at','updated_at']
 class CompanyOperatorSerializer(serializers.ModelSerializer):
     work = serializers.SerializerMethodField(read_only=True)
     def get_work(self, qs):
