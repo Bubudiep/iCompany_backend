@@ -124,12 +124,13 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         qs_res=CompanyStaff.objects.get(user__user=user,isActive=True,company__key=key)
         if qs_res.isSuperAdmin:
             return CompanyOperator.objects.filter(company=qs_res.company)
-        return CompanyOperator.objects.filter(Q(nguoituyen=qs_res) | 
-                                              Q(nguoibaocao=qs_res) | 
-                                              Q(congty_danglam__id__in=qs_res.managerCustomer.all().values_list("id",flat=True)),
-                                              company=qs_res.company,
-                                              is_deleted=False
-                                            )
+        return CompanyOperator.objects.filter(
+            Q(nguoituyen=qs_res) | 
+            Q(nguoibaocao=qs_res) | 
+            Q(congty_danglam__id__in=qs_res.managerCustomer.all().values_list("id",flat=True)),
+            company=qs_res.company,
+            is_deleted=False
+        )
     
     @action(detail=False, methods=['get'])
     def export_history(self, request, pk=None):
@@ -661,6 +662,8 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        if instance.is_deleted:
+            return Response({})
         qs_work=OperatorWorkHistory.objects.filter(operator=instance,end_date__isnull=True).first()
         if qs_work and instance.congty_danglam != qs_work.customer:
             instance.congty_danglam=qs_work.customer
