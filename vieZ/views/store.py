@@ -115,3 +115,51 @@ class StoreProductsViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+class MemberCartViewSet(viewsets.ModelViewSet):
+    queryset = MemberCart.objects.all()
+    serializer_class = MemberCartSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    def perform_create(self, serializer):
+        key = self.request.headers.get('StoreKey')
+        qs_member=StoreMember.objects.get(
+          oauth_user=self.request.user,
+          store__store_id=key
+        )
+        serializer.save(member=qs_member)
+    def create(self, request, *args, **kwargs):
+        key = self.request.headers.get('StoreKey')
+        qs_member=StoreMember.objects.get(
+          oauth_user=self.request.user,
+          store__store_id=key
+        )
+        qs_item=MemberCart.objects.filter(product=request.data.get('product')).first()
+        if (qs_item):
+            qs_item.quantity=qs_item.quantity+request.data.get('quantity')
+            qs_item.save()
+            serializer = self.get_serializer(qs_item)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return super().create(request, *args, **kwargs)
+      
+    def get_queryset(self):
+        key = self.request.headers.get('StoreKey')
+        qs_member=StoreMember.objects.get(
+          oauth_user=self.request.user,
+          store__store_id=key
+        )
+        return MemberCart.objects.filter(
+          member=qs_member
+        ).order_by('-updated_at')
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

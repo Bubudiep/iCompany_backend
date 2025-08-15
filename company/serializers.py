@@ -94,7 +94,11 @@ class OP_HISTSerializer(serializers.ModelSerializer):
             if len(qs_working)>0:
                 instance.operator.congty_danglam=None
                 instance.operator.save()
-        note=f" {instance.customer.name} -> {validated_data.get('customer').name}" if validated_data.get('customer') is not None else ""
+        note=f""" 
+            {instance.customer.name} ({instance.ma_nhanvien})-> 
+            {validated_data.get('customer').name} 
+            ({validated_data.get('ma_nhanvien')})
+        """ if validated_data.get('customer') is not None else ""
         OperatorUpdateHistory.objects.create(
             changed_by=user,
             operator=instance.operator,

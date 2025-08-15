@@ -9,6 +9,7 @@ router.register(r's/news', StoreNewsViewSet, basename='s_news')
 router.register(r's/feedbacks', StoreFeedbacksViewSet, basename='s_feedbacks')
 router.register(r's/collabs', StoreCollabsViewSet, basename='s_collabs')
 router.register(r's/slices', StoreSlidesViewSet, basename='s_slices')
+router.register(r's/carts', MemberCartViewSet, basename='s_carts')
 router.register(r's/products', StoreProductsViewSet, basename='s_products')
 urlpatterns = [
     path('me/', MyInfo.as_view(), name='me'),

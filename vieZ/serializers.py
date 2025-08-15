@@ -173,6 +173,14 @@ class StoreNewsLTESerializer(serializers.ModelSerializer):
     class Meta:
         model = StoreNews
         fields = ["id","image_base64","title","short","created_at"]
+
+        
+class MemberCartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MemberCart
+        fields = '__all__'
+        read_only_fields = ['member']
+        
 class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
     products_cate=serializers.SerializerMethodField(read_only=True)
     def get_products_cate(self,obj):

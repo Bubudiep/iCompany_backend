@@ -391,6 +391,17 @@ class StoreProducts(models.Model):
     def __str__(self):
         return f"{self.title}"
     
+class MemberCart(models.Model):
+    member = models.ForeignKey(StoreMember, on_delete=models.CASCADE)
+    product = models.ForeignKey(StoreProducts, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-updated_at']
+    def __str__(self):
+        return f"{self.store.store_name} {self.username}"
+    
 class Order(models.Model):
     customer = models.ForeignKey(StoreMember, on_delete=models.CASCADE)  # khách hàng
     store = models.ForeignKey(UserStore, on_delete=models.CASCADE)  # cửa hàng
