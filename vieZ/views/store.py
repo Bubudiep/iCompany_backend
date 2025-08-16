@@ -124,7 +124,10 @@ class MemberOrder(APIView):
             key = request.headers.get('StoreKey')
             item = request.data.get('item')
             member = StoreMember.objects.get(oauth_user=request.user)
-            qs_cart = MemberCart.objects.filter(id__in=item,member=member)
+            qs_cart = MemberCart.objects.filter(
+              id__in=item,
+              member=member
+            )
             with transaction.atomic():
                 order=Order.objects.create(
                   store=member.store,
@@ -183,7 +186,10 @@ class MemberCartViewSet(viewsets.ModelViewSet):
           oauth_user=self.request.user,
           store__store_id=key
         )
-        qs_item=MemberCart.objects.filter(product=request.data.get('product')).first()
+        qs_item=MemberCart.objects.filter(
+          product=request.data.get('product'),
+          is_ordered=False
+        ).first()
         if (qs_item):
             qs_item.quantity=qs_item.quantity+request.data.get('quantity')
             qs_item.save()
@@ -199,7 +205,8 @@ class MemberCartViewSet(viewsets.ModelViewSet):
           store__store_id=key
         )
         return MemberCart.objects.filter(
-          member=qs_member
+          member=qs_member,
+          is_ordered=False
         ).order_by('-updated_at')
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
