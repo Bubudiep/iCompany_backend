@@ -903,7 +903,17 @@ class OperatorWorkHistoryViewSet(viewsets.ModelViewSet):
             return Response({"detail":f"{e}"},status=status.HTTP_403_FORBIDDEN)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
+        queryset = self.filter_queryset(queryset)
+        start_date = request.query_params.get('start_date')
+        start_date_from = request.query_params.get('start_date_from')
+        start_date_to = request.query_params.get('start_date_to')
+        if start_date_from:
+            queryset = queryset.filter(start_date__gte=start_date_from)
+        if start_date_to:
+            queryset = queryset.filter(start_date__lte=start_date_to)
+        if start_date:
+            queryset = queryset.filter(start_date=start_date)
+        
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
