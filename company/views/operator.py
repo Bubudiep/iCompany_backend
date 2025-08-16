@@ -77,6 +77,7 @@ class AddOperatorAPIView(APIView):
                                             operator=ops,
                                             customer=qs_customer,
                                             nguoituyen=qs_nguoituyen,
+                                            nhachinh=qs_nhachinh,
                                             ma_nhanvien=op.get('work_code',ops.ma_nhanvien),
                                             start_date=op.get('work_date',None)
                                         )
