@@ -306,7 +306,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                                                 start_date=datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date())
                 operator.nguoituyen=nguoituyen
                 if isnew==True:
-                    operator.ngay_phongvan=now().date()
+                    operator.created_at=now()
                 operator.save()
                 return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
         except Exception as e:
