@@ -43,8 +43,8 @@ class OP_HISTSerializer(serializers.ModelSerializer):
     nguoibaocao = serializers.SerializerMethodField(read_only=True)
     def get_nguoibaocao(self,obj):
         try:
-            return obj.operator.nguoibaocao
-        except:
+            return obj.operator.nguoibaocao.id
+        except Exception as e:
             return None
     def create(self, validated_data):
         request = self.context.get("request")
