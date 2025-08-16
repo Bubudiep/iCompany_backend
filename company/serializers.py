@@ -99,7 +99,7 @@ class OP_HISTSerializer(serializers.ModelSerializer):
                 instance.operator.save()
         note=f" {instance.customer.name} -> {validated_data.get('customer').name} ({validated_data.get('ma_nhanvien')})" if validated_data.get('customer') is not None else ""
         if isnew:
-            instance.operator.created_at=datetime.datetime.combine(instance.start_date, datetime.time(8, 0, 0))
+            instance.operator.created_at=datetime.combine(instance.start_date, time(8, 0, 0))
             instance.operator.save()
         OperatorUpdateHistory.objects.create(
             changed_by=user,
