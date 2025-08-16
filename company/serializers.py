@@ -42,7 +42,10 @@ class OP_HISTSerializer(serializers.ModelSerializer):
     isnew = serializers.BooleanField(required=False, default=False)
     nguoibaocao = serializers.SerializerMethodField(read_only=True)
     def get_nguoibaocao(self,obj):
-        return obj.operator.nguoibaocao
+        try:
+            return obj.operator.nguoibaocao
+        except:
+            return None
     def create(self, validated_data):
         request = self.context.get("request")
         user = request.user if request else None
