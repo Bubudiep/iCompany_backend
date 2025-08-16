@@ -264,6 +264,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         cccd_sau = request.data.get('cccd_sau',None)
         so_cccd=request.data.get("cccd")
         nhachinh=request.data.get("nhachinh")
+        isnew=request.data.get("isnew")
         key = self.request.headers.get('ApplicationKey')
         operator = self.get_object()
         if operator.congty_danglam:
@@ -304,6 +305,8 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                                                 customer=qs_cty,so_cccd=so_cccd,
                                                 start_date=datetime.strptime(startDate,"%Y-%m-%dT%H:%M:%S.%f%z").date())
                 operator.nguoituyen=nguoituyen
+                if isnew==True:
+                    operator.ngay_phongvan=now().date()
                 operator.save()
                 return Response(CompanyOperatorMoreDetailsSerializer(operator).data, status=status.HTTP_200_OK)
         except Exception as e:
