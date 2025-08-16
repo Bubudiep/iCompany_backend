@@ -39,6 +39,8 @@ class OP_HISTLTESerializer(serializers.ModelSerializer):
         fields = ['ma_nhanvien','start_date','customer']
         
 class OP_HISTSerializer(serializers.ModelSerializer):
+    isnew = serializers.BooleanField(required=False, default=False)
+    
     def create(self, validated_data):
         request = self.context.get("request")
         user = request.user if request else None
@@ -70,6 +72,7 @@ class OP_HISTSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         request = self.context.get("request")
         user = request.user if request else None
+        isnew = validated_data.pop("isnew", False)
         if user:
             user=CompanyStaff.objects.get(user__user=user)
         if validated_data.get('customer') is None:
@@ -95,6 +98,9 @@ class OP_HISTSerializer(serializers.ModelSerializer):
                 instance.operator.congty_danglam=None
                 instance.operator.save()
         note=f" {instance.customer.name} -> {validated_data.get('customer').name} ({validated_data.get('ma_nhanvien')})" if validated_data.get('customer') is not None else ""
+        if isnew:
+            instance.operator.created_at=datetime.datetime.combine(instance.start_date, datetime.time(8, 0, 0))
+            instance.operator.save()
         OperatorUpdateHistory.objects.create(
             changed_by=user,
             operator=instance.operator,
