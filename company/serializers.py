@@ -494,7 +494,7 @@ class OperatorUpdateHistorySerializer(serializers.ModelSerializer):
 class CompanyOperatorLTESerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
-        fields = ["id","ho_ten","ma_nhanvien"]
+        fields = ["id","ho_ten","ma_nhanvien",'congty_danglam','vendor']
 class CompanyOperatorLTE2Serializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
