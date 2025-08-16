@@ -187,6 +187,7 @@ class MemberCartViewSet(viewsets.ModelViewSet):
           store__store_id=key
         )
         qs_item=MemberCart.objects.filter(
+          member=qs_member,
           product=request.data.get('product'),
           is_ordered=False
         ).first()
