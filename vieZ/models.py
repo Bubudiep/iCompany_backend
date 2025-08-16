@@ -27,6 +27,7 @@ from io import BytesIO
 import difflib
 import os
 from django.core.files.storage import default_storage
+from django.utils.crypto import get_random_string
 
 class Users(models.Model):
     oauth_user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -395,6 +396,7 @@ class MemberCart(models.Model):
     member = models.ForeignKey(StoreMember, on_delete=models.CASCADE)
     product = models.ForeignKey(StoreProducts, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
+    is_ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
@@ -403,9 +405,10 @@ class MemberCart(models.Model):
         return f"{self.store.store_name} {self.username}"
     
 class Order(models.Model):
-    customer = models.ForeignKey(StoreMember, on_delete=models.CASCADE)  # khách hàng
-    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)  # cửa hàng
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)  # tổng tiền
+    customer = models.ForeignKey(StoreMember, on_delete=models.CASCADE)
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
+    total_amount = models.IntegerField(default=0)
+    order_code = models.CharField(max_length=30, unique=True, editable=False, blank=True, null=True)
     status = models.CharField(
         max_length=20,
         choices=[
@@ -421,6 +424,13 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         ordering = ['-created_at']
+    def save(self, *args, **kwargs):
+        if not self.order_code:
+            # Ví dụ: OD202408160001 (OD + ngày + random)
+            today = timezone.now().strftime("%m%d")
+            random = get_random_string(6).upper()
+            self.order_code = f"DH-{today}-{random}"
+        super().save(*args, **kwargs)
     def __str__(self):
         return f"Order #{self.id} - {self.customer}"
 

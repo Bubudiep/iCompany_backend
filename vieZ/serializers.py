@@ -150,6 +150,23 @@ class StoreFeedbacksSerializer(serializers.ModelSerializer):
     class Meta:
         model = StoreFeedbacks
         fields = "__all__"
+        
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = "__all__"
+class OrderSerializer(serializers.ModelSerializer):
+    item = serializers.SerializerMethodField()
+    def get_item(self, obj):
+        try:
+            qs_item=OrderItem.objects.filter(order=obj)
+            return OrderItemSerializer(qs_item,many=True).data
+        except Exception:
+            return []
+    class Meta:
+        model = Order
+        fields = "__all__"
+        
 class StoreCollabsSerializer(serializers.ModelSerializer):
     class Meta:
         model = StoreCollabs
