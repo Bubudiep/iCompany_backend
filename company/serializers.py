@@ -41,6 +41,7 @@ class OP_HISTLTESerializer(serializers.ModelSerializer):
 class OP_HISTSerializer(serializers.ModelSerializer):
     isnew = serializers.SerializerMethodField(required=False, default=False)
     nguoibaocao = serializers.SerializerMethodField(read_only=True)
+    vendor = serializers.SerializerMethodField(read_only=True)
     def get_isnew(self,obj):
         try:
             qs_old=OperatorWorkHistory.objects.filter(id__lt=obj.id,operator=obj.operator).count()
@@ -53,6 +54,14 @@ class OP_HISTSerializer(serializers.ModelSerializer):
     def get_nguoibaocao(self,obj):
         try:
             return obj.operator.nguoibaocao.id
+        except Exception as e:
+            return None
+    def get_vendor(self,obj):
+        try:
+            if obj.vendor:
+                return obj.vendor.id
+            else:
+                return obj.operator.vendor.id
         except Exception as e:
             return None
     def create(self, validated_data):
