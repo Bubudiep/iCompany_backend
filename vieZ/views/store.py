@@ -273,9 +273,14 @@ class MemberOderViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def cancel(self, request, pk=None):
+        key = self.request.headers.get('StoreKey')
+        qs_member=StoreMember.objects.get(
+          oauth_user=self.request.user,
+          store__store_id=key
+        )
         od=self.get_object()
         OrderHistory.objects.create(
-          user=self.request.user,
+          user=qs_member,
           order=od,
           action="cancelled"
         )
