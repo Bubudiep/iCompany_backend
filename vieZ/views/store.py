@@ -287,7 +287,7 @@ class MemberOderViewSet(viewsets.ModelViewSet):
             )
             od.status="cancelled"
             od.save()
-        return OrderSerializer(od).data
+        return Response(OrderSerializer(od).data)
       
     def get_queryset(self):
         key = self.request.headers.get('StoreKey')
