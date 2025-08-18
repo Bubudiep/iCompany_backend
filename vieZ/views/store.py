@@ -270,6 +270,19 @@ class MemberOderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardPagesPagination
     http_method_names = ['get']
+
+    @action(detail=True, methods=['get'])
+    def cancel(self, request, pk=None):
+        od=self.get_object()
+        OrderHistory.objects.create(
+          user=self.request.user,
+          order=od,
+          action="cancelled"
+        )
+        od.status="cancelled"
+        od.save()
+        return OrderSerializer(od).data
+      
     def get_queryset(self):
         key = self.request.headers.get('StoreKey')
         qs_member=StoreMember.objects.get(
