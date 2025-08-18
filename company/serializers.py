@@ -39,8 +39,15 @@ class OP_HISTLTESerializer(serializers.ModelSerializer):
         fields = ['ma_nhanvien','start_date','customer']
         
 class OP_HISTSerializer(serializers.ModelSerializer):
-    isnew = serializers.BooleanField(required=False, default=False)
+    isnew = serializers.SerializerMethodField(required=False, default=False)
     nguoibaocao = serializers.SerializerMethodField(read_only=True)
+    def get_isnew(self,obj):
+        try:
+            qs_old=OperatorWorkHistory.objects.filter(id__lt=obj.id,operator=obj.operator).count()
+            if qs_old>1:
+                return True
+        except Exception as e:
+            return False
     def get_nguoibaocao(self,obj):
         try:
             return obj.operator.nguoibaocao.id
@@ -77,7 +84,6 @@ class OP_HISTSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         request = self.context.get("request")
         user = request.user if request else None
-        isnew = validated_data.pop("isnew", False)
         if user:
             user=CompanyStaff.objects.get(user__user=user)
         if validated_data.get('customer') is None:
