@@ -244,6 +244,7 @@ class UserStore(models.Model):
     store_id = models.CharField(max_length=50, blank=True, null=True, unique=True)
     store_name = models.CharField(max_length=50,blank=True,null=True)
     store_logo = models.TextField(blank=True,null=True)
+    store_collabs = models.TextField(blank=True,null=True)
     store_hotline = models.CharField(max_length=50,blank=True,null=True)
     descriptions = models.CharField(max_length=225,blank=True,null=True)
     preview_img = models.TextField(blank=True,null=True)

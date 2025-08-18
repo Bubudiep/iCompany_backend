@@ -214,6 +214,7 @@ class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserStore
         fields = [
+            "store_collabs",
             "descriptions",
             "store_name",
             "products_cate",
