@@ -28,10 +28,52 @@ class StoreFeedbacksViewSet(viewsets.ModelViewSet):
     serializer_class = StoreFeedbacksSerializer
     permission_classes = [permissions.AllowAny]
     pagination_class = StandardPagesPagination
-    http_method_names = ['get']
+    http_method_names = ['get','post']
     def get_queryset(self):
         key = self.request.headers.get('StoreKey')
         return StoreFeedbacks.objects.filter(store__store_id=key).order_by('-updated_at')
+    
+    def perform_create(self, serializer):
+        key = self.request.headers.get('StoreKey')
+        qs_member = StoreMember.objects.get(
+            oauth_user=self.request.user,
+            store__store_id=key
+        )
+        qs_old = StoreFeedbacks.objects.filter(
+            member=qs_member,
+            store=qs_member.store
+        ).first()
+        if qs_old:
+            serializer.instance = qs_old
+            serializer.save(member=qs_member, store=qs_member.store)
+        else:
+            serializer.save(member=qs_member, store=qs_member.store)
+
+    def retrieve(self, request, *args, **kwargs):
+        return Response(UserAppDetailSerializer(self.get_object()).data)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+class StoreMemberViewSet(viewsets.ModelViewSet):
+    queryset = StoreMember.objects.all()
+    serializer_class = StoreMemberSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    http_method_names = ['get','patch']
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+    def get_queryset(self):
+        key = self.request.headers.get('StoreKey')
+        return StoreMember.objects.filter(oauth_user=self.request.user,store__store_id=key)
     def retrieve(self, request, *args, **kwargs):
         return Response(UserAppDetailSerializer(self.get_object()).data)
     def list(self, request, *args, **kwargs):

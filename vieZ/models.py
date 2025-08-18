@@ -332,14 +332,14 @@ class StoreCollabs(models.Model):
         return f"{self.name}"
     
 class StoreFeedbacks(models.Model):
-    store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
-    member = models.ForeignKey(StoreMember, on_delete=models.CASCADE)
+    store = models.ForeignKey(UserStore, on_delete=models.CASCADE,blank=True,null=True)
+    member = models.ForeignKey(StoreMember, on_delete=models.CASCADE,blank=True,null=True)
     
     image = models.TextField(blank=True,null=True)
     comment = models.CharField(max_length=50,blank=True,null=True)
     rate = models.IntegerField(default=5)
     
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:

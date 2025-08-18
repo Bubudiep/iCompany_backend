@@ -97,9 +97,16 @@ class AppCategorysSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class StoreMemberSerializer(serializers.ModelSerializer):
+    feedback = serializers.SerializerMethodField()
+    def get_feedback(self, obj):
+        try:
+            qs_feedb=StoreFeedbacks.objects.get(member=obj)
+            return StoreFeedbacksSerializer(qs_feedb).data
+        except Exception:
+            return None
     class Meta:
         model = StoreMember
-        fields = ['id','email','phone','avatar','username',]
+        fields = ['id','email','phone','avatar','username','feedback']
      
 class StoreNewsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -147,6 +154,7 @@ class StoreProductsSerializer(serializers.ModelSerializer):
             return None
          
 class StoreFeedbacksSerializer(serializers.ModelSerializer):
+    member= StoreMemberSerializer(read_only=True)
     class Meta:
         model = StoreFeedbacks
         fields = "__all__"

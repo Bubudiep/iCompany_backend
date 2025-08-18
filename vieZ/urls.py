@@ -12,6 +12,7 @@ router.register(r's/slices', StoreSlidesViewSet, basename='s_slices')
 router.register(r's/carts', MemberCartViewSet, basename='s_carts')
 router.register(r's/products', StoreProductsViewSet, basename='s_products')
 router.register(r's/orders', MemberOderViewSet, basename='s_orders')
+router.register(r's/user', MemberOderViewSet, basename='s_users')
 urlpatterns = [
     path('s/order/', MemberOrder.as_view(), name='s_order'),
     path('me/', MyInfo.as_view(), name='me'),
