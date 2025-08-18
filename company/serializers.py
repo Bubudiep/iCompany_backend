@@ -44,7 +44,7 @@ class OP_HISTSerializer(serializers.ModelSerializer):
     def get_isnew(self,obj):
         try:
             qs_old=OperatorWorkHistory.objects.filter(id__lt=obj.id,operator=obj.operator).count()
-            if qs_old==01:
+            if qs_old==0:
                 return True
             else:
                 return False
