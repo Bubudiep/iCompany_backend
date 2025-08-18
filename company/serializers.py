@@ -44,8 +44,10 @@ class OP_HISTSerializer(serializers.ModelSerializer):
     def get_isnew(self,obj):
         try:
             qs_old=OperatorWorkHistory.objects.filter(id__lt=obj.id,operator=obj.operator).count()
-            if qs_old>1:
+            if qs_old==01:
                 return True
+            else:
+                return False
         except Exception as e:
             return False
     def get_nguoibaocao(self,obj):
