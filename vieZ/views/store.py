@@ -279,13 +279,14 @@ class MemberOderViewSet(viewsets.ModelViewSet):
           store__store_id=key
         )
         od=self.get_object()
-        OrderHistory.objects.create(
-          user=qs_member,
-          order=od,
-          action="cancelled"
-        )
-        od.status="cancelled"
-        od.save()
+        if qs_member==od.customer:
+            OrderHistory.objects.create(
+              user=qs_member,
+              order=od,
+              action="cancelled"
+            )
+            od.status="cancelled"
+            od.save()
         return OrderSerializer(od).data
       
     def get_queryset(self):
