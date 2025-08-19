@@ -217,6 +217,7 @@ class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
             "store_collabs",
             "descriptions",
             "store_name",
+            "store_hotline",
             "products_cate",
             "updated_at"
         ]
