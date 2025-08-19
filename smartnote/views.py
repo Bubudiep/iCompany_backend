@@ -14,6 +14,7 @@ from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.db.models import Q,F
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50  # Số lượng đối tượng trên mỗi trang
@@ -76,8 +77,16 @@ class NoteUserLoginView(APIView):
         })
         
 class UserNotesViewSet(viewsets.ModelViewSet):
-    queryset = UserNotes.objects.all().order_by("-created_at")
+    queryset = UserNotes.objects.all().order_by("-updated_at")
     serializer_class = UserNotesSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        qsuser=NoteUser.objects.get(oauth_user=self.user)
+        return UserNotes.objects.filter(
+          Q(user=qsuser)|Q(shared_with=qsuser)
+        ).order_by('-updated_at')
+    
     def perform_create(self, serializer):
         user_id = self.request.data.get("user_id")
         try:
@@ -111,6 +120,59 @@ class UserNotesViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
         page_size = self.request.query_params.get('page_size')
+        updated_at = request.query_params.get('updated_at')
+        updated_at_from = request.query_params.get('updated_at_from')
+        updated_at_to = request.query_params.get('updated_at_to')
+        if updated_at_from:
+            try:
+                date_from = make_aware(datetime.combine(parse_date(updated_at_from), datetime.min.time()))
+                queryset = queryset.filter(updated_at__gte=date_from)
+            except:
+                pass
+        if updated_at_to:
+            try:
+                date_to = make_aware(datetime.combine(parse_date(updated_at_to), datetime.max.time()))
+                queryset = queryset.filter(updated_at__lte=date_to)
+            except:
+                pass
+        if updated_at:
+            try:
+                date = make_aware(datetime.combine(parse_date(updated_at), datetime.min.time()))
+                next_day = make_aware(datetime.combine(parse_date(updated_at), datetime.max.time()))
+                queryset = queryset.filter(updated_at__range=(date, next_day))
+            except:
+                pass
+        created_at = request.query_params.get('created_at')
+        created_at_from = request.query_params.get('created_at_from')
+        created_at_to = request.query_params.get('created_at_to')
+        if created_at_from:
+            try:
+                date_from = make_aware(datetime.combine(parse_date(created_at_from), datetime.min.time()))
+                queryset = queryset.filter(created_at__gte=date_from)
+            except:
+                pass
+        if created_at_to:
+            try:
+                date_to = make_aware(datetime.combine(parse_date(created_at_to), datetime.max.time()))
+                queryset = queryset.filter(created_at__lte=date_to)
+            except:
+                pass
+        if created_at:
+            try:
+                date = make_aware(datetime.combine(parse_date(created_at), datetime.min.time()))
+                next_day = make_aware(datetime.combine(parse_date(created_at), datetime.max.time()))
+                queryset = queryset.filter(created_at__range=(date, next_day))
+            except:
+                pass
+        pinned = self.request.query_params.get('pinned')
+        if pinned:
+            queryset=queryset.filter(pinned=True)
+        phanloai = self.request.query_params.get('phanloai')
+        if phanloai:
+            queryset=queryset.filter(phanloai=phanloai)
+        note_type = self.request.query_params.get('note_type')
+        if note_type:
+            queryset=queryset.filter(note_type=note_type)
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
         page = self.paginate_queryset(queryset)

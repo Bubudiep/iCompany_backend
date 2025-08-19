@@ -33,6 +33,9 @@ class UserNotes(models.Model):
     note_type = models.CharField(max_length=22,null=True, blank=True)
     sdt = models.CharField(max_length=12,null=True, blank=True)
     customer = models.CharField(max_length=50,null=True, blank=True)
+    phanloai = models.CharField(default="in",max_length=12,
+                                null=True,
+                                choices=[['in','in'],['out','out']])
     sotien = models.IntegerField(default=0)
     content = models.TextField()
     pinned = models.BooleanField(default=False)
