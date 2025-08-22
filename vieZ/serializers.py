@@ -43,7 +43,8 @@ class UserSerializer(serializers.ModelSerializer):
     def get_files(self,obj):
         try:
             qs_files=UserFile.objects.filter(user=obj)
-            return UserFileSerializer(qs_files,many=True).data
+            request = self.context.get("request")
+            return UserFileSerializer(qs_files,many=True,context={'request': request}).data
         except Exception as e:
             return []
     def get_profile(self,obj):
@@ -60,9 +61,15 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         
 class UserFileSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField(read_only=True)
+    def get_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.file and request:
+            return request.build_absolute_uri(obj.file.url)
+        return None
     class Meta:
         model = UserFile
-        fields = ['id', 'file','file_type', 'file_name', 'file_size', 'uploaded_at']
+        fields = ['id', 'file','file_type','file_url', 'file_name', 'file_size', 'uploaded_at']
         read_only_fields = ['file_name', 'file_size', 'uploaded_at']
         
 class UserAppsSerializer(serializers.ModelSerializer):

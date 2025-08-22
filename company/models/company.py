@@ -511,7 +511,7 @@ class OperatorWorkHistory(models.Model):
                     ).first()
                     if qs_work:
                         self.operator.congty_danglam = self.customer
-                        self.operator.save()
+            self.operator.save()
         except Exception as e:
             ...
         super(OperatorWorkHistory, self).save(*args, **kwargs)

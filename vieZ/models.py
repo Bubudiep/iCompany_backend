@@ -25,9 +25,10 @@ import base64
 from PIL import Image
 from io import BytesIO
 import difflib
-import os
+import os, sys
 from django.core.files.storage import default_storage
 from django.utils.crypto import get_random_string
+import mimetypes
 
 class Users(models.Model):
     oauth_user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -98,16 +99,29 @@ class UserFile(models.Model):
     file = models.FileField(upload_to='uploads/viez/%Y/%m/%d/')
     file_name = models.CharField(max_length=255)
     file_size = models.BigIntegerField()  # lưu theo byte
-    file_type = models.CharField(max_length=20, blank=True)  # thêm trường này
+    file_type = models.CharField(max_length=100, blank=True)  # thêm trường này
     uploaded_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         ordering = ['-uploaded_at']
     def save(self, *args, **kwargs):
-        if self.file: # Tự động lấy kích thước và tên file
-            self.file_name = self.file.name
-            self.file_size = self.file.size
-            self.file_type = os.path.splitext(self.file.name)[1].lower().replace('.', '')
-        super().save(*args, **kwargs)
+        try:
+            if self.file: # Tự động lấy kích thước và tên file
+                self.file_name = self.file.name
+                self.file_size = self.file.size
+                mime_type, _ = mimetypes.guess_type(self.file.name)
+                if mime_type:
+                    self.file_type = mime_type
+                else:
+                    self.file_type = os.path.splitext(self.file.name)[1].lower().replace('.', '')
+            super().save(*args, **kwargs)
+            
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            print(f"{file_name}_{lineno}: {str(e)}")
+            
     def __str__(self):
         return f"{self.user.username} - {self.file_name} ({self.file_size / 1024:.1f} KB)"
     def delete(self, *args, **kwargs):

@@ -7,7 +7,7 @@ class MyInfo(APIView):
         key = request.headers.get('ApplicationKey')
         if request.user.is_authenticated:
             user = Users.objects.get(oauth_user=request.user)
-            return Response(UserSerializer(user).data)
+            return Response(UserSerializer(user,context={'request': request}).data)
         else:
             return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
                
@@ -143,7 +143,6 @@ class UserFileViewSet(viewsets.ModelViewSet):
         uploaded_files = request.FILES.getlist('file')  # nhận nhiều file cùng lúc
         if not uploaded_files:
             raise serializers.ValidationError({'file': 'Cần ít nhất một file để upload'})
-        # Tính tổng dung lượng đã dùng
         used = UserFile.objects.filter(user=user).aggregate(total=models.Sum('file_size'))['total'] or 0
         max_mb = user.userconfigs.plan.max_storage_mb if hasattr(user, 'userconfigs') and user.userconfigs.plan else 0
         max_bytes = max_mb * 1024 * 1024
@@ -162,18 +161,17 @@ class UserFileViewSet(viewsets.ModelViewSet):
             }
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
-            serializer.save(user=user)
-            saved_instances.append(serializer.data)
-
+            saved_data=serializer.save(user=user)
+            if saved_data.id:
+                saved_instances.append(serializer.data)
         return Response(saved_instances, status=status.HTTP_201_CREATED)
+    
     def perform_create(self, serializer):
         user = self.request.user
         uploaded_file = self.request.FILES.get('file')
 
         if not uploaded_file:
             raise serializers.ValidationError({'file': 'File is required'})
-
-        # Kiểm tra dung lượng đã dùng
         used = UserFile.objects.filter(user=user).aggregate(total=models.Sum('file_size'))['total'] or 0
         max_mb = user.userconfigs.plan.max_storage_mb if hasattr(user, 'userconfigs') and user.userconfigs.plan else 0
         if used + uploaded_file.size > max_mb * 1024 * 1024:
