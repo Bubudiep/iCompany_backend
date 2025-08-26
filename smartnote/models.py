@@ -39,8 +39,8 @@ class UserNotes(models.Model):
                                 null=True,
                                 choices=[['in','in'],['out','out']])
     sotien = models.IntegerField(default=0)
-    content = models.TextField()
-    pinned = models.BooleanField(default=False)
+    noidung = models.TextField()
+    ghim = models.BooleanField(default=False)
     shared_with = models.ManyToManyField(
         NoteUser,
         related_name="shared_notes",

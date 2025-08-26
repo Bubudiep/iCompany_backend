@@ -23,3 +23,4 @@ class UserNotesSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserNotes
         fields = '__all__'
+        readonly_fields=['user']
