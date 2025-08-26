@@ -471,6 +471,42 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_403_FORBIDDEN)
         
     @action(detail=True, methods=['post'])
+    def update_amount(self, request, request_code=None):
+        user = request.user
+        key = request.headers.get('ApplicationKey')
+        apv = self.get_object()
+        try:
+            staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+            config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
+            if apv.status not in ["pending"]:
+                return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+            if staff.isSuperAdmin:
+                pass
+            elif staff.isAdmin:
+                pass
+            elif staff in config.staff_approve_admin.all():
+                pass  # Được phép phê duyệt
+            elif staff != apv.requester:
+                return Response({"detail": "Bạn không có quyền hủy",
+                                 "reason": "Không phải người tạo yêu cầu hoặc super admin"}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            n_amount=request.data.get('amount',None)
+            if n_amount:
+                apv.amount=n_amount
+                apv.save()
+                AdvanceRequestHistory.objects.create(request=apv,
+                    user=staff,
+                    action='update amount',
+                    comment=request.data.get('comment')
+                )
+            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+        except CompanyStaff.DoesNotExist:
+            return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            "detail": "Không thể cập nhập"
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    @action(detail=True, methods=['post'])
     def cancel(self, request, request_code=None):
         user = request.user
         key = request.headers.get('ApplicationKey')
