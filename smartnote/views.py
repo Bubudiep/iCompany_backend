@@ -85,7 +85,7 @@ class UserNotesViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qsuser=NoteUser.objects.get(oauth_user=self.request.user)
         return UserNotes.objects.filter(
-          Q(user=qsuser)|Q(shared_with=qsuser)
+          Q(user=qsuser)|Q(chiasecho=qsuser)
         ).order_by('-updated_at')
     def perform_create(self, serializer):
         user = self.request.user
@@ -97,15 +97,18 @@ class UserNotesViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def share(self, request, pk=None):
         note = self.get_object()
-        shared_with_id = request.data.get("shared_with_id")
+        chiasecho = request.data.get("chiasecho")
         can_edit = request.data.get("can_edit", False)
         try:
-            target_user = NoteUser.objects.get(id=shared_with_id)
+            target_user = NoteUser.objects.get(id=chiasecho)
         except NoteUser.DoesNotExist:
             return Response({"error": "Người nhận không tồn tại"}, status=400)
 
         if note.user == target_user:
             return Response({"error": "Không thể chia sẻ với chính mình"}, status=400)
+        if target_user not in note.chiasecho.all():
+            note.chiasecho.add(target_user)
+            note.save()
         shared, created = SharedNote.objects.get_or_create(
             note=note,
             shared_with=target_user,
