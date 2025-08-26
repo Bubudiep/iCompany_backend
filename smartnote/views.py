@@ -142,6 +142,26 @@ class UserNotesViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(updated_at__range=(date, next_day))
             except:
                 pass
+        tenghichu = request.query_params.get('tenghichu')
+        if tenghichu:
+            queryset = queryset.filter(tenghichu=tenghichu)
+        loai = request.query_params.get('loai')
+        if loai:
+            queryset = queryset.filter(loai=loai)
+        sdt = request.query_params.get('sdt')
+        if sdt:
+            queryset = queryset.filter(sdt=sdt)
+        khachhang = request.query_params.get('khachhang')
+        if khachhang:
+            queryset = queryset.filter(khachhang=khachhang)
+        ghim = request.query_params.get('ghim')
+        if ghim:
+            queryset = queryset.filter(ghim=True)
+        else:
+            queryset = queryset.filter(ghim=False)
+        phanloai = request.query_params.get('phanloai')
+        if phanloai:
+            queryset = queryset.filter(phanloai=phanloai)
         date_create = request.query_params.get('date_create')
         if date_create:
             queryset = queryset.filter(created_at__date=date_create)
