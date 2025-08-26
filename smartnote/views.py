@@ -82,15 +82,14 @@ class UserNotesViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        qsuser=NoteUser.objects.get(oauth_user=self.user)
+        qsuser=NoteUser.objects.get(oauth_user=self.request.user)
         return UserNotes.objects.filter(
           Q(user=qsuser)|Q(shared_with=qsuser)
         ).order_by('-updated_at')
-    
     def perform_create(self, serializer):
-        user_id = self.request.data.get("user_id")
+        user = self.request.user
         try:
-            note_user = NoteUser.objects.get(id=user_id)
+            note_user = NoteUser.objects.get(oauth_user=user)
         except NoteUser.DoesNotExist:
             raise serializers.ValidationError("NoteUser không tồn tại.")
         serializer.save(user=note_user)
@@ -142,6 +141,9 @@ class UserNotesViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(updated_at__range=(date, next_day))
             except:
                 pass
+        date_create = request.query_params.get('date_create')
+        if date_create:
+            queryset = queryset.filter(created_at__date=date_create)
         created_at = request.query_params.get('created_at')
         created_at_from = request.query_params.get('created_at_from')
         created_at_to = request.query_params.get('created_at_to')
