@@ -491,13 +491,14 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                                  "reason": "Không phải người tạo yêu cầu hoặc super admin"}, 
                                 status=status.HTTP_400_BAD_REQUEST)
             n_amount=request.data.get('amount',None)
+            o_amount=apv.amount
             if n_amount:
                 apv.amount=n_amount
                 apv.save()
                 AdvanceRequestHistory.objects.create(request=apv,
                     user=staff,
-                    action='update amount',
-                    comment=request.data.get('comment')
+                    action='update',
+                    comment=f'update số tiền: {o_amount} -> {n_amount}'
                 )
             return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
