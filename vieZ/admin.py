@@ -104,7 +104,7 @@ class StoreProductsCtlAdmin(admin.ModelAdmin):
 
 @admin.register(StoreProducts)
 class StoreProductsAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'store', 'is_active', 'created_at', 'updated_at')
+    list_display = ('title', 'store', 'is_active', 'created_at', 'updated_at')
     search_fields = ('title', 'short', 'store__store_name', 'category__name')
     list_filter = ('is_active', 'created_at', 'updated_at', 'category')
     readonly_fields = ('created_at', 'updated_at')

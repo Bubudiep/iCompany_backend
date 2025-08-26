@@ -15,7 +15,64 @@ class UserConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserConfigs
         fields = "__all__"
+
+class StoreProductsCtlSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreProductsCtl
+        fields = ['id','name','code','descriptions']
         
+class StoreProductsSerializer(serializers.ModelSerializer):
+    img_base64 = serializers.CharField(required=False, allow_blank=True)
+    class Meta:
+        model = StoreProducts
+        fields = "__all__"
+    def to_representation(self, instance):
+        """Xử lý khi trả data ra (resize, trả về thumbnail)"""
+        ret = super().to_representation(instance)
+        img_data = ret.get("img_base64")
+        if not img_data:
+            return ret
+        try:
+            if img_data.startswith("data:image/png;base64,"):
+                raw = base64.b64decode(img_data.split(",")[-1])
+                image = Image.open(BytesIO(raw))
+                image.thumbnail((88, 88))
+                buffer = BytesIO()
+                image.save(buffer, format="PNG")
+                thumb_base64 = base64.b64encode(buffer.getvalue()).decode()
+                ret["img_base64"] = f"data:image/png;base64,{thumb_base64}"
+        except Exception:
+            ret["img_base64"] = None
+        return ret
+    def create(self, validated_data):
+        category=validated_data.pop('category',None)
+        created=StoreProducts.objects.create(**validated_data)
+        if category:
+            created.category.set(category)
+        return created
+    def update(self, instance, validated_data):
+        """Chỉ update img_base64 hoặc field khác nếu có"""
+        category=validated_data.pop('category',None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if category:
+            instance.category.set(category)
+        instance.save()
+        return instance
+
+        
+class UserStoreSerializer(serializers.ModelSerializer):
+    product_categorys=serializers.SerializerMethodField(read_only=True)
+    def get_product_categorys(self,obj):
+        try:
+            qs_cates=StoreProductsCtl.objects.filter(store=obj)
+            return StoreProductsCtlSerializer(qs_cates,many=True).data
+        except Exception as e:
+            return {"detail":f"{e}"}
+    class Meta:
+        model = UserStore
+        fields = "__all__"
+
 class UserSerializer(serializers.ModelSerializer):
     profile=serializers.SerializerMethodField(read_only=True)
     files=serializers.SerializerMethodField(read_only=True)
@@ -30,13 +87,18 @@ class UserSerializer(serializers.ModelSerializer):
             return {"detail":f"{e}"}
     def get_plan(self,obj):
         try:
-            qs_plan=UserPlan.objects.all()
-            return UserPlanSerializer(qs_plan,many=True).data
+            qs_config=UserConfigs.objects.get(user=obj)
+            return UserPlanSerializer(qs_config.plan).data
         except Exception as e:
             return {"detail":f"{e}"}
     def get_config(self,obj):
         try:
-            qs_config,_=UserConfigs.objects.get_or_create(user=obj)
+            qs_config, created=UserConfigs.objects.get_or_create(user=obj)
+            if created:
+                free_plan=UserPlan.objects.get(name='Free')
+                created.plan=free_plan
+                created.save()
+                return UserConfigSerializer(created).data
             return UserConfigSerializer(qs_config).data
         except Exception as e:
             return {"detail":f"{e}"}
@@ -141,24 +203,6 @@ class StoreProductsCtlSerializer(serializers.ModelSerializer):
     class Meta:
         model = StoreProductsCtl
         fields = "__all__"
-class StoreProductsSerializer(serializers.ModelSerializer):
-    img_base64 = serializers.SerializerMethodField()
-    class Meta:
-        model = StoreProducts
-        fields = "__all__"
-    def get_img_base64(self, obj):
-        if not obj.img_base64:
-            return None
-        try:
-            img_data = base64.b64decode(obj.img_base64.split(",")[-1])
-            image = Image.open(BytesIO(img_data))
-            image.thumbnail((88, 88))
-            buffer = BytesIO()
-            image.save(buffer, format="PNG")
-            thumb_base64 = base64.b64encode(buffer.getvalue()).decode()
-            return f"data:image/png;base64,{thumb_base64}"
-        except Exception:
-            return None
          
 class StoreFeedbacksSerializer(serializers.ModelSerializer):
     member= StoreMemberSerializer(read_only=True)

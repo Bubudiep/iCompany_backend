@@ -73,6 +73,7 @@ class UserPlan(models.Model):
     name = models.CharField(max_length=100, unique=True)  # "Free", "Pro", "Enterprise"...
     max_storage_mb = models.IntegerField(default=300)
     max_apps = models.IntegerField(default=5)
+    max_store = models.IntegerField(default=1)
     max_categories = models.IntegerField(default=5)
     max_products = models.IntegerField(default=30)
     description = models.TextField(blank=True, null=True)
@@ -391,11 +392,12 @@ class StoreProductsCtl(models.Model):
     
 class StoreProducts(models.Model):
     store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
-    category = models.ForeignKey(StoreProductsCtl, on_delete=models.CASCADE)
-    title = models.CharField(max_length=50,blank=True,null=True)
+    category = models.ManyToManyField(StoreProductsCtl, blank=True,null=True)
+    title = models.CharField(max_length=150,blank=True,null=True)
     short = models.CharField(max_length=225,blank=True,null=True)
     img_base64 = models.TextField(blank=True,null=True)
-    price = models.IntegerField(default=0)
+    stock = models.IntegerField(default=0,blank=True,null=True)
+    price = models.IntegerField(default=0,blank=True,null=True)
     min_unit = models.IntegerField(default=1)
     unit = models.CharField(default="cái",max_length=20,blank=True,null=True)
     descriptions = models.TextField(blank=True,null=True)

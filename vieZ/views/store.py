@@ -134,17 +134,108 @@ class StoreSlidesViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class UserStoreViewSet(viewsets.ModelViewSet):
+    queryset = UserStore.objects.all()
+    serializer_class = UserStoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    http_method_names = ['get']
+    def get_queryset(self):
+        user=self.request.user
+        return UserStore.objects.filter(user__oauth_user=user).order_by('-updated_at')
+    def retrieve(self, request, *args, **kwargs):
+        return Response(UserAppDetailSerializer(self.get_object()).data)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+        
+class AllStoreViewSet(viewsets.ModelViewSet):
+    queryset = UserStore.objects.all()
+    serializer_class = UserStoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    http_method_names = ['get','post','patch','delete']
+    def get_queryset(self):
+        user=self.request.user
+        return UserStore.objects.filter(user__oauth_user=user).order_by('-updated_at')
+    def retrieve(self, request, *args, **kwargs):
+        return Response(UserAppDetailSerializer(self.get_object()).data)
+    def perform_create(self, serializer):
+        user = self.request.user
+        key = self.request.headers.get('StoreKey')
+        qs_store = UserStore.objects.get(user=user,store_id=key)
+        serializer.save(store=qs_store)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+class AllStoreProductsViewSet(viewsets.ModelViewSet):
+    queryset = StoreProducts.objects.all()
+    serializer_class = StoreProductsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    http_method_names = ['get','post','patch','delete']
+    def get_queryset(self):
+        user=self.request.user
+        return StoreProducts.objects.filter(store__user__oauth_user=user).order_by('-updated_at')
+    def retrieve(self, request, *args, **kwargs):
+        return Response(UserAppDetailSerializer(self.get_object()).data)
+    def perform_create(self, serializer):
+        user = self.request.user
+        store_id = self.request.data.get('store')
+        qs_store = UserStore.objects.filter(id=store_id, user__oauth_user=user).first()
+        if not qs_store:
+            raise ValidationError({"detail": "Cửa hàng không tồn tại hoặc bạn không có quyền."})
+        serializer.save(store=qs_store)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
 class StoreProductsViewSet(viewsets.ModelViewSet):
     queryset = StoreProducts.objects.all()
     serializer_class = StoreProductsSerializer
     permission_classes = [permissions.AllowAny]
     pagination_class = StandardPagesPagination
-    http_method_names = ['get']
+    http_method_names = ['get','post','patch','delete']
     def get_queryset(self):
         key = self.request.headers.get('StoreKey')
         return StoreProducts.objects.filter(store__store_id=key).order_by('-updated_at')
     def retrieve(self, request, *args, **kwargs):
         return Response(UserAppDetailSerializer(self.get_object()).data)
+    def perform_create(self, serializer):
+        user = self.request.user
+        key = self.request.headers.get('StoreKey')
+        qs_store = UserStore.objects.get(user=user,store_id=key)
+        serializer.save(store=qs_store)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)

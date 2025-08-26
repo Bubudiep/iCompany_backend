@@ -5,6 +5,8 @@ from .views import *
 router = routers.DefaultRouter()
 router.register(r'files', UserFileViewSet, basename='userfiles')
 router.register(r'apps', UserAppsViewSet, basename='userapps')
+router.register(r'stores', AllStoreViewSet, basename='stores')
+router.register(r'products', AllStoreProductsViewSet, basename='products')
 router.register(r's/news', StoreNewsViewSet, basename='s_news')
 router.register(r's/feedbacks', StoreFeedbacksViewSet, basename='s_feedbacks')
 router.register(r's/collabs', StoreCollabsViewSet, basename='s_collabs')
