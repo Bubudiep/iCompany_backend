@@ -490,6 +490,8 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             n_amount=request.data.get('amount',None)
             o_amount=apv.amount
             if n_amount:
+                if payment_status=="done":
+                    apv.payout_amount=n_amount
                 apv.amount=n_amount
                 apv.save()
                 AdvanceRequestHistory.objects.create(request=apv,
