@@ -448,8 +448,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                 return Response({"detail": "Bạn không có quyền giải ngân",
                                  "reason": "Không thuộc nhóm giải ngân và không phải admin/super admin"}, 
                                 status=status.HTTP_400_BAD_REQUEST)
-            if request.data.get('amountPay'):
-                apv.payout_amount=request.data.get('amountPay')
+            apv.payout_amount=apv.amount
             apv.payment_status="done"
             apv.save()
             AdvanceRequestHistory.objects.create(request=apv,
@@ -613,8 +612,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_400_BAD_REQUEST)
             apv.status="approved"
             apv.payment_status="done"
-            if request.data.get('amountPay'):
-                apv.payout_amount=request.data.get('amountPay')
+            apv.payout_amount=apv.amount
             apv.save()
             AdvanceRequestHistory.objects.create(request=apv,
                 user=staff,
