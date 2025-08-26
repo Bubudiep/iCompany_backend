@@ -80,6 +80,7 @@ class UserNotesViewSet(viewsets.ModelViewSet):
     queryset = UserNotes.objects.all().order_by("-updated_at")
     serializer_class = UserNotesSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
     
     def get_queryset(self):
         qsuser=NoteUser.objects.get(oauth_user=self.request.user)
