@@ -477,8 +477,6 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         try:
             staff = CompanyStaff.objects.get(user__user=user, company__key=key)
             config,_ = CompanyConfig.objects.get_or_create(company=staff.company)
-            if apv.status not in ["pending"]:
-                return Response({"detail": "Trạng thái không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
             if staff.isSuperAdmin:
                 pass
             elif staff.isAdmin:
