@@ -18,8 +18,8 @@ class UserConfigsAdmin(admin.ModelAdmin):
 
 @admin.register(UserNotes)
 class UserNotesAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'name', 'ghim', 'created_at', 'updated_at']
-    search_fields = ['name', 'user__username']
+    list_display = ['id', 'user', 'tenghichu', 'ghim', 'created_at', 'updated_at']
+    search_fields = ['tenghichu', 'user__username']
     list_filter = ['ghim', 'created_at']
 
 @admin.register(SharedNote)
