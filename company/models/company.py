@@ -457,6 +457,11 @@ class CompanyOperator(models.Model):
     def save(self, *args, **kwargs):
         if not self.ma_nhanvien:
             self.ma_nhanvien = f"RANDOM_{uuid.uuid4().hex.upper()[:18]}"
+        qs_history=OperatorWorkHistory.objects.filter(operator=self,end_date__isnull=True).first()
+        if qs_history:
+            self.congty_danglam=qs_history.customer
+        else:
+            self.congty_danglam=None
         super(CompanyOperator, self).save(*args, **kwargs)
     def __str__(self):
         return f"{self.ma_nhanvien}"
