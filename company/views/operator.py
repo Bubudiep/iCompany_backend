@@ -558,8 +558,8 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         key = self.request.headers.get('ApplicationKey')
         qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
         bankname = request.data.get('bankname')
-        banknumber = request.data.get('banknumber')
-        fullname = request.data.get('fullname')
+        banknumber = request.data.get('banknumber', '').replace(" ", "")  # bỏ dấu cách
+        fullname = request.data.get('fullname', '').upper()               # viết hoa toàn bộ
         ghichu = request.data.get('ghichu_taikhoan')
         try:
             operator = self.get_object()
