@@ -739,7 +739,25 @@ class CompanyOperatorLTE2Serializer(serializers.ModelSerializer):
 class CompanyOperatorNoWorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
-        fields = "__all__"
+        fields = [
+            "ma_nhanvien",
+            "ngay_phongvan",
+            "ho_ten",
+            "gioi_tinh",
+            "ten_goc",
+            "so_cccd",
+            "ngaysinh",
+            "nganhang",
+            "so_taikhoan",
+            "chu_taikhoan",
+            "ghichu_taikhoan",
+            "ghichu",
+            "nguoituyen",
+            "vendor",
+            "congty_danglam",
+            "nhachinh",
+            "nguoibaocao",
+        ]
 
 
 class CompanyOperatorSerializer(serializers.ModelSerializer):
