@@ -169,6 +169,17 @@ class AllStoreViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user=self.request.user
         return UserStore.objects.filter(user__oauth_user=user).order_by('-updated_at')
+    @action(detail=True, methods=["post"])
+    def add_categogy(self, request, pk=None):
+        store = self.get_object()
+        category=request.data.get('name',None)
+        if category:
+            cate=StoreProductsCtl.objects.create(
+                store=store,
+                name=category,
+                code=category.strip().lower().replace(" ","-")
+            )
+        return Response(UserStoreSerializer(store).data)
     def retrieve(self, request, *args, **kwargs):
         return Response(UserAppDetailSerializer(self.get_object()).data)
     def perform_create(self, serializer):
@@ -200,6 +211,7 @@ class AllStoreProductsViewSet(viewsets.ModelViewSet):
         return StoreProducts.objects.filter(store__user__oauth_user=user).order_by('-updated_at')
     def retrieve(self, request, *args, **kwargs):
         return Response(UserAppDetailSerializer(self.get_object()).data)
+    
     def perform_create(self, serializer):
         user = self.request.user
         store_id = self.request.data.get('store')
@@ -388,6 +400,30 @@ class MemberOderViewSet(viewsets.ModelViewSet):
         )
         return Order.objects.filter(
           customer=qs_member
+        ).order_by('-updated_at')
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+   
+class StoreProductsCtlViewSet(viewsets.ModelViewSet):
+    queryset = StoreProductsCtl.objects.all()
+    serializer_class = StoreProductsCtlSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    http_method_names = ['patch']
+    def get_queryset(self):
+        user=self.request.user
+        return StoreProductsCtl.objects.filter(
+          store__user__oauth_user=user
         ).order_by('-updated_at')
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
