@@ -736,6 +736,12 @@ class CompanyOperatorLTE2Serializer(serializers.ModelSerializer):
         ]
 
 
+class CompanyOperatorNoWorkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyOperator
+        fields = "__all__"
+
+
 class CompanyOperatorSerializer(serializers.ModelSerializer):
     work = serializers.SerializerMethodField(read_only=True)
 

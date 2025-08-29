@@ -24,6 +24,7 @@ router.register(r"approveX", AdvanceRequestExportViewSet, basename="approveX")
 router.register(r"com", CompanyViewSet, basename="com")
 router.register(r"note", CompanyBookViewSet, basename="note")
 router.register(r"op_all", CompanyOperatorAllDetailsViewSet, basename="op_all")
+router.register(r"oplist", CompanyOperatorNoWorkViewSet, basename="oplist")
 urlpatterns = [
     path("op/add/", AddOperatorAPIView.as_view(), name="add-op"),
     path("search/", SearchAPIView.as_view(), name="search"),

@@ -1030,6 +1030,45 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class CompanyOperatorNoWorkViewSet(viewsets.ModelViewSet):
+    serializer_class = CompanyOperatorNoWorkSerializer
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get("ApplicationKey")
+        qs_res = CompanyStaff.objects.get(
+            user__user=user, isActive=True, company__key=key
+        )
+        return CompanyOperator.objects.filter(
+            Q(nguoituyen=qs_res)
+            | Q(nguoibaocao=qs_res)
+            | Q(
+                congty_danglam__id__in=qs_res.managerCustomer.all().values_list(
+                    "id", flat=True
+                )
+            ),
+            company=qs_res.company,
+            is_deleted=False,
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
+        page_size = self.request.query_params.get("page_size")
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
 class CompanyOperatorDetailsViewSet(viewsets.ModelViewSet):
     serializer_class = CompanyOperatorDetailsSerializer
     authentication_classes = [OAuth2Authentication]
