@@ -1122,13 +1122,6 @@ class CompanyOperatorMoreDetailsViewSet(viewsets.ModelViewSet):
             user__user=user, isActive=True, company__key=key
         )
         return CompanyOperator.objects.filter(
-            Q(nguoituyen=qs_res)
-            | Q(nguoibaocao=qs_res)
-            | Q(
-                congty_danglam__id__in=qs_res.managerCustomer.all().values_list(
-                    "id", flat=True
-                )
-            ),
             company=qs_res.company,
             is_deleted=False,
         )
