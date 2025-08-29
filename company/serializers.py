@@ -740,6 +740,7 @@ class CompanyOperatorNoWorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyOperator
         fields = [
+            "id",
             "ma_nhanvien",
             "ngay_phongvan",
             "ho_ten",
