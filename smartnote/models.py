@@ -34,6 +34,7 @@ class UserNotes(models.Model):
     tenghichu = models.CharField(max_length=255)
     loai = models.CharField(max_length=22,null=True, blank=True)
     sdt = models.CharField(max_length=12,null=True, blank=True)
+    thoigian = models.DateTimeField(null=True, blank=True)
     khachhang = models.CharField(max_length=50,null=True, blank=True)
     phanloai = models.CharField(default="in",max_length=12,
                                 null=True,
