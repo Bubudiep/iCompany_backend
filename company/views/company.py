@@ -1032,7 +1032,7 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
     queryset = CompanyBook.objects.all()
     serializer_class = CompanyBookSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get','post']
+    http_method_names = ['get','post','patch']
     pagination_class = StandardResultsSetPagination
     
     @action(detail=False, methods=['get', 'post'])
