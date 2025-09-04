@@ -19,8 +19,25 @@ class SharedNoteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserNotesSerializer(serializers.ModelSerializer):
+    hotenkhachhang = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    sodienthoai = serializers.CharField(write_only=True, required=False, allow_blank=True)
     shared_with = SharedNoteSerializer(source='sharednote_set', many=True, read_only=True)
     class Meta:
         model = UserNotes
         fields = '__all__'
-        read_only_fields=['user']
+        read_only_fields=['user','khachhang']
+        
+    def create(self, validated_data):
+        hotenkhachhang = validated_data.pop("hotenkhachhang", None)
+        sodienthoai = validated_data.pop("sodienthoai", None)
+        note_user = validated_data.get("user")
+        customer = None
+        if hotenkhachhang or sodienthoai:
+            customer, _ = NoteCustomer.objects.get_or_create(
+                user=note_user,
+                hoten=hotenkhachhang,
+                sodienthoai=sodienthoai,
+                defaults={"description": ""}
+            )
+        validated_data["khachhang"] = customer
+        return super().create(validated_data)

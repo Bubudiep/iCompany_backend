@@ -20,6 +20,7 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.full_name or self.user.username
+    
 class UserConfigs(models.Model):
     user = models.OneToOneField(NoteUser, on_delete=models.CASCADE, related_name='configs')
     dark_mode = models.BooleanField(default=False)
@@ -29,13 +30,23 @@ class UserConfigs(models.Model):
     def __str__(self):
         return f"Cấu hình của {self.user.username}"
     
+class NoteCustomer(models.Model):
+    user = models.OneToOneField(NoteUser, on_delete=models.CASCADE)
+    hoten = models.CharField(max_length=100,null=True, blank=True)
+    sodienthoai = models.CharField(max_length=12,null=True, blank=True)
+    description = models.CharField(max_length=200,null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.id}"
+    
 class UserNotes(models.Model):
     user = models.ForeignKey(NoteUser, on_delete=models.CASCADE, related_name="owned_notes")
     tenghichu = models.CharField(max_length=255)
     loai = models.CharField(max_length=22,null=True, blank=True)
-    sdt = models.CharField(max_length=12,null=True, blank=True)
     thoigian = models.DateTimeField(null=True, blank=True)
-    khachhang = models.CharField(max_length=50,null=True, blank=True)
+    khachhang = models.ForeignKey(NoteCustomer,on_delete=models.SET_NULL,null=True, blank=True)
     phanloai = models.CharField(default="in",max_length=12,
                                 null=True,
                                 choices=[['in','in'],['out','out']])
@@ -51,7 +62,7 @@ class UserNotes(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
-        return self.title
+        return self.tenghichu
     
 class SharedNote(models.Model):
     note = models.ForeignKey(UserNotes, on_delete=models.CASCADE)
