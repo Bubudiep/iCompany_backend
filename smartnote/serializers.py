@@ -18,6 +18,12 @@ class SharedNoteSerializer(serializers.ModelSerializer):
         model = SharedNote
         fields = '__all__'
 
+class NoteCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NoteCustomer
+        fields = '__all__'
+        read_only_fields=['user']
+        
 class UserNotesSerializer(serializers.ModelSerializer):
     hotenkhachhang = serializers.CharField(write_only=True, required=False, allow_blank=True)
     sodienthoai = serializers.CharField(write_only=True, required=False, allow_blank=True)

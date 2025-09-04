@@ -76,6 +76,22 @@ class NoteUserLoginView(APIView):
             "token_type": "Bearer",
         })
         
+class NoteCustomerViewSet(viewsets.ModelViewSet):
+    queryset = NoteCustomer.objects.all().order_by("-updated_at")
+    serializer_class = NoteCustomerSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    def get_queryset(self):
+        qsuser=NoteUser.objects.get(oauth_user=self.request.user)
+        return NoteCustomer.objects.filter(user=qsuser).order_by('-updated_at')
+    def perform_create(self, serializer):
+        user = self.request.user
+        try:
+            note_user = NoteUser.objects.get(oauth_user=user)
+        except NoteUser.DoesNotExist:
+            raise serializers.ValidationError("NoteUser không tồn tại.")
+        serializer.save(user=note_user)
+        
 class UserNotesViewSet(viewsets.ModelViewSet):
     queryset = UserNotes.objects.all().order_by("-updated_at")
     serializer_class = UserNotesSerializer
