@@ -170,9 +170,12 @@ class UserNotesViewSet(viewsets.ModelViewSet):
         sdt = request.query_params.get('sdt')
         if sdt:
             queryset = queryset.filter(sdt=sdt)
-        khachhang = request.query_params.get('khachhang')
-        if khachhang:
-            queryset = queryset.filter(khachhang=khachhang)
+        hoten = request.query_params.get('hoten')
+        if hoten:
+            queryset = queryset.filter(khachhang__hoten=hoten)
+        sodienthoai = request.query_params.get('sodienthoai')
+        if sodienthoai:
+            queryset = queryset.filter(khachhang__sodienthoai=sodienthoai)
         ghim = request.query_params.get('ghim')
         if ghim:
             queryset = queryset.filter(ghim=True)

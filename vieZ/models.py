@@ -68,8 +68,8 @@ class UserProfile(models.Model):
     gender = models.CharField(
         max_length=10, choices=[("male", "Nam"), ("female", "Nữ")], blank=True
     )
-    avatar = models.URLField(blank=True, null=True)
-    avatar_base64 = models.TextField(blank=True, null=True)
+    avatar = models.TextField(blank=True, null=True)
+    token = models.IntegerField(default=0)
     date_of_birth = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -88,6 +88,7 @@ class UserPlan(models.Model):
     max_storage_mb = models.IntegerField(default=300)
     max_apps = models.IntegerField(default=5)
     max_store = models.IntegerField(default=1)
+    max_warehouse = models.IntegerField(default=1)
     max_categories = models.IntegerField(default=5)
     max_products = models.IntegerField(default=30)
     description = models.TextField(blank=True, null=True)
@@ -489,7 +490,7 @@ class StoreProductsCtl(models.Model):
 
 class StoreProducts(models.Model):
     store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
-    category = models.ManyToManyField(StoreProductsCtl, blank=True, null=True)
+    category = models.ManyToManyField(StoreProductsCtl, null=True)
     title = models.CharField(max_length=150, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
     short = models.CharField(max_length=225, blank=True, null=True)
@@ -514,7 +515,7 @@ class StoreSales(models.Model):
     store = models.ForeignKey(UserStore, on_delete=models.CASCADE)
     name = models.CharField(max_length=50, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
-    products = models.ManyToManyField(StoreProducts, blank=True, null=True)
+    products = models.ManyToManyField(StoreProducts, blank=True)
     type = models.CharField(
         max_length=10,
         choices=[("percent", "Phần trăm"), ("price", "Giá")],

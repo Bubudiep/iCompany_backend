@@ -114,7 +114,7 @@ class UserSerializer(serializers.ModelSerializer):
             qs_profile,_=UserProfile.objects.get_or_create(user=obj)
             return UserProfileSerializer(qs_profile).data
         except Exception as e:
-            return {}
+            return f"{e}"
     class Meta:
         model = Users
         fields = [
@@ -256,6 +256,12 @@ class MemberCartSerializer(serializers.ModelSerializer):
         model = MemberCart
         fields = '__all__'
         read_only_fields = ['member']
+        
+class WarehouseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Warehouse
+        fields = '__all__'
+        read_only_fields = ['user']
         
 class UserStoreMemberViewsSerializer(serializers.ModelSerializer):
     products_cate=serializers.SerializerMethodField(read_only=True)

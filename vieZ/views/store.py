@@ -437,3 +437,29 @@ class StoreProductsCtlViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+class WarehouseViewSet(viewsets.ModelViewSet):
+    queryset = Warehouse.objects.all()
+    serializer_class = WarehouseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    def get_queryset(self):
+        user=self.request.user
+        return Warehouse.objects.filter(
+          user__oauth_user=user
+        ).order_by('-updated_at')
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
