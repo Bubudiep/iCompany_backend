@@ -170,6 +170,9 @@ class UserNotesViewSet(viewsets.ModelViewSet):
         sdt = request.query_params.get('sdt')
         if sdt:
             queryset = queryset.filter(sdt=sdt)
+        hoten_in = request.query_params.get('hoten_in')
+        if hoten_in:
+            queryset = queryset.filter(khachhang__hoten__in=hoten_in.split(","))
         hoten = request.query_params.get('hoten')
         if hoten:
             queryset = queryset.filter(khachhang__hoten=hoten)
