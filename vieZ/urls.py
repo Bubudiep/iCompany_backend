@@ -1,8 +1,10 @@
 from django.urls import path, include
 from rest_framework import routers
 from .views import *
+from . import json
 
 router = routers.DefaultRouter()
+router.register(r'profile', UserProfileViewSet, basename='userprofile')
 router.register(r'files', UserFileViewSet, basename='userfiles')
 router.register(r'apps', UserAppsViewSet, basename='userapps')
 router.register(r'stores', AllStoreViewSet, basename='stores')
@@ -22,6 +24,7 @@ urlpatterns = [
     path('me/', MyInfo.as_view(), name='me'),
     path('login/', Login.as_view(), name='login'),
     path('zlogin/', ZaloMemberLogin.as_view(), name='zlogin'),
+    path("banks/", json.banks, name="banks"),
     path('', include(router.urls)),
 ]
 # 48MghDAMhSXJoPZKwQ7BZoRVIjQJLowv7QFrtT08

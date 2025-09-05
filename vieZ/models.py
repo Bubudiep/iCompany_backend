@@ -67,6 +67,7 @@ class UserProfile(models.Model):
     bank_name = models.CharField(max_length=255, blank=True)
     bank_number = models.CharField(max_length=25, blank=True)
     bank_code = models.CharField(max_length=12, blank=True)
+    email = models.CharField(max_length=50, blank=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     gender = models.CharField(
         max_length=10, choices=[("male", "Nam"), ("female", "Nữ")], blank=True

@@ -31,7 +31,7 @@ class UserConfigs(models.Model):
         return f"Cấu hình của {self.user.username}"
     
 class NoteCustomer(models.Model):
-    user = models.OneToOneField(NoteUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(NoteUser, on_delete=models.CASCADE,null=True, blank=True)
     hoten = models.CharField(max_length=100,null=True, blank=True)
     sodienthoai = models.CharField(max_length=12,null=True, blank=True)
     description = models.CharField(max_length=200,null=True, blank=True)
