@@ -1094,8 +1094,13 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
         key = self.request.headers.get('ApplicationKey')
         staff=CompanyStaff.objects.get(company__key=key,user__user=user)
         return CompanyBook.objects.filter(company=staff.company)
-    def create(self, request, *args, **kwargs):
-        return Response({"detail": "Không được phép tạo mới"}, status=status.HTTP_403_FORBIDDEN)
+    
+    def perform_create(self, serializer):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        serializer.save(company=qs_staff.company,edited_by=qs_staff)
+    
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         title = request.query_params.get('title')
