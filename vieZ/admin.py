@@ -7,6 +7,7 @@ class UsersAdmin(admin.ModelAdmin):
     search_fields = ('username',)
     readonly_fields = ('created_at', 'updated_at')
     ordering = ('-created_at',)
+    save_as = True
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -14,30 +15,35 @@ class UserProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'name', 'phone')
     list_filter = ('public', 'gender')
     readonly_fields = ('created_at', 'updated_at')
+    save_as = True
 
 @admin.register(UserPlan)
 class UserPlanAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'max_storage_mb', 'max_products', 'max_apps', 'max_categories')
     search_fields = ('name',)
     readonly_fields = ('created_at', 'updated_at')
+    save_as = True
 
 @admin.register(UserConfigs)
 class UserConfigsAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'plan')
     search_fields = ('user__username',)
     readonly_fields = ('created_at', 'updated_at')
+    save_as = True
 
 @admin.register(UserFile)
 class UserFileAdmin(admin.ModelAdmin):
     list_display = ('user', 'file_name', 'file_size', 'uploaded_at')
     readonly_fields = ('file_size', 'file_name')
     search_fields = ('user__username', 'file_name')
+    save_as = True
 
 @admin.register(AppCategorys)
 class AppCategorysAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'descriptions', 'created_at', 'updated_at')
     search_fields = ('name',)
     ordering = ('-created_at',)
+    save_as = True
 
 @admin.register(UserApps)
 class UserAppsAdmin(admin.ModelAdmin):
@@ -45,6 +51,7 @@ class UserAppsAdmin(admin.ModelAdmin):
     search_fields = ('name', 'user__username', 'app_id')
     list_filter = ('category', 'created_at')
     ordering = ('-created_at',)
+    save_as = True
 
 @admin.register(UserStore)
 class UserStoreAdmin(admin.ModelAdmin):
@@ -52,7 +59,7 @@ class UserStoreAdmin(admin.ModelAdmin):
     search_fields = ('store_name', 'store_id', 'user__username', 'store_hotline')
     list_filter = ('created_at', 'updated_at')
     readonly_fields = ('store_id', 'created_at', 'updated_at')
-
+    save_as = True
 
 @admin.register(StoreMember)
 class StoreMemberAdmin(admin.ModelAdmin):
@@ -60,7 +67,7 @@ class StoreMemberAdmin(admin.ModelAdmin):
     search_fields = ('username', 'zalo_id', 'email', 'phone', 'store__store_name', 'oauth_user__username')
     list_filter = ('created_at', 'updated_at')
     readonly_fields = ('oauth_user', 'last_login', 'created_at', 'updated_at')
-
+    save_as = True
 
 @admin.register(StoreNewsCtl)
 class StoreNewsCtlAdmin(admin.ModelAdmin):
@@ -68,15 +75,15 @@ class StoreNewsCtlAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code', 'store__store_name')
     list_filter = ('created_at', 'updated_at')
     readonly_fields = ('created_at', 'updated_at')
-
-
+    save_as = True
+    
 @admin.register(StoreSlides)
 class StoreSlidesAdmin(admin.ModelAdmin):
     list_display = ('title', 'store', 'is_active', 'created_at', 'updated_at')
     search_fields = ('title', 'store__store_name')
     list_filter = ('is_active', 'created_at', 'updated_at')
     readonly_fields = ('created_at', 'updated_at')
-
+    save_as = True
 
 @admin.register(StoreCollabs)
 class StoreCollabsAdmin(admin.ModelAdmin):
@@ -84,7 +91,7 @@ class StoreCollabsAdmin(admin.ModelAdmin):
     search_fields = ('name', 'store__store_name', 'address')
     list_filter = ('is_active', 'created_at', 'updated_at')
     readonly_fields = ('created_at', 'updated_at')
-
+    save_as = True
 
 @admin.register(StoreNews)
 class StoreNewsAdmin(admin.ModelAdmin):
@@ -92,7 +99,7 @@ class StoreNewsAdmin(admin.ModelAdmin):
     search_fields = ('title', 'short', 'store__store_name', 'category__name')
     list_filter = ('is_active', 'created_at', 'updated_at', 'category')
     readonly_fields = ('created_at', 'updated_at')
-
+    save_as = True
 
 @admin.register(StoreProductsCtl)
 class StoreProductsCtlAdmin(admin.ModelAdmin):
@@ -100,7 +107,7 @@ class StoreProductsCtlAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code', 'store__store_name')
     list_filter = ('created_at', 'updated_at')
     readonly_fields = ('created_at', 'updated_at')
-
+    save_as = True
 
 @admin.register(StoreProducts)
 class StoreProductsAdmin(admin.ModelAdmin):
@@ -108,3 +115,4 @@ class StoreProductsAdmin(admin.ModelAdmin):
     search_fields = ('title', 'short', 'store__store_name', 'category__name')
     list_filter = ('is_active', 'created_at', 'updated_at', 'category')
     readonly_fields = ('created_at', 'updated_at')
+    save_as = True
