@@ -30,7 +30,7 @@ class NoteCustomerSerializer(serializers.ModelSerializer):
         read_only_fields=['user']
         
 class UserNotesSerializer(serializers.ModelSerializer):
-    loai = serializers.CharField(source="loai.type",allow_null=False, allow_blank=True)
+    loai = serializers.CharField(source="loai.type", required=False,allow_null=False, allow_blank=True)
     hoten = serializers.CharField(source="khachhang.hoten",read_only=True, allow_null=False, allow_blank=True)
     sdt = serializers.CharField(source="khachhang.sodienthoai",read_only=True, allow_null=False, allow_blank=True)
     hotenkhachhang = serializers.CharField(write_only=True, required=False, allow_blank=True)
@@ -42,6 +42,14 @@ class UserNotesSerializer(serializers.ModelSerializer):
         read_only_fields=['user','khachhang']
         
     def create(self, validated_data):
+        loai_data = validated_data.pop("loai", None)
+        if loai_data and loai_data.get("type"):
+            loai_instance, _ = NoteType.objects.get_or_create(
+                type=loai_data["type"]
+            )
+            validated_data["loai"] = loai_instance
+
+        # xử lý khách hàng
         hotenkhachhang = validated_data.pop("hotenkhachhang", None)
         sodienthoai = validated_data.pop("sodienthoai", None)
         note_user = validated_data.get("user")
@@ -54,4 +62,5 @@ class UserNotesSerializer(serializers.ModelSerializer):
                 defaults={"description": ""}
             )
         validated_data["khachhang"] = customer
+
         return super().create(validated_data)

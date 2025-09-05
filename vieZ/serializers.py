@@ -78,11 +78,17 @@ class UserSerializer(serializers.ModelSerializer):
     files=serializers.SerializerMethodField(read_only=True)
     config=serializers.SerializerMethodField(read_only=True)
     plan=serializers.SerializerMethodField(read_only=True)
+    plans=serializers.SerializerMethodField(read_only=True)
     categorys=serializers.SerializerMethodField(read_only=True)
     def get_categorys(self,obj):
         try:
             qs_categody=AppCategorys.objects.all()
             return AppCategorysSerializer(qs_categody,many=True).data
+        except Exception as e:
+            return {"detail":f"{e}"}
+    def get_plans(self,obj):
+        try:
+            return UserPlanSerializer(UserPlan.objects.all(),many=True).data
         except Exception as e:
             return {"detail":f"{e}"}
     def get_plan(self,obj):
@@ -118,7 +124,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = [
-            'id','profile','files','config','plan','categorys',
+            'id','profile','files','config','plan','categorys','plans',
             'created_at','last_login'
         ]
         
