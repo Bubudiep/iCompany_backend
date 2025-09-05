@@ -48,7 +48,8 @@ class UserNotesSerializer(serializers.ModelSerializer):
                 type=loai_data["type"]
             )
             validated_data["loai"] = loai_instance
-
+        else:
+            validated_data["loai"] = None  # cho phép null
         # xử lý khách hàng
         hotenkhachhang = validated_data.pop("hotenkhachhang", None)
         sodienthoai = validated_data.pop("sodienthoai", None)
