@@ -41,10 +41,19 @@ class NoteCustomer(models.Model):
     def __str__(self):
         return f"{self.id}"
     
+class NoteType(models.Model):
+    user = models.ForeignKey(NoteUser, on_delete=models.CASCADE,null=True, blank=True)
+    type = models.CharField(max_length=200,null=True, blank=True)
+    description = models.CharField(max_length=200,null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"{self.id}"
+    
 class UserNotes(models.Model):
     user = models.ForeignKey(NoteUser, on_delete=models.CASCADE, related_name="owned_notes")
     tenghichu = models.CharField(max_length=255)
-    loai = models.CharField(max_length=22,null=True, blank=True)
+    loai = models.ForeignKey(NoteType,on_delete=models.SET_NULL,null=True, blank=True)
     thoigian = models.DateTimeField(null=True, blank=True)
     khachhang = models.ForeignKey(NoteCustomer,on_delete=models.SET_NULL,null=True, blank=True)
     phanloai = models.CharField(default="in",max_length=12,
