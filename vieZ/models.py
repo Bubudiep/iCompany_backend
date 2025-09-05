@@ -89,6 +89,7 @@ class UserPlan(models.Model):
     name = models.CharField(
         max_length=100, unique=True
     )  # "Free", "Pro", "Enterprise"...
+    token = models.IntegerField(default=0)
     max_storage_mb = models.IntegerField(default=300)
     max_apps = models.IntegerField(default=5)
     max_store = models.IntegerField(default=1)
