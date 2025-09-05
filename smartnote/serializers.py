@@ -30,38 +30,11 @@ class NoteCustomerSerializer(serializers.ModelSerializer):
         read_only_fields=['user']
         
 class UserNotesSerializer(serializers.ModelSerializer):
-    loai = serializers.CharField(source="loai.type", required=False,allow_null=False, allow_blank=True)
+    phanloai = serializers.CharField(source="loai.type", read_only=True,allow_null=False, allow_blank=True)
     hoten = serializers.CharField(source="khachhang.hoten",read_only=True, allow_null=False, allow_blank=True)
-    sdt = serializers.CharField(source="khachhang.sodienthoai",read_only=True, allow_null=False, allow_blank=True)
-    hotenkhachhang = serializers.CharField(write_only=True, required=False, allow_blank=True)
-    sodienthoai = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    sodienthoai = serializers.CharField(source="khachhang.sodienthoai",read_only=True, allow_null=False, allow_blank=True)
     shared_with = SharedNoteSerializer(source='sharednote_set', many=True, read_only=True)
     class Meta:
         model = UserNotes
         fields = '__all__'
-        read_only_fields=['user','khachhang']
-        
-    def create(self, validated_data):
-        loai_data = validated_data.pop("loai", None)
-        if loai_data and loai_data.get("type"):
-            loai_instance, _ = NoteType.objects.get_or_create(
-                type=loai_data["type"]
-            )
-            validated_data["loai"] = loai_instance
-        else:
-            validated_data["loai"] = None  # cho phép null
-        # xử lý khách hàng
-        hotenkhachhang = validated_data.pop("hotenkhachhang", None)
-        sodienthoai = validated_data.pop("sodienthoai", None)
-        note_user = validated_data.get("user")
-        customer = None
-        if hotenkhachhang or sodienthoai:
-            customer, _ = NoteCustomer.objects.get_or_create(
-                user=note_user,
-                hoten=hotenkhachhang,
-                sodienthoai=sodienthoai,
-                defaults={"description": ""}
-            )
-        validated_data["khachhang"] = customer
-
-        return super().create(validated_data)
+        read_only_fields=['user']
