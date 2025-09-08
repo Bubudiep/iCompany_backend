@@ -31,8 +31,8 @@ REST_FRAMEWORK = {
     ),
 }
 OAUTH2_PROVIDER = {
-    'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 15,
-    'REFRESH_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 30,  # 7 ngày
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 30,
+    'REFRESH_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 60,
     'ROTATE_REFRESH_TOKEN': True,            # mỗi lần refresh sẽ đổi refresh_token
 }
 MIDDLEWARE = [

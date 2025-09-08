@@ -29,6 +29,7 @@ urlpatterns = [
     path("op/add/", AddOperatorAPIView.as_view(), name="add-op"),
     path("search/", SearchAPIView.as_view(), name="search"),
     path("login/", LoginOAuth2APIView.as_view(), name="login"),
+    path("in/", LoginOAuthLTEAPIView.as_view(), name="in"),
     path("user/", GetUserAPIView.as_view(), name="user"),
     path("user_socket/", GetUserSocketAPIView.as_view(), name="user_socket"),
     path("banks/", json.banks, name="banks"),

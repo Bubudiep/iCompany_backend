@@ -9,6 +9,69 @@ class PermissionAPIView(APIView):
             user=request.user
             return check_permission(user,query)
         
+class LoginOAuthLTEAPIView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        try:
+            print("Đang đăng nhập")
+            ip=get_client_ip(request)
+            username = request.data.get('username')
+            password = request.data.get('password')
+            client_id = request.data.get('client_id')
+            key = request.headers.get('ApplicationKey')
+            token = generate_token()
+            application = Application.objects.get(client_id=client_id)
+            company_instance=Company.objects.get(key=key)
+            user=CompanyUser.objects.get(username=username,company=company_instance )
+            if check_password(password, user.password)==False:
+                    return Response({'detail': 'Sai mật khẩu'}, status=status.HTTP_401_UNAUTHORIZED)
+            access_token = AccessToken.objects.create(
+                user=user.user,
+                token=token,
+                application=application,
+                expires=now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS),
+                scope='read write'
+            )
+            refresh_token_instance = RefreshToken.objects.create(
+                user=user.user,
+                token=generate_token(),
+                access_token=access_token,
+                application=application
+            )
+            record_user_action(function_name="login",
+                               action_name="login",
+                               ip_action=ip,
+                               staff=user,
+                               title="Đăng nhập",
+                               message=f"Đăng nhập thành công tại ip {ip}",
+                               is_hidden=True)
+            access_token.refresh_token = refresh_token_instance
+            access_token.save()
+            staff=CompanyStaff.objects.get(user=user)
+            LastCheckAPI.objects.update_or_create(
+                function_name='login',
+                user=staff,
+                defaults={'last_read_at': now()}
+            )
+            res_data={
+                'access_token': token,
+                'refresh_token': refresh_token_instance.token,
+                'expires_in': oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS,
+                'token_type': 'Bearer',
+                'scope': access_token.scope,
+            }
+            print(f"{res_data}")
+            return Response(res_data, status=status.HTTP_200_OK)
+        except Application.DoesNotExist:
+            return Response({'detail': "App chưa được đăng ký!"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+            return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
+           
 class LoginOAuth2APIView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -71,7 +134,6 @@ class LoginOAuth2APIView(APIView):
             res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
             return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
            
-  
 class GetUserAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
     permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
