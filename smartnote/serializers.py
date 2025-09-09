@@ -30,7 +30,6 @@ class NoteCustomerSerializer(serializers.ModelSerializer):
         read_only_fields=['user']
         
 class UserNotesSerializer(serializers.ModelSerializer):
-    phanloai = serializers.CharField(source="loai.type", read_only=True,allow_null=False, allow_blank=True)
     hoten = serializers.CharField(source="khachhang.hoten",read_only=True, allow_null=False, allow_blank=True)
     sodienthoai = serializers.CharField(source="khachhang.sodienthoai",read_only=True, allow_null=False, allow_blank=True)
     shared_with = SharedNoteSerializer(source='sharednote_set', many=True, read_only=True)
