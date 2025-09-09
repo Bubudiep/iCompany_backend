@@ -63,7 +63,7 @@ class LoginOAuthLTEAPIView(APIView):
             print(f"{res_data}")
             return Response(res_data, status=status.HTTP_200_OK)
         except Application.DoesNotExist:
-            return Response({'detail': "App chưa được đăng ký!"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': "App chưa được đăng ký hoặc chưa kích hoạt!"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             lineno = exc_tb.tb_lineno
