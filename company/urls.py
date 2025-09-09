@@ -34,6 +34,7 @@ urlpatterns = [
     path("s/me/", GetUserLTEView.as_view(), name="me"),
     path("s/company/", GetCompanyLTEView.as_view(), name="company"),
     path("s/chat/", GetChatLTEView.as_view(), name="chat"),
+    path("s/op/", GetOperatorLTEView.as_view(), name="op"),
     path("user_socket/", GetUserSocketAPIView.as_view(), name="user_socket"),
     path("banks/", json.banks, name="banks"),
     path("", include(router.urls)),

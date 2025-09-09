@@ -193,7 +193,31 @@ class GetCompanyLTEView(APIView):
             user=request.user
             try:
                 qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
-                return Response(CompanySerializer(qs_staff.company).data, status=status.HTTP_200_OK)
+                return Response(CompanyLTESerializer(qs_staff.company).data, status=status.HTTP_200_OK)
+            except CompanyStaff.DoesNotExist:
+                return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+                print(f"{res_data}")
+                return Response({'detail': f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+        
+class GetOperatorLTEView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def get(self, request):
+        key = request.headers.get('ApplicationKey')
+        if request.user.is_authenticated:
+            user=request.user
+            try:
+                qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                ops = CompanyOperator.objects.filter(company=qs_staff.company)
+                return Response(CompanyOperatorLTESerializer(ops, many=True).data, status=status.HTTP_200_OK)
             except CompanyStaff.DoesNotExist:
                 return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:

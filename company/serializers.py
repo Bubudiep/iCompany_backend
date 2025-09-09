@@ -298,6 +298,70 @@ class CompanyVendorSerializer(serializers.ModelSerializer):
         read_only_fields = ["company", "id"]
 
 
+class CompanyLTESerializer(serializers.ModelSerializer):
+    Department = serializers.SerializerMethodField(read_only=True)
+    Customer = serializers.SerializerMethodField(read_only=True)
+    Vendor = serializers.SerializerMethodField(read_only=True)
+    Staff = serializers.SerializerMethodField(read_only=True)
+    Config = serializers.SerializerMethodField(read_only=True)
+    Department = serializers.SerializerMethodField(read_only=True)
+    def get_Config(self, company):
+        try:
+            allConfig, _ = CompanyConfig.objects.get_or_create(company=company)
+            return CompanyConfigSerializer(allConfig).data
+        except Exception as e:
+            return []
+    def get_Staff(self, company):
+        try:
+            allStaff = CompanyStaff.objects.filter(company=company)
+            return CompanyStaffSerializer(allStaff, many=True).data
+        except Exception as e:
+            return []
+    def get_Vendor(self, company):
+        try:
+            allVendor = CompanyVendor.objects.filter(company=company)
+            return CompanyVendorSerializer(allVendor, many=True).data
+        except Exception as e:
+            return []
+    def get_Customer(self, company):
+        try:
+            allCustomer = CompanyCustomer.objects.filter(company=company)
+            return CompanyCustomerSerializer(allCustomer, many=True).data
+        except Exception as e:
+            return []
+
+    def get_Department(self, company):
+        try:
+            allDepartment = CompanyDepartment.objects.filter(company=company)
+            return CompanyDepartmentDetailsSerializer(allDepartment, many=True).data
+        except Exception as e:
+            return []
+
+    class Meta:
+        model = Company
+        fields = [
+            "id",
+            "companyType",
+            "avatar",
+            "name",
+            "fullname",
+            "address",
+            "Department",
+            "Customer",
+            "Vendor",
+            "Staff",
+            "Config",
+            "addressDetails",
+            "hotline",
+            "isValidate",
+            "isOA",
+            "wallpaper",
+            "shortDescription",
+            "description",
+            "created_at",
+        ]
+
+
 class CompanySerializer(serializers.ModelSerializer):
     Department = serializers.SerializerMethodField(read_only=True)
     Customer = serializers.SerializerMethodField(read_only=True)
