@@ -202,7 +202,11 @@ class CompanyStaffProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_at", "updated_at"]
 
-
+class CompanyStaffLTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyStaff
+        fields = "__all__"
+        
 class CompanyStaffSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
     profile = serializers.SerializerMethodField(read_only=True)

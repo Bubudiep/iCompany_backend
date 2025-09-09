@@ -134,6 +134,125 @@ class LoginOAuth2APIView(APIView):
             res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
             return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
            
+class GetUserLTEView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def get(self, request):
+        key = request.headers.get('ApplicationKey')
+        if request.user.is_authenticated:
+            user=request.user
+            try:
+                qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                qs_profile,_=CompanyStaffProfile.objects.get_or_create(staff=qs_staff)
+                return Response({
+                    "staff":CompanyStaffLTESerializer(qs_staff).data,
+                    "profile":CompanyStaffProfileSerializer(qs_profile).data
+                }, status=status.HTTP_200_OK)
+            except CompanyStaff.DoesNotExist:
+                return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+                print(f"{res_data}")
+                return Response({'detail': f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+        
+class GetCompanyLTEView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def get(self, request):
+        key = request.headers.get('ApplicationKey')
+        if request.user.is_authenticated:
+            user=request.user
+            try:
+                qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                return Response(CompanySerializer(qs_staff.company).data, status=status.HTTP_200_OK)
+            except CompanyStaff.DoesNotExist:
+                return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+                print(f"{res_data}")
+                return Response({'detail': f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+        
+class GetCompanyLTEView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def get(self, request):
+        key = request.headers.get('ApplicationKey')
+        if request.user.is_authenticated:
+            user=request.user
+            try:
+                qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                return Response(CompanySerializer(qs_staff.company).data, status=status.HTTP_200_OK)
+            except CompanyStaff.DoesNotExist:
+                return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+                print(f"{res_data}")
+                return Response({'detail': f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+        
+class GetChatLTEView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def get(self, request):
+        key = request.headers.get('ApplicationKey')
+        if request.user.is_authenticated:
+            user=request.user
+            try:
+                qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                chat_not_read=0
+                alert_not_read=0
+                update_not_read=0
+                approve_not_read=0
+                member_updated_not_check=0
+                qs_user_chatroom=AppChatRoom.objects.filter(members=qs_staff)
+                for qs_chatroom in qs_user_chatroom:
+                    qs_last_read=AppChatStatus.objects.filter(room=qs_chatroom,user=qs_staff).first()
+                    if qs_last_read and qs_last_read.last_read_at:
+                        qs_not_read=ChatMessage.objects.filter(room=qs_chatroom,created_at__gt=qs_last_read.last_read_at)
+                        chat_not_read+=qs_not_read.count()
+                    else:
+                        qs_not_read=ChatMessage.objects.filter(room=qs_chatroom)
+                        chat_not_read+=qs_not_read.count()
+                last_check=LastCheckAPI.objects.filter(user=qs_staff)
+                return Response({
+                    'chats': AppChatRoomSerializer(AppChatRoom.objects.filter(members=qs_staff),many=True).data,
+                    'chat_not_read': chat_not_read,
+                    'alert_not_read': alert_not_read,
+                    'update_not_read': update_not_read,
+                    'approve_not_read': approve_not_read,
+                    'member_updated_not_check': member_updated_not_check,
+                    'last_check':LastCheckAPISerializer(last_check,many=True).data
+                }, status=status.HTTP_200_OK)
+            except CompanyStaff.DoesNotExist:
+                return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+                print(f"{res_data}")
+                return Response({'detail': f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+        
 class GetUserAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
     permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
