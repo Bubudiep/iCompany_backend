@@ -950,6 +950,12 @@ class AdvanceRequestLTEViewSet(viewsets.ModelViewSet):
         created_at = request.query_params.get('created_at')
         created_at_from = request.query_params.get('created_at_from')
         created_at_to = request.query_params.get('created_at_to')
+        approver = request.query_params.get('approver')
+        if approver:
+            queryset = queryset.filter(approver__id=approver)
+        requester = request.query_params.get('requester')
+        if requester:
+            queryset = queryset.filter(requester__id=requester)
         if created_at_from:
             try:
                 date_from = make_aware(datetime.combine(parse_date(created_at_from), datetime.min.time()))
