@@ -56,6 +56,9 @@ class UserNotes(models.Model):
     loai = models.ForeignKey(NoteType,on_delete=models.SET_NULL,null=True, blank=True)
     thoigian = models.DateTimeField(null=True, blank=True)
     khachhang = models.ForeignKey(NoteCustomer,on_delete=models.SET_NULL,null=True, blank=True)
+    trangthai = models.CharField(default="not",max_length=12,
+                                null=True,
+                                choices=[['not','not'],['done','done']])
     phanloai = models.CharField(default="in",max_length=12,
                                 null=True,
                                 choices=[['in','in'],['out','out']])
