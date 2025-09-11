@@ -1002,6 +1002,13 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                 instance = self.get_object()
                 instance.is_deleted = True
                 instance.save()
+                OperatorUpdateHistory.objects.create(
+                    operator=instance,
+                    changed_by=qs_res,
+                    old_data={},
+                    new_data={},
+                    notes="Xóa người lao động",
+                )
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
                 {"detail": "Bạn không có quyền!"}, status=status.HTTP_400_BAD_REQUEST
