@@ -1000,6 +1000,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             )
             if qs_res.isSuperAdmin:
                 instance = self.get_object()
+                instance.so_cccd = f"_{instance.so_cccd}"
                 instance.is_deleted = True
                 instance.save()
                 OperatorUpdateHistory.objects.create(
