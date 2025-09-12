@@ -444,6 +444,7 @@ class CompanyStaffNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyStaffNote
         fields = '__all__'
+        read_only_fields = ["user"]
         
 class CompanyUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

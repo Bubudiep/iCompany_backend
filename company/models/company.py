@@ -276,7 +276,7 @@ class CompanyStaffNote(models.Model):
     alert_date = models.DateField(blank=True, null=True)   # null = hằng ngày
     alert_day = models.JSONField(blank=True, null=True)    # lưu danh sách thứ [1,2,3,...]
 
-    alert_time = models.TimeField()                 # "HH:mm:ss"
+    alert_time = models.TimeField(blank=True, null=True)                 # "HH:mm:ss"
     repeat_time = models.IntegerField(default=0)    # số lần lặp
     repeat_range = models.IntegerField(default=1)   # khoảng cách (phút)
 
