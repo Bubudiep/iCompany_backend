@@ -1135,11 +1135,16 @@ class CompanyStaffNoteViewSet(viewsets.ModelViewSet):
         staff=CompanyStaff.objects.get(company__key=key,user__user=user)
         return CompanyStaffNote.objects.filter(user=staff)
     
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
         key = self.request.headers.get('ApplicationKey')
         user = self.request.user
-        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
-        serializer.save(user=qs_staff)
+        staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        if CompanyStaffNote.objects.filter(user=staff).count() >= 3:
+            return Response({"detail": "Bạn chỉ được tạo tối đa 3 ghi chú."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=staff)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
