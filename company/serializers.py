@@ -440,6 +440,11 @@ class CompanySerializer(serializers.ModelSerializer):
         ]
 
 
+class CompanyStaffNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyStaffNote
+        fields = '__all__'
+        
 class CompanyUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 

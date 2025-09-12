@@ -1121,3 +1121,37 @@ class CompanyBookViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    
+class CompanyStaffNoteViewSet(viewsets.ModelViewSet):
+    queryset = CompanyStaffNote.objects.all()
+    serializer_class = CompanyStaffNoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        user = self.request.user
+        key = self.request.headers.get('ApplicationKey')
+        staff=CompanyStaff.objects.get(company__key=key,user__user=user)
+        return CompanyStaffNote.objects.filter(user=staff)
+    
+    def perform_create(self, serializer):
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
+        qs_staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+        serializer.save(user=qs_staff)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        title = request.query_params.get('title')
+        if title:
+            queryset = queryset.filter(title='title')
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

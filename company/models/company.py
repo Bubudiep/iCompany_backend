@@ -264,6 +264,31 @@ class CompanyStaffProfile(models.Model):
     def __str__(self):
         return f"{self.staff.cardID}_{self.staff.user.username}"
     
+class CompanyStaffNote(models.Model):
+    user = models.ForeignKey(CompanyStaff, on_delete=models.CASCADE, related_name="notes")
+    title = models.CharField(max_length=255)
+    content = models.TextField(blank=True, null=True)
+
+    alert = models.BooleanField(default=False)      # có bật cảnh báo không
+    closed = models.BooleanField(default=False)     # đã tắt chưa
+    loop = models.BooleanField(default=False)       # có lặp lại không
+
+    alert_date = models.DateField(blank=True, null=True)   # null = hằng ngày
+    alert_day = models.JSONField(blank=True, null=True)    # lưu danh sách thứ [1,2,3,...]
+
+    alert_time = models.TimeField()                 # "HH:mm:ss"
+    repeat_time = models.IntegerField(default=0)    # số lần lặp
+    repeat_range = models.IntegerField(default=1)   # khoảng cách (phút)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} ({self.user})"
+    
 class CompanyConfig(models.Model):
     company = models.OneToOneField(Company, on_delete=models.CASCADE)
 
