@@ -63,7 +63,7 @@ class UserNotes(models.Model):
                                 null=True,
                                 choices=[['in','in'],['out','out']])
     sotien = models.IntegerField(default=0)
-    noidung = models.TextField()
+    noidung = models.TextField(null=True, blank=True)
     ghim = models.BooleanField(default=False)
     chiasecho = models.ManyToManyField(
         NoteUser,
