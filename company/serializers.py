@@ -832,6 +832,8 @@ class CompanyOperatorNoWorkSerializer(serializers.ModelSerializer):
             "congty_danglam",
             "nhachinh",
             "nguoibaocao",
+            "created_at",
+            "updated_at",
         ]
 
 
