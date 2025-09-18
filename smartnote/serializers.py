@@ -15,7 +15,7 @@ class NoteUserRegisterSerializer(serializers.ModelSerializer):
         thongtinthem = validated_data.pop('thongtinthem', None)
         isstore = validated_data.pop('isStore', None)
         user = NoteUser.objects.create(**validated_data)
-        profile = UserProfile.objects.create(
+        profile,_ = UserProfile.objects.get_or_create(
             user=user,full_name="",bio=""
         )
         if thongtinthem:
