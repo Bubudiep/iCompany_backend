@@ -10,7 +10,7 @@ class NoteUserRegisterSerializer(serializers.ModelSerializer):
     isStore = serializers.BooleanField(required=False,allow_null=True)
     class Meta:
         model = NoteUser
-        fields = ['username', 'password']
+        fields = ['username', 'password','thongtinthem','isStore']
     def create(self, validated_data):
         thongtinthem = validated_data.pop('thongtinthem', None)
         isstore = validated_data.pop('isStore', None)
