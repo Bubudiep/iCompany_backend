@@ -2,9 +2,16 @@ from rest_framework import serializers
 from .models import *
 
 class UserSerializer(serializers.ModelSerializer):
+    profile=serializers.SerializerMethodField(read_only=True)
+    def get_profile(self,obj):
+        try:
+            qs_profile=UserProfile.objects.get(user=obj)
+            return UserProfile(qs_profile).data
+        except Exception as e:
+            return {}
     class Meta:
         model = NoteUser
-        fields = ['id','username']
+        fields = ['id','username','profile']
 class NoteUserRegisterSerializer(serializers.ModelSerializer):
     thongtinthem = serializers.JSONField(required=False, allow_null=True)
     isStore = serializers.BooleanField(required=False,allow_null=True)
