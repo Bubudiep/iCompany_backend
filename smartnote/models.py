@@ -64,9 +64,9 @@ class UserNotes(models.Model):
     phanloai = models.CharField(default="in",max_length=12,
                                 null=True,
                                 choices=[['in','in'],['out','out']])
-    soluong = models.IntegerField(default=0)
-    dongia = models.IntegerField(default=0)
-    sotien = models.IntegerField(default=0)
+    soluong = models.IntegerField(default=0,null=True, blank=True)
+    dongia = models.IntegerField(default=0,null=True, blank=True)
+    sotien = models.IntegerField(default=0,null=True, blank=True)
     noidung = models.TextField(null=True, blank=True)
     ghim = models.BooleanField(default=False)
     chiasecho = models.ManyToManyField(
