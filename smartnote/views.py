@@ -80,7 +80,6 @@ class NoteTypeViewSet(viewsets.ModelViewSet):
     queryset = NoteType.objects.all().order_by("-updated_at")
     serializer_class = NoteTypeSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = StandardResultsSetPagination
     def get_queryset(self):
         qsuser=NoteUser.objects.get(oauth_user=self.request.user)
         return NoteType.objects.filter(user=qsuser).order_by('-updated_at')
@@ -91,6 +90,15 @@ class NoteTypeViewSet(viewsets.ModelViewSet):
         except NoteUser.DoesNotExist:
             raise serializers.ValidationError("NoteUser không tồn tại.")
         serializer.save(user=note_user)
+        
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['patch']
+    def get_queryset(self):
+        qsuser=NoteUser.objects.get(oauth_user=self.request.user)
+        return UserProfile.objects.filter(user=qsuser)
         
 class NoteCustomerViewSet(viewsets.ModelViewSet):
     queryset = NoteCustomer.objects.all().order_by("-updated_at")
