@@ -17,6 +17,8 @@ class UserProfile(models.Model):
     birthdate = models.DateField(null=True, blank=True)
     avatar = models.URLField(blank=True, null=True)
     bio = models.TextField(blank=True)
+    isStore=models.BooleanField(default=False)
+    thongtinthem = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.full_name or self.user.username
@@ -65,7 +67,7 @@ class UserNotes(models.Model):
     soluong = models.IntegerField(default=0)
     dongia = models.IntegerField(default=0)
     sotien = models.IntegerField(default=0)
-    noidung = models.TextField()
+    noidung = models.TextField(null=True, blank=True)
     ghim = models.BooleanField(default=False)
     chiasecho = models.ManyToManyField(
         NoteUser,

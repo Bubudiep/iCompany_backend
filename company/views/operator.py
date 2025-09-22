@@ -1060,6 +1060,9 @@ class CompanyOperatorNoWorkViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
         page_size = self.request.query_params.get("page_size")
+        updated_after = request.query_params.get("updated_after")
+        if updated_after:
+            queryset = queryset.filter(updated_at__gt=updated_after)
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
         page = self.paginate_queryset(queryset)
@@ -1281,6 +1284,10 @@ class OperatorWorkHistoryViewSet(viewsets.ModelViewSet):
         start_date = request.query_params.get("start_date")
         start_date_from = request.query_params.get("start_date_from")
         start_date_to = request.query_params.get("start_date_to")
+        updated_after = request.query_params.get("updated_after")
+        # Filter theo updated_after
+        if updated_after:
+            queryset = queryset.filter(updated_at__gt=updated_after)
         if start_date_from:
             queryset = queryset.filter(start_date__gte=start_date_from)
         if start_date_to:
@@ -1343,6 +1350,12 @@ class OperatorWorkHistoryLTEViewSet(viewsets.ModelViewSet):
         start_date = request.query_params.get("start_date")
         start_date_from = request.query_params.get("start_date_from")
         start_date_to = request.query_params.get("start_date_to")
+        updated_after = request.query_params.get("updated_after")
+        # Filter theo updated_after
+        if updated_after:
+            queryset = queryset.filter(updated_at__gt=updated_after)
+            
+        # Filter theo start_date
         if start_date_from:
             queryset = queryset.filter(start_date__gte=start_date_from)
         if start_date_to:
