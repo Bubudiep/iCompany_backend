@@ -37,6 +37,7 @@ class NoteCustomer(models.Model):
     hoten = models.CharField(max_length=100,null=True, blank=True)
     sodienthoai = models.CharField(max_length=12,null=True, blank=True)
     description = models.CharField(max_length=200,null=True, blank=True)
+    ghim = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -115,7 +115,21 @@ class NoteCustomerViewSet(viewsets.ModelViewSet):
         except NoteUser.DoesNotExist:
             raise serializers.ValidationError("NoteUser không tồn tại.")
         serializer.save(user=note_user)
-        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page_size = self.request.query_params.get("page_size")
+        ghim = request.query_params.get('ghim')
+        if ghim:
+            queryset = queryset.filter(ghim=ghim)
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
 class UserNotesViewSet(viewsets.ModelViewSet):
     queryset = UserNotes.objects.all().order_by("-updated_at")
     serializer_class = UserNotesSerializer
