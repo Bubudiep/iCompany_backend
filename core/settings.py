@@ -119,8 +119,7 @@ CORS_ALLOWED_ORIGINS = [
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    '10.100.1.50',
-    '10.100.1.10',
+    '192.168.1.2',
     'sotay.online',
     'vieclamvp.vn',
     'api.vieclamvp.vn',
