@@ -102,6 +102,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = False  # (dev local thôi)
 CORS_ALLOWED_ORIGINS = [
+    "http://192.168.1.2:5175",
     "http://localhost:5175",
     "http://localhost:4687",
     "http://10.100.1.50:3000",
@@ -119,7 +120,6 @@ CORS_ALLOWED_ORIGINS = [
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    '192.168.1.2',
     'sotay.online',
     'vieclamvp.vn',
     'api.vieclamvp.vn',
