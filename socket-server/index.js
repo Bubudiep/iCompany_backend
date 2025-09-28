@@ -124,7 +124,6 @@ io.on("connection", (socket) => {
               user: user?.data?.profile,
               data: data?.data,
             });
-            console.log("Sended to:", online?.user?.id);
           });
         }
       }

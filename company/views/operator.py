@@ -1,6 +1,5 @@
 from .a import *
 
-
 class AddOperatorAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
     permission_classes = [
@@ -163,7 +162,6 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     http_method_names = ["get", "patch", "delete", "post"]
-
     def get_queryset(self):
         user = self.request.user
         key = self.request.headers.get("ApplicationKey")
