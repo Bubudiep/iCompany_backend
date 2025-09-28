@@ -128,6 +128,16 @@ io.on("connection", (socket) => {
         }
       }
     }
+    if (data?.type === "operator_updated") {
+      if (connected_list[data.key]) {
+        const onlines = connected_list[data.key];
+        onlines.map((online) => {
+          socket.to(online.id).emit("message", {
+            type: "operator_updated",
+          });
+        });
+      }
+    }
   });
   socket.on("disconnect", () => {
     if (user?.ApplicationKey && user?.data?.info) {
