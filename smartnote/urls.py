@@ -10,6 +10,7 @@ router.register(r'loaighichu', NoteTypeViewSet, basename='loaighichu')
 router.register(r'profile', UserProfileViewSet, basename='profile')
 urlpatterns = [
     path("user/", UserView.as_view()),
+    path("changepass/", ChangePassView.as_view()),
     path("register/", NoteUserRegisterView.as_view()),
     path("login/", NoteUserLoginView.as_view()),
     path('', include(router.urls)),
