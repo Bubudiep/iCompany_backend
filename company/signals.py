@@ -99,6 +99,13 @@ def handle_transaction_save(sender, instance, created, **kwargs):
     else:
         print(f"{staff.cardID} đã được cập nhật.")
         
+@receiver(post_save, sender=CompanyOperator)
+def handle_transaction_save(sender, instance, created, **kwargs):
+    sio.emit('backend_event', {
+        'type': 'operator_updated',
+        'key': instance.company.key
+    })
+        
 # Khởi tạo ban đầu
 @receiver(post_migrate)
 def create_default_miniapps(sender, **kwargs):

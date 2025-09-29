@@ -124,9 +124,18 @@ io.on("connection", (socket) => {
               user: user?.data?.profile,
               data: data?.data,
             });
-            console.log("Sended to:", online?.user?.id);
           });
         }
+      }
+    }
+    if (data?.type === "operator_updated") {
+      if (connected_list[data.key]) {
+        const onlines = connected_list[data.key];
+        onlines.map((online) => {
+          socket.to(online.id).emit("message", {
+            type: "operator_updated",
+          });
+        });
       }
     }
   });
