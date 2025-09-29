@@ -28,6 +28,33 @@ class UserView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data)
     
+class ChangePassView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        note_user = NoteUser.objects.get(oauth_user=request.user)
+
+        old_password = request.data.get("password")
+        new_password = request.data.get("new_password")
+
+        # kiểm tra mật khẩu cũ
+        auth_user = authenticate(
+            username=note_user.oauth_user.username,
+            password=old_password
+        )
+        if not new_password or len(new_password) < 4:
+            return Response(
+                {"detail": "Mật khẩu mới phải có ít nhất 4 ký tự!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # set mật khẩu mới
+        auth_user.set_password(new_password)
+        auth_user.save()
+
+        serializer = UserSerializer(auth_user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
 class NoteUserRegisterView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
