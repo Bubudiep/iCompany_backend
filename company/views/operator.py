@@ -34,6 +34,11 @@ class AddOperatorAPIView(APIView):
                                 qs_nguoituyen = None
                                 nhacungcap = None
                                 qs_nhachinh = None
+                                qs_nguoibaocao=staff
+                                if op.get("nguoibaocao"):
+                                    qs_nguoibaocao = CompanyStaff.objects.get(
+                                        id=op.get("nguoibaocao"), company__key=key
+                                    )
                                 if op.get("vendor"):
                                     nhacungcap = CompanyVendor.objects.get(
                                         id=op.get("vendor")
@@ -75,7 +80,7 @@ class AddOperatorAPIView(APIView):
                                     cccd_front=op.get("cccd_img"),
                                     ghichu=op.get("note"),
                                     nguoituyen=qs_nguoituyen,
-                                    nguoibaocao=staff,
+                                    nguoibaocao=qs_nguoibaocao,
                                     vendor=nhacungcap,
                                     nhachinh=qs_nhachinh,
                                     import_raw=op,
