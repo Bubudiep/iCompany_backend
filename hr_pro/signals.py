@@ -6,4 +6,4 @@ from .models import *
 def create_oauth_user(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.get_or_create(user=instance)
-        UserConfigs.objects.get_or_create(user=instance,tag=instance.username)
+        UserConfigs.objects.get_or_create(user=instance)
