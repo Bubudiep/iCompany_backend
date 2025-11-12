@@ -81,7 +81,7 @@ class NoteUserLoginView(APIView):
         if not user:
             return Response({"detail": "Mật khẩu không chính xác!"}, status=status.HTTP_400_BAD_REQUEST)
         # Tạo access token thủ công (nếu không dùng password grant)
-        app = Application.objects.filter(user=oauth_user).first()
+        app = Application.objects.filter(name='SmartNote App').first()
         if not app:
             app = Application.objects.create(
                 user=oauth_user,
