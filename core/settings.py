@@ -113,6 +113,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://hl-djc.vieclamvp.vn",
     "https://hl2.vieclamvp.vn",
     "https://ipays.vn",
+    "https://hrpro.ipays.vn",
     "https://sotay.online",
     "https://api.ipays.vn",
     'https://h5.zdn.vn',
