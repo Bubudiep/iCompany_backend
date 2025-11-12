@@ -25,4 +25,5 @@ urlpatterns = [
     path('viez/', include('vieZ.urls')),
     path('api/pheduyet/', include('pheduyet_zalo.urls')),
     path("note/", include("smartnote.urls")),
+    path("hr-pro/", include("hr_pro.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

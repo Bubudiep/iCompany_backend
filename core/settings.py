@@ -9,6 +9,7 @@ INSTALLED_APPS = [
     'vieZ',
     'smartnote',
     'vieclamvp',
+    'hr_pro',
     'django_filters',
     'company',
     'pheduyet_zalo',
@@ -104,6 +105,7 @@ CORS_ALLOW_ALL_ORIGINS = False  # (dev local thôi)
 CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.2:5175",
     "http://localhost:5175",
+    "http://localhost:5178",
     "http://localhost:4687",
     "http://10.100.1.50:3000",
     "https://vieclamvp.vn",
