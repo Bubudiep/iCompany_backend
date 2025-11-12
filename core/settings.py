@@ -128,6 +128,7 @@ ALLOWED_HOSTS = [
     'vieclamvp.vn',
     'api.vieclamvp.vn',
     'api.ipays.vn',
+    'hrpro.ipays.vn',
     'https://h5.zdn.vn',
     'zbrowser://h5.zdn.vn',
     'https://h5.zadn.vn',
