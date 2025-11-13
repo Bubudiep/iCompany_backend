@@ -19,3 +19,41 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = HRUser
         fields = ['id','username','profile']
+
+
+class AnhBaivietSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnhBaiviet
+        fields = '__all__'
+        read_only_fields = ['file_name', 'file_type', 'file_size']
+
+class BaivietSerializer(serializers.ModelSerializer):
+    images = AnhBaivietSerializer(many=True, required=False)
+    likes_count = serializers.IntegerField(read_only=True)
+    shares_count = serializers.IntegerField(read_only=True)
+    views_count = serializers.IntegerField(read_only=True)
+    # comments_count = serializers.IntegerField(read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    class Meta:
+        model = Baiviet
+        fields = [
+            'id', 'user', 'username', 'noidung', 'location_name', 
+            'lat_location', 'long_location','likes', 'shares', 'loadeds', 'vieweds',
+            'images','likes_count', 'shares_count', 'views_count',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['user', 'likes', 'shares', 'loadeds', 'vieweds']
+    def validate(self, data):
+        images_data = self.initial_data.getlist('images') # Lấy danh sách files từ request data (Multipart)
+        if images_data and len(images_data) > 3:
+            raise serializers.ValidationError(
+                {"images": "Mỗi bài viết chỉ được đăng tối đa 3 ảnh."}
+            )
+        return data
+
+    def create(self, validated_data):
+        images_files = self.context['request'].FILES.getlist('images') 
+        baiviet = Baiviet.objects.create(**validated_data)
+        for image_file in images_files:
+            AnhBaiviet.objects.create(baiviet=baiviet, image=image_file)
+        return baiviet

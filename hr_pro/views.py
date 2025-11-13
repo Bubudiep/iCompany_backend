@@ -11,7 +11,7 @@ import secrets
 from .models import *
 from .serializers import *
 from rest_framework.decorators import action
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q,F
@@ -67,4 +67,52 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qsuser=HRUser.objects.get(user=self.request.user)
         return UserProfile.objects.filter(user=qsuser)
+
+class BaivietViewSet(viewsets.ModelViewSet):
+    serializer_class = BaivietSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    http_method_names = ["get", "post"]
+    pagination_class = StandardResultsSetPagination
+    def get_permissions(self):
+        if self.action == 'list':
+            return [permissions.AllowAny()]
+        elif self.action == 'create':
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated()]
+    def get_queryset(self):
+        queryset = Baiviet.objects.all()
+        queryset = queryset.annotate(
+            likes_count=Count('likes', distinct=True),
+            shares_count=Count('shares', distinct=True),
+            views_count=Count('vieweds', distinct=True),
+            # comments_count=Count('comments', distinct=True) 
+        ).select_related('user').order_by('-created_at')
+        return queryset
+    def perform_create(self, serializer):
+        qsuser=HRUser.objects.get(user=self.request.user)
+        serializer.save(user=qsuser)
         
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        show_ids = self.request.query_params.get("show_ids")
+        if show_ids:
+          queryset=queryset.exclude(id__in=show_ids.split(','))
+        page_size = self.request.query_params.get("page_size")
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if request.user.is_authenticated:
+            try:
+                hr_user = HRUser.objects.get(user=request.user) 
+            except HRUser.DoesNotExist:
+                hr_user = None 
+            if hr_user:
+                print(hr_user)
+                items_to_view = page if page is not None else []
+                for baiviet in items_to_view:
+                    baiviet.vieweds.add(hr_user)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
