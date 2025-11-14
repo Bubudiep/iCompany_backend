@@ -1,6 +1,26 @@
 from rest_framework import serializers
 from .models import *
 
+class KhuCongNghiepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KhuCongNghiep
+        fields = '__all__'
+        
+class CompanyListsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyLists
+        fields = '__all__'
+        
+class BaivietTuyendungSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaivietTuyendung
+        fields = '__all__'
+        
+class BaivietTuyendungTagsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaivietTuyendungTags
+        fields = '__all__'
+        
 class UserProfileSerializer(serializers.ModelSerializer):
     level_name = serializers.ReadOnlyField(source='get_level_display')
     class Meta:

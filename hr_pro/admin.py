@@ -80,15 +80,48 @@ class AnhBaivietAdmin(admin.ModelAdmin):
     readonly_fields = ('file_name', 'file_type', 'file_size')
     list_filter = ('file_type', 'created_at')
     search_fields = ('baiviet__id', 'file_name')
+    
 @admin.register(BinhLuan)
 class BinhLuanAdmin(admin.ModelAdmin):
     list_display = ('id', 'baiviet', 'user_username', 'parent', 'like_count', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('noidung', 'user__username', 'baiviet__id')
-    raw_id_fields = ('parent', 'baiviet') # Dùng raw_id_fields cho ForeignKey/Self-referential
+    raw_id_fields = ('parent', 'baiviet')
     def user_username(self, obj):
         return obj.user.username
     user_username.short_description = 'Người Bình Luận'
     def like_count(self, obj):
         return obj.likes.count()
     like_count.short_description = 'Likes'
+    
+@admin.register(KhuCongNghiep)
+class KhuCongNghiepAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'fullname', 'mota', 'created_at',)
+    readonly_fields = []
+    list_filter = ('created_at',)
+    search_fields = ('name', 'fullname',)
+    
+@admin.register(CompanyLists)
+class CompanyListsAdmin(admin.ModelAdmin):
+    list_display = ['id','user','name','fullname','address',
+                    'hotline','email',
+                    'is_banned','is_verified',
+                    'khucongnhiep', 'created_at']
+    readonly_fields = []
+    list_filter = ('created_at',)
+    search_fields = ('name', 'fullname',)
+    
+@admin.register(BaivietTuyendungTags)
+class BaivietTuyendungTagsAdmin(admin.ModelAdmin):
+    list_display = ['name','content', 'created_at']
+    readonly_fields = []
+    list_filter = ('created_at',)
+    search_fields = ('name', 'content',)
+@admin.register(BaivietTuyendung)
+class BaivietTuyendungAdmin(admin.ModelAdmin):
+    list_display = ['code','companies','khucongnhiep',
+    'user','tuyengap','bophan','vitri']
+    readonly_fields = []
+    list_filter = ('created_at',)
+    search_fields = ('code','companies__name', 'khucongnhiep__name',)
+    

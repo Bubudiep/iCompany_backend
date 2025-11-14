@@ -7,6 +7,21 @@ import uuid
 from django.utils import timezone
 from django.db.models import Count
 
+# Giới hạn mỗi file 200KB và phải là ảnh
+MAX_UPLOAD_SIZE = 200 * 1024 # 200 KB
+ALLOWED_IMAGE_TYPES = ['image/jpeg','image/jpg','image/png','image/gif','image/webp',]
+def validate_image_file(file):
+    if file.size > MAX_UPLOAD_SIZE:
+        raise ValidationError(f"Kích thước tệp tối đa là {MAX_UPLOAD_SIZE / 1024} KB.")
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        raise ValidationError(f"Chỉ chấp nhận các loại ảnh JPG, PNG, GIF, hoặc WEBP. Loại tệp hiện tại là {file.content_type}.")
+def post_image_upload_path(instance, filename):
+    post_id = instance.baiviet.id
+    ext = filename.split('.')[-1]
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    new_filename = f"{timestamp}_{uuid.uuid4().hex[:6]}.{ext}"
+    return os.path.join('post_images', str(post_id), new_filename)
+  
 class HRUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     username = models.CharField(unique=True, max_length=255)  # tên đăng nhập riêng
@@ -32,6 +47,187 @@ class HRUser(models.Model):
     def __str__(self):
         return self.username
       
+class KhuCongNghiep(models.Model):
+    name=models.CharField(max_length=30,unique=True,blank=True,null=True)
+    fullname=models.CharField(max_length=100,unique=True,blank=True,null=True)
+    image = models.ImageField(upload_to=post_image_upload_path,
+                              validators=[validate_image_file],blank=True,null=True) 
+    mota=models.CharField(max_length=100,blank=True,null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "0. Khu công nghiệp"
+        verbose_name_plural = "0. Khu công nghiệp"
+    def __str__(self):
+        return f"{self.name}"
+    
+class CompanyLists(models.Model):
+    logo = models.ImageField(upload_to='comp_logos/',blank=True,null=True) 
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) # người tạo
+    name = models.CharField(max_length=100, null=True, blank=True)
+    fullname = models.CharField(max_length=255, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    hotline = models.CharField(max_length=255, null=True, blank=True)
+    email = models.CharField(max_length=255, null=True, blank=True)
+    website = models.CharField(max_length=255, null=True, blank=True)
+    facebook = models.CharField(max_length=255, null=True, blank=True)
+    is_banned = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+    address_details = models.JSONField(max_length=255, null=True, blank=True)
+    khucongnhiep = models.ForeignKey(KhuCongNghiep, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "6.Danh sách công ty"
+        verbose_name_plural = "6.Danh sách công ty"
+    def __str__(self):
+        return self.name
+    
+class CompanyPartner(models.Model):
+    companies = models.ForeignKey(CompanyLists, on_delete=models.SET_NULL, null=True, blank=True) # người tạo
+    admin = models.ManyToManyField('HRUser', blank=True,related_name='companies_admin')
+    staff = models.ManyToManyField('HRUser', blank=True,related_name='companies_staff')
+    writer = models.ManyToManyField('HRUser', blank=True,related_name='companies_writer')
+    partner = models.ManyToManyField('HRUser', blank=True,related_name='companies_partner')
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "7.Nhân sự công ty"
+        verbose_name_plural = "7.Nhân sự công ty"
+    def __str__(self):
+        return self.companies.name
+    
+class BaivietTuyendungTags(models.Model):
+    name=models.CharField(max_length=30,unique=True,blank=True,null=True)
+    content=models.CharField(max_length=100,blank=True,null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "8.1 Tin tuyển dụng Tag"
+        verbose_name_plural = "8.1 Tin tuyển dụng Tag"
+    def __str__(self):
+        return f"{self.tagname}"
+    
+class BaivietTuyendung(models.Model):
+    code = models.CharField(max_length=32,blank=True,null=True)
+    companies = models.ForeignKey(CompanyLists, on_delete=models.SET_NULL, null=True, blank=True)
+    khucongnhiep = models.ForeignKey(KhuCongNghiep, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey('HRUser', on_delete=models.CASCADE)
+    tuyengap = models.BooleanField(default=False)
+    tags = models.ManyToManyField(BaivietTuyendungTags,blank=True)
+    
+    chinhthuc = models.BooleanField(default=True)
+    
+    bophan = models.CharField(max_length=100,blank=True,null=True)
+    vitri = models.CharField(max_length=100,blank=True,null=True)
+    mucluong = models.CharField(max_length=100,blank=True,null=True)
+    
+    yeucau = models.TextField(max_length=600,blank=True,null=True)
+    quyenloi = models.TextField(max_length=600,blank=True,null=True)
+    noidungbosung = models.TextField(max_length=600,blank=True,null=True)
+    
+    thuong = models.IntegerField(default=0)
+    dieukien_thuong = models.TextField(max_length=300,blank=True,null=True)
+    
+    max_old = models.IntegerField(default=55)
+    min_old = models.IntegerField(default=18)
+    
+    soluong = models.IntegerField(default=100)
+    ngayketthuc = models.DateField(null=True,blank=True)
+
+    likes = models.ManyToManyField('HRUser',related_name='tuyendung_liked_posts',blank=True)
+    shares = models.ManyToManyField('HRUser',related_name='tuyendung_shared_posts',blank=True)
+    loadeds = models.ManyToManyField('HRUser',related_name='tuyendung_loaded_posts',blank=True)
+    vieweds = models.ManyToManyField('HRUser',related_name='tuyendung_viewd_posts',blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.code:
+            now = timezone.now()
+            date_prefix = now.strftime("TD-%y%m-")
+            last_record = BaivietTuyendung.objects.filter(
+                code__startswith=date_prefix,
+            ).order_by('-created_at', '-id').first()
+            new_sequence = 1
+            if last_record and last_record.code:
+                try:
+                    last_sequence_str = last_record.code.split('-')[-1]
+                    last_sequence = int(last_sequence_str)
+                    new_sequence = last_sequence + 1
+                except ValueError:
+                    new_sequence = 1
+            sequence_suffix = f"{new_sequence:06d}"
+            self.code = date_prefix + sequence_suffix
+        super().save(*args, **kwargs)
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "8.Tin tuyển dụng"
+        verbose_name_plural = "8.Tin tuyển dụng"
+    def __str__(self):
+        return f"Tin tuyển dụng {self.vitri}_{self.bophan}_{self.companies.name}"
+    
+class ApplyBaivietTuyendung(models.Model):
+    baiviet = models.ForeignKey(BaivietTuyendung, on_delete=models.SET_NULL, null=True, blank=True)
+    nguoigioithieu = models.ForeignKey('HRUser', on_delete=models.SET_NULL, 
+                                       null=True, blank=True, related_name='nguoi_gioithieu')
+    
+    nguoiungtuyen = models.ForeignKey('HRUser', on_delete=models.SET_NULL, 
+                                      null=True, blank=True, related_name='nguoi_ungtuyen')
+    
+    sodienthoai = models.TextField(max_length=15,blank=True,null=True)
+    hovaten = models.TextField(max_length=50,blank=True,null=True)
+    noidungungtuyen = models.TextField(max_length=200,blank=True,null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "9.Apply vị trí tuyển dụng"
+        verbose_name_plural = "9.Apply vị trí tuyển dụng"
+    def __str__(self):
+        return f"Dự tuyển của {self.baiviet.code}"
+
+class DanhgiaUngvienTags(models.Model):
+    name=models.CharField(max_length=30,unique=True,blank=True,null=True)
+    content=models.CharField(max_length=100,blank=True,null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "9.Apply vị trí tuyển dụng"
+        verbose_name_plural = "9.Apply vị trí tuyển dụng"
+    def __str__(self):
+        return f"{self.tagname}"
+    
+class DanhgiaUngvien(models.Model):
+    KETQUA_CHOICES = [
+        ('pass', 'Đỗ'),
+        ('fail', 'Trượt'),
+        ('wait', 'Chờ'),
+        ('hold', 'Chưa đánh giá'),
+    ]
+    baiviet = models.ForeignKey(ApplyBaivietTuyendung, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey('HRUser', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    ketqua = models.TextField(max_length=50,choices=KETQUA_CHOICES,blank=True,null=True)
+    
+    ghichu = models.TextField(max_length=200,blank=True,null=True)
+    danhgia = models.TextField(max_length=500,blank=True,null=True)
+    
+    tags = models.ManyToManyField(DanhgiaUngvienTags,blank=True)
+    
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "10. Đánh giá ứng viên"
+        verbose_name_plural = "10. Đánh giá ứng viên"
+    def __str__(self):
+        return f"Đánh giá {self.baiviet.code}"
+    
 class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
         ('normal', 'Người tìm việc'),
@@ -43,8 +239,9 @@ class UserProfile(models.Model):
     user = models.OneToOneField('HRUser', on_delete=models.CASCADE,related_name='user_fk')
     tag = models.CharField(max_length=20,unique=True, blank=True, null=True)
     inventer = models.ForeignKey('HRUser', 
-                                 on_delete=models.SET_NULL, 
-                                 null=True, blank=True,related_name='user_inventer')
+        on_delete=models.SET_NULL, 
+        null=True, blank=True,related_name='user_inventer'
+    )
     level = models.CharField(max_length=20,default='normal', choices=USER_TYPE_CHOICES)
     verified = models.BooleanField(default=False)
     timviec = models.BooleanField(default=True)
@@ -96,21 +293,6 @@ class Baiviet(models.Model):
     def __str__(self):
         return f"Bài viết của {self.user.username}"
 
-# Giới hạn mỗi file 200KB và phải là ảnh
-MAX_UPLOAD_SIZE = 200 * 1024 # 200 KB
-ALLOWED_IMAGE_TYPES = ['image/jpeg','image/jpg','image/png','image/gif','image/webp',]
-def validate_image_file(file):
-    if file.size > MAX_UPLOAD_SIZE:
-        raise ValidationError(f"Kích thước tệp tối đa là {MAX_UPLOAD_SIZE / 1024} KB.")
-    if file.content_type not in ALLOWED_IMAGE_TYPES:
-        raise ValidationError(f"Chỉ chấp nhận các loại ảnh JPG, PNG, GIF, hoặc WEBP. Loại tệp hiện tại là {file.content_type}.")
-def post_image_upload_path(instance, filename):
-    post_id = instance.baiviet.id
-    ext = filename.split('.')[-1]
-    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
-    new_filename = f"{timestamp}_{uuid.uuid4().hex[:6]}.{ext}"
-    return os.path.join('post_images', str(post_id), new_filename)
-  
 class AnhBaiviet(models.Model):
     baiviet = models.ForeignKey('Baiviet', on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to=post_image_upload_path,validators=[validate_image_file]) 
@@ -120,8 +302,8 @@ class AnhBaiviet(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "6.Ảnh bài viết"
-        verbose_name_plural = "6.Ảnh bài viết"
+        verbose_name = "0. Ảnh bài viết"
+        verbose_name_plural = "0. Ảnh bài viết"
     def __str__(self):
         return f"Ảnh cho Bài viết ID: {self.baiviet.id}"
     def save(self, *args, **kwargs):

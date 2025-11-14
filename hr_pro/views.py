@@ -116,3 +116,103 @@ class BaivietViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+class KhuCongNghiepViewSet(viewsets.ModelViewSet):
+    queryset = KhuCongNghiep.objects.all()
+    serializer_class = KhuCongNghiepSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    http_method_names = ["get"]
+    pagination_class = StandardResultsSetPagination
+    def get_permissions(self):
+        if self.action == 'list':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        max_update_id = self.request.query_params.get("max_id")
+        if max_update_id!="0":
+            queryset=queryset.filter(updated_at__gt=max_update_id)
+        page_size = self.request.query_params.get("page_size")
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+class CompanyListsViewSet(viewsets.ModelViewSet):
+    queryset = CompanyLists.objects.all()
+    serializer_class = CompanyListsSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    http_method_names = ["get"]
+    pagination_class = StandardResultsSetPagination
+    def get_permissions(self):
+        if self.action == 'list':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        max_update_id = self.request.query_params.get("max_id")
+        if max_update_id!="0":
+            queryset=queryset.filter(updated_at__gt=max_update_id)
+        page_size = self.request.query_params.get("page_size")
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+class BaivietTuyendungTagsViewSet(viewsets.ModelViewSet):
+    queryset = BaivietTuyendungTags.objects.all()
+    serializer_class = BaivietTuyendungTagsSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    http_method_names = ["get"]
+    pagination_class = StandardResultsSetPagination
+    def get_permissions(self):
+        if self.action == 'list':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        max_update_id = self.request.query_params.get("max_id")
+        if max_update_id!="0":
+            queryset=queryset.filter(updated_at__gt=max_update_id)
+        page_size = self.request.query_params.get("page_size")
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+class BaivietTuyendungViewSet(viewsets.ModelViewSet):
+    queryset = BaivietTuyendung.objects.all()
+    serializer_class = BaivietTuyendungSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    http_method_names = ["get"]
+    pagination_class = StandardResultsSetPagination
+    def get_permissions(self):
+        if self.action == 'list':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        max_update_id = self.request.query_params.get("max_id")
+        if max_update_id!="0":
+            queryset=queryset.filter(updated_at__gt=max_update_id)
+        page_size = self.request.query_params.get("page_size")
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
