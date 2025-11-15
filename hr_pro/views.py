@@ -146,12 +146,33 @@ class CompanyListsViewSet(viewsets.ModelViewSet):
     queryset = CompanyLists.objects.all()
     serializer_class = CompanyListsSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    http_method_names = ["get"]
+    http_method_names = ["get","post","patch"]
     pagination_class = StandardResultsSetPagination
+    
     def get_permissions(self):
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
+    def create(self, request, *args, **kwargs):
+        user=request.user
+        try:
+            qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin","support"])
+            if qs_profile:
+                return super().create(request, *args, **kwargs)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'detail':"Không có quyền"},status=status.HTTP_401_UNAUTHORIZED)
+
+    def update(self, request, *args, **kwargs):
+        user=request.user
+        try:
+            qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin","support"])
+            if qs_profile:
+                return super().update(request, *args, **kwargs)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'detail':"Không có quyền"},status=status.HTTP_401_UNAUTHORIZED)
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         max_update_id = self.request.query_params.get("max_id")
