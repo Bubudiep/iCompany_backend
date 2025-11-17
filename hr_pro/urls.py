@@ -13,5 +13,6 @@ router.register(r'tin', BaivietTuyendungViewSet, basename='tin')
 urlpatterns = [
     path("user/", UserView.as_view()),
     path("in/", LoginView.as_view()),
+    path("reg/", DangkyView.as_view()),
     path('', include(router.urls)),
 ]

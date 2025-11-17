@@ -279,6 +279,8 @@ class Baiviet(models.Model):
     lat_location = models.CharField(max_length=20,blank=True,null=True)             # tọa độ
     long_location = models.CharField(max_length=20,blank=True,null=True)            # tọa độ
     location_name = models.TextField(blank=True,null=True)                          # tên địa điểm
+    is_verified = models.BooleanField(default=False)                                # được phê duyệt
+    is_hightlight = models.BooleanField(default=False)                              # bị tố cáo
 
     likes = models.ManyToManyField('HRUser',related_name='liked_posts',blank=True)
     shares = models.ManyToManyField('HRUser',related_name='shared_posts',blank=True)

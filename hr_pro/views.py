@@ -17,6 +17,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q,F
 from django.contrib.auth.hashers import check_password
 
+token_expires_time=1000*60*60*24*15
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50  # Số lượng đối tượng trên mỗi trang
     page_size_query_param = 'page_size'
@@ -31,7 +32,6 @@ class UserView(APIView):
 class LoginView(APIView):
     permission_classes = [AllowAny]#
     def post(self, request):
-        expires_time=1000*60*60*24*15
         username = request.data.get("username")
         password = request.data.get("password")
         key = request.headers.get('ApplicationKey')
@@ -41,7 +41,7 @@ class LoginView(APIView):
             if check_password(password, qs_user.password)==False:
                 return Response({'detail': 'Sai mật khẩu'}, status=status.HTTP_401_UNAUTHORIZED)
             app = Application.objects.get(client_id=key)
-            expires = timezone.now() + timedelta(seconds=expires_time)
+            expires = timezone.now() + timedelta(seconds=token_expires_time)
             access_token = AccessToken.objects.create(
                 user=oauth_user,
                 application=app,
@@ -58,6 +58,35 @@ class LoginView(APIView):
             return Response({"detail": "App chưa được đăng ký!"}, status=status.HTTP_400_BAD_REQUEST)
         except HRUser.DoesNotExist:
             return Response({"detail": "Tài khoản chưa được đăng ký!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+class DangkyView(APIView):
+    permission_classes = [AllowAny]#
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        key = request.headers.get('ApplicationKey')
+        try:
+            qs_duplicate = HRUser.objects.filter(username=username).count()
+            if qs_duplicate>0:
+                return Response({'detail': 'Tài khoản đã tồn tại'}, status=status.HTTP_401_UNAUTHORIZED)
+            qs_user = HRUser.objects.create(username=username,password=password)
+            oauth_user = qs_user.user
+            app = Application.objects.get(client_id=key)
+            expires = timezone.now() + timedelta(seconds=token_expires_time)
+            access_token = AccessToken.objects.create(
+                user=oauth_user,
+                application=app,
+                expires=expires,
+                token=secrets.token_urlsafe(32),
+                scope="read write"
+            )
+            return Response({
+                "access_token": access_token.token,
+                "expires_in": expires,
+                "token_type": "Bearer",
+            })
+        except Application.DoesNotExist:
+            return Response({"detail": "App chưa được đăng ký!"}, status=status.HTTP_400_BAD_REQUEST)
         
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
@@ -80,7 +109,7 @@ class BaivietViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated()]
         return [permissions.IsAuthenticated()]
     def get_queryset(self):
-        queryset = Baiviet.objects.all()
+        queryset = Baiviet.objects.filter(is_verified=True)
         queryset = queryset.annotate(
             likes_count=Count('likes', distinct=True),
             shares_count=Count('shares', distinct=True),
@@ -90,7 +119,11 @@ class BaivietViewSet(viewsets.ModelViewSet):
         return queryset
     def perform_create(self, serializer):
         qsuser=HRUser.objects.get(user=self.request.user)
-        serializer.save(user=qsuser)
+        qs_profile=UserProfile.objects.get(user=qsuser)
+        if qs_profile.level in ['admin','support','company']:
+            serializer.save(user=qsuser,is_verified=True)
+        else:
+            serializer.save(user=qsuser)
         
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
