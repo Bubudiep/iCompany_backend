@@ -74,6 +74,7 @@ class CompanyLists(models.Model):
     facebook = models.CharField(max_length=255, null=True, blank=True)
     is_banned = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    soft_delete = models.BooleanField(default=False)
     address_details = models.JSONField(max_length=255, null=True, blank=True)
     khucongnhiep = models.ForeignKey(KhuCongNghiep, on_delete=models.SET_NULL, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)

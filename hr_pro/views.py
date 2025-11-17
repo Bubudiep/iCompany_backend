@@ -179,22 +179,36 @@ class CompanyListsViewSet(viewsets.ModelViewSet):
     queryset = CompanyLists.objects.all()
     serializer_class = CompanyListsSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    http_method_names = ["get","post","patch"]
+    http_method_names = ["get","post","patch","delete"]
     pagination_class = StandardResultsSetPagination
     
     def get_permissions(self):
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
+    
+    def destroy(self, request, *args, **kwargs):
+        user=request.user
+        try:
+            qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin"])
+            if qs_profile:
+                instance=self.get_object()
+                instance.soft_delete=True
+                instance.save()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+
     def create(self, request, *args, **kwargs):
         user=request.user
         try:
             qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin","support"])
             if qs_profile:
                 return super().create(request, *args, **kwargs)
-            return Response({'detail':"Không có quyền"},status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
-            return Response({'detail':"Không có quyền"},status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
 
     def update(self, request, *args, **kwargs):
         user=request.user
@@ -202,9 +216,9 @@ class CompanyListsViewSet(viewsets.ModelViewSet):
             qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin","support"])
             if qs_profile:
                 return super().update(request, *args, **kwargs)
-            return Response({'detail':"Không có quyền"},status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
-            return Response({'detail':"Không có quyền"},status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
