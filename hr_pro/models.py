@@ -62,18 +62,61 @@ class KhuCongNghiep(models.Model):
     def __str__(self):
         return f"{self.name}"
     
+class CompanyImages(models.Model):
+    image = models.ImageField(upload_to=post_image_upload_path,validators=[validate_image_file]) 
+    file_name = models.CharField(max_length=225,blank=True,null=True)
+    file_type = models.CharField(max_length=80,blank=True,null=True)
+    file_size = models.IntegerField(default=0) 
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "6.0. Ảnh công ty"
+        verbose_name_plural = "6.0. Ảnh công ty"
+    def __str__(self):
+        return f"Ảnh cho công ty {self.file_name}"
+    def save(self, *args, **kwargs):
+        MAX_FILENAME_LENGTH = 180 
+        if self.image and self.image.file:
+            self.file_size = self.image.file.size 
+            original_file_name = os.path.basename(self.image.name)
+            if len(original_file_name) > MAX_FILENAME_LENGTH:
+                base_name, file_ext = os.path.splitext(original_file_name)
+                truncate_length = MAX_FILENAME_LENGTH - len(file_ext)
+                if truncate_length < 0:
+                     truncate_length = MAX_FILENAME_LENGTH # Cắt toàn bộ nếu tên extension quá dài
+                self.file_name = base_name[:truncate_length] + file_ext
+            else:
+                self.file_name = original_file_name
+            try:
+                content_type = self.image.file.content_type
+                self.file_type = content_type
+            except AttributeError:
+                self.file_type = os.path.splitext(self.image.name)[1].lstrip('.').lower()
+        super().save(*args, **kwargs)
+        
 class CompanyLists(models.Model):
-    logo = models.ImageField(upload_to='comp_logos/',blank=True,null=True) 
+    logo = models.ImageField(upload_to='comp_logos/',blank=True,null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) # người tạo
+    images = models.ManyToManyField(CompanyImages,blank=True)
+    
     name = models.CharField(max_length=100, null=True, blank=True)
     fullname = models.CharField(max_length=255, null=True, blank=True)
+    mota = models.TextField(max_length=1000, null=True, blank=True)
+    
+    min_tuoi = models.IntegerField(default=10)
+    max_tuoi = models.IntegerField(default=50)
+    
+    hiring = models.BooleanField(default=False)
+    
     address = models.CharField(max_length=255, null=True, blank=True)
     hotline = models.CharField(max_length=255, null=True, blank=True)
     email = models.CharField(max_length=255, null=True, blank=True)
     website = models.CharField(max_length=255, null=True, blank=True)
     facebook = models.CharField(max_length=255, null=True, blank=True)
+    
     is_banned = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    
     soft_delete = models.BooleanField(default=False)
     address_details = models.JSONField(max_length=255, null=True, blank=True)
     khucongnhiep = models.ForeignKey(KhuCongNghiep, on_delete=models.SET_NULL, null=True, blank=True)
