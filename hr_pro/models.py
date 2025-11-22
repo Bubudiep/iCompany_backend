@@ -16,11 +16,20 @@ def validate_image_file(file):
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise ValidationError(f"Chỉ chấp nhận các loại ảnh JPG, PNG, GIF, hoặc WEBP. Loại tệp hiện tại là {file.content_type}.")
 def post_image_upload_path(instance, filename):
-    post_id = instance.baiviet.id
     ext = filename.split('.')[-1]
     timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
     new_filename = f"{timestamp}_{uuid.uuid4().hex[:6]}.{ext}"
-    return os.path.join('post_images', str(post_id), new_filename)
+    return os.path.join('post_images',timestamp,new_filename)
+def post_tdimage_upload_path(instance, filename):
+    ext = filename.split('.')[-1]
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    new_filename = f"{timestamp}_{uuid.uuid4().hex[:6]}.{ext}"
+    return os.path.join('post_td_images',timestamp,new_filename)
+def post_cpimage_upload_path(instance, filename):
+    ext = filename.split('.')[-1]
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    new_filename = f"{timestamp}_{uuid.uuid4().hex[:6]}.{ext}"
+    return os.path.join('post_cp_images',timestamp, new_filename)
   
 class HRUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -50,7 +59,7 @@ class HRUser(models.Model):
 class KhuCongNghiep(models.Model):
     name=models.CharField(max_length=30,unique=True,blank=True,null=True)
     fullname=models.CharField(max_length=100,unique=True,blank=True,null=True)
-    image = models.ImageField(upload_to=post_image_upload_path,
+    image = models.ImageField(upload_to=post_cpimage_upload_path,
                               validators=[validate_image_file],blank=True,null=True) 
     mota=models.CharField(max_length=100,blank=True,null=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -97,7 +106,6 @@ class CompanyImages(models.Model):
 class CompanyLists(models.Model):
     logo = models.ImageField(upload_to='comp_logos/',blank=True,null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) # người tạo
-    images = models.ManyToManyField(CompanyImages,blank=True)
     
     name = models.CharField(max_length=100, null=True, blank=True)
     fullname = models.CharField(max_length=255, null=True, blank=True)
@@ -105,8 +113,6 @@ class CompanyLists(models.Model):
     
     min_tuoi = models.IntegerField(default=10)
     max_tuoi = models.IntegerField(default=50)
-    
-    hiring = models.BooleanField(default=False)
     
     address = models.CharField(max_length=255, null=True, blank=True)
     hotline = models.CharField(max_length=255, null=True, blank=True)
@@ -155,33 +161,82 @@ class BaivietTuyendungTags(models.Model):
         verbose_name_plural = "8.1 Tin tuyển dụng Tag"
     def __str__(self):
         return f"{self.tagname}"
-    
+        
+class BaivietTuyenDungImages(models.Model):
+    image = models.ImageField(upload_to=post_tdimage_upload_path,validators=[validate_image_file]) 
+    file_name = models.CharField(max_length=225,blank=True,null=True)
+    file_type = models.CharField(max_length=80,blank=True,null=True)
+    file_size = models.IntegerField(default=0) 
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "8.1. Ảnh bải viết tuyển dụng"
+        verbose_name_plural = "8.1. Ảnh bải viết tuyển dụng"
+    def __str__(self):
+        return f"{self.file_name}"
+    def save(self, *args, **kwargs):
+        MAX_FILENAME_LENGTH = 180 
+        if self.image and self.image.file:
+            self.file_size = self.image.file.size 
+            original_file_name = os.path.basename(self.image.name)
+            if len(original_file_name) > MAX_FILENAME_LENGTH:
+                base_name, file_ext = os.path.splitext(original_file_name)
+                truncate_length = MAX_FILENAME_LENGTH - len(file_ext)
+                if truncate_length < 0:
+                     truncate_length = MAX_FILENAME_LENGTH # Cắt toàn bộ nếu tên extension quá dài
+                self.file_name = base_name[:truncate_length] + file_ext
+            else:
+                self.file_name = original_file_name
+            try:
+                content_type = self.image.file.content_type
+                self.file_type = content_type
+            except AttributeError:
+                self.file_type = os.path.splitext(self.image.name)[1].lstrip('.').lower()
+        super().save(*args, **kwargs)
+        
 class BaivietTuyendung(models.Model):
     code = models.CharField(max_length=32,blank=True,null=True)
+    images = models.ManyToManyField(BaivietTuyenDungImages,blank=True)
     companies = models.ForeignKey(CompanyLists, on_delete=models.SET_NULL, null=True, blank=True)
-    khucongnhiep = models.ForeignKey(KhuCongNghiep, on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey('HRUser', on_delete=models.CASCADE)
-    tuyengap = models.BooleanField(default=False)
-    tags = models.ManyToManyField(BaivietTuyendungTags,blank=True)
+    active = models.BooleanField(default=False)
+    urgent = models.BooleanField(default=False)
     
-    chinhthuc = models.BooleanField(default=True)
+    luongtuan = models.BooleanField(default=False)
+    phongsach = models.BooleanField(default=False)
+    cuatu = models.BooleanField(default=False)
+    thuong = models.BooleanField(default=False)
+    thuong_sotien = models.IntegerField(default=0)
+    thuong_dieukien = models.TextField(max_length=300,blank=True,null=True)
     
-    bophan = models.CharField(max_length=100,blank=True,null=True)
-    vitri = models.CharField(max_length=100,blank=True,null=True)
-    mucluong = models.CharField(max_length=100,blank=True,null=True)
+    title = models.CharField(max_length=100,blank=True,null=True)
+    loaihinh = models.CharField(max_length=20,default='all',choices=[
+        ('tv','Thời vụ'),
+        ('ct','Chính thức'),
+        ('all','Thời vụ và chính thức')
+    ],blank=True,null=True)
+    calamviec = models.CharField(max_length=20,default='2ca',choices=[
+        ('hc','Hành chính'),
+        ('2ca','Ca ngày, đêm'),
+        ('3ca','3 ca'),
+        ('lh','Linh hoạt')
+    ],blank=True,null=True)
+    
+    mucluong = models.CharField(max_length=80,blank=True,null=True)
+    luongcoban = models.IntegerField(default=0,blank=True,null=True)
+    phucap = models.IntegerField(default=0,blank=True,null=True)
+    chuyencan = models.IntegerField(default=0,blank=True,null=True)
     
     yeucau = models.TextField(max_length=600,blank=True,null=True)
     quyenloi = models.TextField(max_length=600,blank=True,null=True)
     noidungbosung = models.TextField(max_length=600,blank=True,null=True)
-    
-    thuong = models.IntegerField(default=0)
-    dieukien_thuong = models.TextField(max_length=300,blank=True,null=True)
     
     max_old = models.IntegerField(default=55)
     min_old = models.IntegerField(default=18)
     
     soluong = models.IntegerField(default=100)
     ngayketthuc = models.DateField(null=True,blank=True)
+    soft_delete = models.BooleanField(default=False)
 
     likes = models.ManyToManyField('HRUser',related_name='tuyendung_liked_posts',blank=True)
     shares = models.ManyToManyField('HRUser',related_name='tuyendung_shared_posts',blank=True)

@@ -239,7 +239,7 @@ class BaivietTuyendungTagsViewSet(viewsets.ModelViewSet):
     queryset = BaivietTuyendungTags.objects.all()
     serializer_class = BaivietTuyendungTagsSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    http_method_names = ["get"]
+    http_method_names = ["get","post"]
     pagination_class = StandardResultsSetPagination
     def get_permissions(self):
         if self.action == 'list':
@@ -264,12 +264,67 @@ class BaivietTuyendungViewSet(viewsets.ModelViewSet):
     queryset = BaivietTuyendung.objects.all()
     serializer_class = BaivietTuyendungSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    http_method_names = ["get"]
+    http_method_names = ["get","post","patch",'delete']
     pagination_class = StandardResultsSetPagination
     def get_permissions(self):
         if self.action == 'list':
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
+    def destroy(self, request, *args, **kwargs):
+        user=request.user
+        try:
+            qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin","support"])
+            if qs_profile:
+                instance=self.get_object()
+                instance.soft_delete=True
+                instance.save()
+                return Response(BaivietTuyendungSerializer(instance).data)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            print(f"{e}")
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+    def perform_create(self, serializer):
+        qsuser=HRUser.objects.get(user=self.request.user)
+        serializer.save(user=qsuser)
+    @action(detail=True, methods=["post"])
+    def remove_image(self, request, pk=None):
+        instance = self.get_object()
+        user=request.user
+        try:
+            qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin","support"])
+            if qs_profile:
+                images=instance.images.all()
+                image=images.get(id=request.data.get('id'))
+                image.delete()
+                return Response(BaivietTuyendungSerializer(instance,context={'request':request}).data)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            print(f"{e}")
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+    def create(self, request, *args, **kwargs):
+        user=request.user
+        if request.data.get('title','') == '':
+            return Response({'detail':"Chưa nhập tiêu đề"},status=status.HTTP_400_BAD_REQUEST)
+        if request.data.get('noidungbosung','') == '':
+            return Response({'detail':"Chưa nhập mô tả công việc"},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin","support"])
+            if qs_profile:
+                return super().create(request, *args, **kwargs)
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+    def update(self, request, *args, **kwargs):
+        user=request.user
+        try:
+            qs_profile=UserProfile.objects.get(user__user=user,level__in=["admin","support"])
+            if qs_profile:
+                return super().update(request, *args, **kwargs)
+            return Response({'detail':"Không có quyền 1"},status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            print(f"{e}")
+            return Response({'detail':"Không có quyền 2"},status=status.HTTP_403_FORBIDDEN)
+    
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         max_update_id = self.request.query_params.get("max_id")

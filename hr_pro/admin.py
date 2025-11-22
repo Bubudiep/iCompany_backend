@@ -119,8 +119,7 @@ class BaivietTuyendungTagsAdmin(admin.ModelAdmin):
     search_fields = ('name', 'content',)
 @admin.register(BaivietTuyendung)
 class BaivietTuyendungAdmin(admin.ModelAdmin):
-    list_display = ['code','companies','khucongnhiep',
-    'user','tuyengap','bophan','vitri']
+    list_display = ['code','companies','user','urgent','title']
     readonly_fields = []
     list_filter = ('created_at',)
     search_fields = ('code','companies__name', 'khucongnhiep__name',)

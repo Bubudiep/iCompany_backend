@@ -12,9 +12,47 @@ class CompanyListsSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class BaivietTuyendungSerializer(serializers.ModelSerializer):
+    images = serializers.ListField(
+        child=serializers.ImageField(max_length=100000, allow_empty_file=False, use_url=False),
+        write_only=True,
+        required=False
+    )
+    images_details = serializers.SerializerMethodField()
+    def get_images_details(self, obj):
+        request = self.context.get('request')
+        result = []
+        for img in obj.images.all():
+            if img.image:
+                img_url = img.image.url
+                if request:
+                    img_url = request.build_absolute_uri(img_url)
+                result.append({
+                    "uid": str(img.id),                  # UID bắt buộc (nên là string)
+                    "name": img.image.name.split('/')[-1], # Tên file hiển thị
+                    "status": "done",                    # Trạng thái "done" để hiện khung xanh
+                    "url": img_url,                      # Link ảnh để preview
+                    # "thumbUrl": img_url                # (Tuỳ chọn) link thumbnail
+                })
+        return result
     class Meta:
         model = BaivietTuyendung
         fields = '__all__'
+        read_only_fields=['user','code']
+    def create(self, validated_data):
+        images=validated_data.pop('images',None)
+        created=super().create(validated_data)
+        if images:
+            for image_data in images:
+                new_image = BaivietTuyenDungImages.objects.create(image=image_data)
+                created.images.add(new_image)
+        return created
+    def update(self, instance, validated_data):
+        images=validated_data.pop('images',None)
+        if images:
+            for image_data in images:
+                new_image = BaivietTuyenDungImages.objects.create(image=image_data)
+                instance.images.add(new_image)
+        return super().update(instance, validated_data)
         
 class BaivietTuyendungTagsSerializer(serializers.ModelSerializer):
     class Meta:
