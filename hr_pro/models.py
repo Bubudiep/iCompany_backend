@@ -160,7 +160,7 @@ class BaivietTuyendungTags(models.Model):
         verbose_name = "8.1 Tin tuyển dụng Tag"
         verbose_name_plural = "8.1 Tin tuyển dụng Tag"
     def __str__(self):
-        return f"{self.tagname}"
+        return f"{self.name}"
         
 class BaivietTuyenDungImages(models.Model):
     image = models.ImageField(upload_to=post_tdimage_upload_path,validators=[validate_image_file]) 
@@ -197,6 +197,7 @@ class BaivietTuyenDungImages(models.Model):
 class BaivietTuyendung(models.Model):
     code = models.CharField(max_length=32,blank=True,null=True)
     images = models.ManyToManyField(BaivietTuyenDungImages,blank=True)
+    tags = models.ManyToManyField(BaivietTuyendungTags,blank=True)
     companies = models.ForeignKey(CompanyLists, on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey('HRUser', on_delete=models.CASCADE)
     active = models.BooleanField(default=False)

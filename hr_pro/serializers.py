@@ -45,6 +45,9 @@ class BaivietTuyendungSerializer(serializers.ModelSerializer):
             for image_data in images:
                 new_image = BaivietTuyenDungImages.objects.create(image=image_data)
                 created.images.add(new_image)
+        tags=validated_data.pop('tags',None)
+        if tags:
+            created.tags.set(tags)
         return created
     def update(self, instance, validated_data):
         images=validated_data.pop('images',None)
@@ -52,6 +55,9 @@ class BaivietTuyendungSerializer(serializers.ModelSerializer):
             for image_data in images:
                 new_image = BaivietTuyenDungImages.objects.create(image=image_data)
                 instance.images.add(new_image)
+        tags=validated_data.pop('tags',None)
+        if tags:
+            instance.tags.set(tags)
         return super().update(instance, validated_data)
         
 class BaivietTuyendungTagsSerializer(serializers.ModelSerializer):
