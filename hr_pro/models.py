@@ -6,6 +6,8 @@ import os
 import uuid
 from django.utils import timezone
 from django.db.models import Count
+import random
+import string
 
 # Giới hạn mỗi file 200KB và phải là ảnh
 MAX_UPLOAD_SIZE = 200 * 1024 # 200 KB
@@ -20,6 +22,11 @@ def post_image_upload_path(instance, filename):
     timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
     new_filename = f"{timestamp}_{uuid.uuid4().hex[:6]}.{ext}"
     return os.path.join('post_images',timestamp,new_filename)
+def post_userimage_upload_path(instance, filename):
+    ext = filename.split('.')[-1]
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    new_filename = f"{timestamp}_{instance.user.id}_{uuid.uuid4().hex[:6]}.{ext}"
+    return os.path.join('post_td_images',timestamp,new_filename)
 def post_tdimage_upload_path(instance, filename):
     ext = filename.split('.')[-1]
     timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
@@ -328,6 +335,44 @@ class DanhgiaUngvien(models.Model):
     def __str__(self):
         return f"Đánh giá {self.baiviet.code}"
     
+class UserImage(models.Model):
+    user = models.ForeignKey('HRUser', on_delete=models.SET_NULL, null=True, blank=True)
+    image = models.ImageField(upload_to=post_userimage_upload_path,validators=[validate_image_file]) 
+    album = models.CharField(max_length=80,blank=True,null=True)
+    file_name = models.CharField(max_length=225,blank=True,null=True)
+    file_type = models.CharField(max_length=80,blank=True,null=True)
+    file_size = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "8.1. Ảnh của người dùng"
+        verbose_name_plural = "8.1. Ảnh của người dùng"
+    def __str__(self):
+        return f"{self.file_name}"
+    def save(self, *args, **kwargs):
+        MAX_FILENAME_LENGTH = 180 
+        if self.image and self.image.file:
+            self.file_size = self.image.file.size 
+            original_file_name = os.path.basename(self.image.name)
+            if len(original_file_name) > MAX_FILENAME_LENGTH:
+                base_name, file_ext = os.path.splitext(original_file_name)
+                truncate_length = MAX_FILENAME_LENGTH - len(file_ext)
+                if truncate_length < 0:
+                     truncate_length = MAX_FILENAME_LENGTH # Cắt toàn bộ nếu tên extension quá dài
+                self.file_name = base_name[:truncate_length] + file_ext
+            else:
+                self.file_name = original_file_name
+            try:
+                content_type = self.image.file.content_type
+                self.file_type = content_type
+            except AttributeError:
+                self.file_type = os.path.splitext(self.image.name)[1].lstrip('.').lower()
+        super().save(*args, **kwargs)
+
+def generate_invite_code(length=8):
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(length)) 
+
 class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
         ('normal', 'Người tìm việc'),
@@ -337,18 +382,21 @@ class UserProfile(models.Model):
         ('admin', 'Quản trị viên'),
     ]
     user = models.OneToOneField('HRUser', on_delete=models.CASCADE,related_name='user_fk')
-    tag = models.CharField(max_length=20,unique=True, blank=True, null=True)
+    tag = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    avatar = models.ForeignKey(UserImage, on_delete=models.SET_NULL, blank=True, null=True)
     inventer = models.ForeignKey('HRUser', 
         on_delete=models.SET_NULL, 
         null=True, blank=True,related_name='user_inventer'
     )
+    invent_code = models.CharField(max_length=30,default="", blank=True, null=True)
     level = models.CharField(max_length=20,default='normal', choices=USER_TYPE_CHOICES)
     verified = models.BooleanField(default=False)
     timviec = models.BooleanField(default=True)
     name_display = models.CharField(max_length=100, blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
+    cccd = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(max_length=300,blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
@@ -360,6 +408,26 @@ class UserProfile(models.Model):
             raise ValidationError("Nhà tuyển dụng phải có tên công ty.")
     def __str__(self):
         return f"{self.user.username} {self.name}"
+    def save(self, *args, **kwargs):
+        if not self.invent_code or self.invent_code=='':
+            safe_chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+            new_code = None
+            sub_char="NM"
+            if self.level=='admin':
+                sub_char="AD"
+            if self.level=='company':
+                sub_char="HR"
+            if self.level=='partner':
+                sub_char="PN"
+            if self.level=='support':
+                sub_char="SP"
+            while not new_code:
+                suffix = ''.join(random.choice(safe_chars) for _ in range(6))
+                temp_code = f"{sub_char}-{suffix}" 
+                if not UserProfile.objects.filter(invent_code=temp_code).exists():
+                    new_code = temp_code
+            self.invent_code = new_code
+        super().save(*args, **kwargs)
 
 class UserConfigs(models.Model):
     user = models.OneToOneField('HRUser', on_delete=models.CASCADE)

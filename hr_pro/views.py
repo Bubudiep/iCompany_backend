@@ -74,11 +74,8 @@ class DangkyView(APIView):
             app = Application.objects.get(client_id=key)
             expires = timezone.now() + timedelta(seconds=token_expires_time)
             access_token = AccessToken.objects.create(
-                user=oauth_user,
-                application=app,
-                expires=expires,
-                token=secrets.token_urlsafe(32),
-                scope="read write"
+                user=oauth_user,application=app,expires=expires,
+                token=secrets.token_urlsafe(32),scope="read write"
             )
             return Response({
                 "access_token": access_token.token,
@@ -114,7 +111,6 @@ class BaivietViewSet(viewsets.ModelViewSet):
             likes_count=Count('likes', distinct=True),
             shares_count=Count('shares', distinct=True),
             views_count=Count('vieweds', distinct=True),
-            # comments_count=Count('comments', distinct=True) 
         ).select_related('user').order_by('-created_at')
         return queryset
     def perform_create(self, serializer):
@@ -328,8 +324,12 @@ class BaivietTuyendungViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         max_update_id = self.request.query_params.get("max_id")
-        if max_update_id!="0":
+        if max_update_id and max_update_id!="0":
             queryset=queryset.filter(updated_at__gt=max_update_id)
+        
+        code = self.request.query_params.get("code")
+        if code:
+            queryset=queryset.filter(code=code)
         page_size = self.request.query_params.get("page_size")
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
