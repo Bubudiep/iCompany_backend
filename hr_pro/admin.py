@@ -123,4 +123,10 @@ class BaivietTuyendungAdmin(admin.ModelAdmin):
     readonly_fields = []
     list_filter = ('created_at',)
     search_fields = ('code','companies__name', 'khucongnhiep__name',)
+@admin.register(ApplyBaivietTuyendung)
+class ApplyBaivietTuyendungAdmin(admin.ModelAdmin):
+    list_display = ['baiviet','nguoigioithieu','nguoiungtuyen','sodienthoai','hovaten']
+    readonly_fields = []
+    list_filter = ('created_at',)
+    search_fields = ('code',)
     

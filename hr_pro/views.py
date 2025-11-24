@@ -283,6 +283,38 @@ class BaivietTuyendungViewSet(viewsets.ModelViewSet):
         qsuser=HRUser.objects.get(user=self.request.user)
         serializer.save(user=qsuser)
     @action(detail=True, methods=["post"])
+    def ungtuyen(self, request, pk=None):
+        instance = self.get_object()
+        user=None
+        try:
+            if request.user:
+                user=HRUser.objects.get(user=request.user)
+            name=request.data.get('name',None)
+            phone=request.data.get('phone',None)
+            invent_code=request.data.get('invent_code',None)
+            nguoigioithieu=None
+            if phone[0]!=0 and len(phone)!=10:
+                return Response({'detail':"Số điện thoại không hợp lệ!"},status=status.HTTP_403_FORBIDDEN)
+            if invent_code:
+                qs_profile=UserProfile.objects.filter(invent_code=invent_code).first()
+                if qs_profile:
+                    nguoigioithieu=qs_profile.user
+            if name and phone:
+                ungtuyen=ApplyBaivietTuyendung.objects.create(
+                    baiviet=instance,
+                    nguoigioithieu=nguoigioithieu,
+                    nguoiungtuyen=user,
+                    sodienthoai=phone,
+                    hovaten=name,
+                    noidungungtuyen="Ứng tuyển qua web mobile!"
+                )
+                return Response(BaivietTuyendungSerializer(instance).data)
+            else:
+                return Response({'detail':"Không có tên hoặc số điện thoại"},status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            print(f"{e}")
+            return Response({'detail':"Không có quyền"},status=status.HTTP_403_FORBIDDEN)
+    @action(detail=True, methods=["post"])
     def remove_image(self, request, pk=None):
         instance = self.get_object()
         user=request.user

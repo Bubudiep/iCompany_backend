@@ -275,7 +275,7 @@ class BaivietTuyendung(models.Model):
         verbose_name = "8.Tin tuyển dụng"
         verbose_name_plural = "8.Tin tuyển dụng"
     def __str__(self):
-        return f"Tin tuyển dụng {self.vitri}_{self.bophan}_{self.companies.name}"
+        return f"Tin tuyển dụng {self.title}_{self.companies.name}"
     
 class ApplyBaivietTuyendung(models.Model):
     baiviet = models.ForeignKey(BaivietTuyendung, on_delete=models.SET_NULL, null=True, blank=True)
