@@ -18,6 +18,7 @@ class BaivietTuyendungSerializer(serializers.ModelSerializer):
         required=False
     )
     images_details = serializers.SerializerMethodField()
+    apply_count = serializers.IntegerField(read_only=True)
     def get_images_details(self, obj):
         request = self.context.get('request')
         result = []

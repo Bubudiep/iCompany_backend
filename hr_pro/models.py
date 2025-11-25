@@ -245,6 +245,8 @@ class BaivietTuyendung(models.Model):
     soluong = models.IntegerField(default=100)
     ngayketthuc = models.DateField(null=True,blank=True)
     soft_delete = models.BooleanField(default=False)
+    view_count = models.IntegerField(default=0)
+    share_count = models.IntegerField(default=0)
 
     likes = models.ManyToManyField('HRUser',related_name='tuyendung_liked_posts',blank=True)
     shares = models.ManyToManyField('HRUser',related_name='tuyendung_shared_posts',blank=True)

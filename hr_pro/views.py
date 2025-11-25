@@ -16,6 +16,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q,F
 from django.contrib.auth.hashers import check_password
+from django.shortcuts import get_object_or_404
 
 token_expires_time=1000*60*60*24*15
 class StandardResultsSetPagination(PageNumberPagination):
@@ -262,8 +263,28 @@ class BaivietTuyendungViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     http_method_names = ["get","post","patch",'delete']
     pagination_class = StandardResultsSetPagination
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup_value = self.kwargs[lookup_url_kwarg]
+        filter_kwargs = {}
+        if lookup_value.isdigit():
+            filter_kwargs = {'id': lookup_value}
+        else:
+            filter_kwargs = {'code': lookup_value}
+        obj = get_object_or_404(queryset, **filter_kwargs)
+        self.check_object_permissions(self.request, obj)
+        return obj
+    
+    def get_queryset(self):
+        queryset = BaivietTuyendung.objects.all()
+        queryset = queryset.annotate(
+            apply_count=Count('applybaiviettuyendung')
+        )
+        return queryset
+    
     def get_permissions(self):
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve', 'ungtuyen','share']:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
     def destroy(self, request, *args, **kwargs):
@@ -282,12 +303,27 @@ class BaivietTuyendungViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         qsuser=HRUser.objects.get(user=self.request.user)
         serializer.save(user=qsuser)
-    @action(detail=True, methods=["post"])
+    def retrieve(self, request, *args, **kwargs):
+        instance=self.get_object()
+        instance.view_count=instance.view_count+1
+        if request.user.is_authenticated:
+            qs_usr=HRUser.objects.filter(user=request.user).first()
+            if qs_usr:
+                instance.vieweds.add(qs_usr)
+        instance.save()
+        return super().retrieve(request, *args, **kwargs)
+    @action(detail=True, methods=["post"], permission_classes=[permissions.AllowAny])
+    def share(self, request, pk=None):
+        instance = self.get_object()
+        instance.share_count= instance.share_count+1
+        instance.save()
+        return Response(BaivietTuyendungSerializer(instance).data)
+    @action(detail=True, methods=["post"], permission_classes=[permissions.AllowAny])
     def ungtuyen(self, request, pk=None):
         instance = self.get_object()
         user=None
         try:
-            if request.user:
+            if request.user.is_authenticated:
                 user=HRUser.objects.get(user=request.user)
             name=request.data.get('name',None)
             phone=request.data.get('phone',None)
