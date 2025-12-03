@@ -26,6 +26,8 @@ class AddOperatorAPIView(APIView):
                                 ).first()
                                 if last_id and last_id.ma_nhanvien:
                                     last_id = int(str(last_id.ma_nhanvien)[-6:])
+                                else:
+                                    last_id=0
                                 operatorCode = staff.company.operatorCode
                                 if not operatorCode:
                                     operatorCode = "NLD"
