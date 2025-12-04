@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from .a import *
+from django.template.defaultfilters import slugify
+import os
 
 class image_safe(models.Model): # Phân loại công ty
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -436,6 +438,18 @@ class CompanyBookHistory(models.Model):
         verbose_name_plural = "Company Books Historys"
     def __str__(self):
         return f"{self.id}"
+
+def company_operator_directory_path(instance, filename):
+    """Tạo đường dẫn tệp theo cấu trúc: company_name_slug/ma_nhanvien/filename"""
+    # Lấy tên công ty và 'slugify' nó để dùng làm tên thư mục (loại bỏ dấu, khoảng trắng)
+    company_name_slug = slugify(instance.company.name)
+    ma_nhanvien = instance.ma_nhanvien if instance.ma_nhanvien else 'unknown'
+    return os.path.join(company_name_slug, ma_nhanvien, filename)  
+def validate_file_size(value):
+    """Giới hạn tệp không vượt quá 500KB."""
+    limit = 500 * 1024  # 500 KB
+    if value.size > limit:
+        raise ValidationError(f'Tệp không được lớn hơn {limit / 1024} KB. Kích thước hiện tại: {value.size / 1024} KB.')
     
 class CompanyOperator(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
@@ -454,6 +468,24 @@ class CompanyOperator(models.Model):
     avatar= models.TextField(null=True, blank=True)
     cccd_front= models.TextField(null=True, blank=True)
     cccd_back= models.TextField(null=True, blank=True)
+    avatar_img= models.FileField(
+        upload_to=company_operator_directory_path,
+        validators=[validate_file_size],
+        null=True, 
+        blank=True
+    )
+    cccd_front_img= models.FileField(
+        upload_to=company_operator_directory_path,
+        validators=[validate_file_size],
+        null=True, 
+        blank=True
+    )
+    cccd_back_img= models.FileField(
+        upload_to=company_operator_directory_path,
+        validators=[validate_file_size],
+        null=True, 
+        blank=True
+    )
     
     trangthai= models.CharField(max_length=200, null=True, blank=True)
     nganhang= models.CharField(max_length=200, null=True, blank=True)
