@@ -15,8 +15,13 @@ ALLOWED_IMAGE_TYPES = ['image/jpeg','image/jpg','image/png','image/gif','image/w
 def validate_image_file(file):
     if file.size > MAX_UPLOAD_SIZE:
         raise ValidationError(f"Kích thước tệp tối đa là {MAX_UPLOAD_SIZE / 1024} KB.")
-    if file.content_type not in ALLOWED_IMAGE_TYPES:
+    if file.content_type and file.content_type not in ALLOWED_IMAGE_TYPES:
         raise ValidationError(f"Chỉ chấp nhận các loại ảnh JPG, PNG, GIF, hoặc WEBP. Loại tệp hiện tại là {file.content_type}.")
+def post_slice_upload_path(instance, filename):
+    ext = filename.split('.')[-1]
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    new_filename = f"{timestamp}_{uuid.uuid4().hex[:6]}.{ext}"
+    return os.path.join('slices',timestamp,new_filename)
 def post_image_upload_path(instance, filename):
     ext = filename.split('.')[-1]
     timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
@@ -247,6 +252,7 @@ class BaivietTuyendung(models.Model):
     soft_delete = models.BooleanField(default=False)
     view_count = models.IntegerField(default=0)
     share_count = models.IntegerField(default=0)
+    hotline = models.CharField(max_length=80,blank=True,null=True)
 
     likes = models.ManyToManyField('HRUser',related_name='tuyendung_liked_posts',blank=True)
     shares = models.ManyToManyField('HRUser',related_name='tuyendung_shared_posts',blank=True)
@@ -494,6 +500,43 @@ class AnhBaiviet(models.Model):
             try:
                 content_type = self.image.file.content_type
                 self.file_type = content_type
+            except AttributeError:
+                self.file_type = os.path.splitext(self.image.name)[1].lstrip('.').lower()
+        super().save(*args, **kwargs)
+        
+class AnhSlice(models.Model):
+    image = models.ImageField(upload_to=post_slice_upload_path) 
+    file_name = models.CharField(max_length=225,blank=True,null=True)
+    file_type = models.CharField(max_length=80,blank=True,null=True)
+    link = models.CharField(max_length=200,blank=True,null=True)
+    file_size = models.IntegerField(default=0) 
+    index = models.IntegerField(default=0) 
+    active = models.BooleanField(default=True)
+    exprice_date = models.DateField(null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "10. Ảnh Slice"
+        verbose_name_plural = "10. Ảnh Slice"
+    def __str__(self):
+        return f"Ảnh cho Slice ID: {self.id}"
+    def save(self, *args, **kwargs):
+        MAX_FILENAME_LENGTH = 180 
+        if self.image and self.image.file:
+            self.file_size = self.image.file.size 
+            original_file_name = os.path.basename(self.image.name)
+            if len(original_file_name) > MAX_FILENAME_LENGTH:
+                base_name, file_ext = os.path.splitext(original_file_name)
+                truncate_length = MAX_FILENAME_LENGTH - len(file_ext)
+                if truncate_length < 0:
+                     truncate_length = MAX_FILENAME_LENGTH # Cắt toàn bộ nếu tên extension quá dài
+                self.file_name = base_name[:truncate_length] + file_ext
+            else:
+                self.file_name = original_file_name
+            try:
+                if self.image.file.content_type:
+                    content_type = self.image.file.content_type
+                    self.file_type = content_type
             except AttributeError:
                 self.file_type = os.path.splitext(self.image.name)[1].lstrip('.').lower()
         super().save(*args, **kwargs)

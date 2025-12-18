@@ -10,6 +10,10 @@ class CompanyListsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyLists
         fields = '__all__'
+class AnhSliceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnhSlice
+        fields = '__all__'
         
 class BaivietTuyendungSerializer(serializers.ModelSerializer):
     images = serializers.ListField(

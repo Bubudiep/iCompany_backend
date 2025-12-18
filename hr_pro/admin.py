@@ -130,3 +130,8 @@ class ApplyBaivietTuyendungAdmin(admin.ModelAdmin):
     list_filter = ('created_at',)
     search_fields = ('code',)
     
+@admin.register(AnhSlice)
+class AnhSliceAdmin(admin.ModelAdmin):
+    list_display = ['id','active','file_name','file_type','file_size','index']
+    readonly_fields = []
+    list_filter = ('created_at',)

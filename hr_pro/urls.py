@@ -10,6 +10,7 @@ router.register(r'ips', KhuCongNghiepViewSet, basename='ips')
 router.register(r'comp', CompanyListsViewSet, basename='comp')
 router.register(r'tag', BaivietTuyendungTagsViewSet, basename='tag')
 router.register(r'tin', BaivietTuyendungViewSet, basename='tin')
+router.register(r'slice', AnhSliceViewSet, basename='slice')
 urlpatterns = [
     path("user/", UserView.as_view()),
     path("in/", LoginView.as_view()),

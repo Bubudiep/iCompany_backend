@@ -232,6 +232,28 @@ class CompanyListsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+class AnhSliceViewSet(viewsets.ModelViewSet):
+    queryset = AnhSlice.objects.all()
+    serializer_class = AnhSliceSerializer
+    permission_classes = [permissions.AllowAny]
+    http_method_names = ["get"]
+    pagination_class = StandardResultsSetPagination
+    def get_permissions(self):
+        if self.action == 'list':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page_size = self.request.query_params.get("page_size")
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
 class BaivietTuyendungTagsViewSet(viewsets.ModelViewSet):
     queryset = BaivietTuyendungTags.objects.all()
     serializer_class = BaivietTuyendungTagsSerializer
