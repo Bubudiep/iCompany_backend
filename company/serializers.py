@@ -818,7 +818,7 @@ class CompanyOperatorNoWorkSerializer(serializers.ModelSerializer):
             "ma_nhanvien",
             "ngay_phongvan",
             "ho_ten",
-            "gioi_tinh",
+            "gioi_tinh","diachi",
             "ten_goc",
             "so_cccd",
             "ngaysinh",
