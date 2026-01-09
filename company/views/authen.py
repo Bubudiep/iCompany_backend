@@ -360,7 +360,7 @@ class GetUserAPIView(APIView):
                     )
                 isAdmin=True
                 isSuper=True
-            qs_user=CompanyUser.objects.filter(username=username)
+            qs_user=CompanyUser.objects.filter(company__key=key,username=username)
             last_id = CompanyStaff.objects.filter(company__key=key).count()
             company_code=qs_user_company.company.companyCode
             if not cardID:
