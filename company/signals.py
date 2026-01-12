@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, pre_save, post_migrate
 from django.db.models import Value, F, CharField
 from django.dispatch import receiver
-from django.db.models.functions import Substr, Length, Concat
+from django.db.models.functions import Replace
 from .models import *
 from .serializers import *
 import threading
@@ -33,19 +33,26 @@ def handle_transaction_save(sender, instance, created, **kwargs):
     
 @receiver(pre_save, sender=Company)
 def update_operator_prefix(sender, instance, **kwargs):
-    if instance.pk:  # Chỉ lưu khi đã có trong DB
+    if instance.pk:  # Chỉ xử lý khi update (đã tồn tại trong DB)
         try:
             old_instance = Company.objects.get(pk=instance.pk)
-            old_code="NLD"
-            if old_instance.operatorCode is not None:
-                old_code=old_instance.operatorCode
-            if instance.operatorCode!=old_code:
-                ops=CompanyOperator.objects.filter(company=instance)
-                for op in ops:
-                    op.ma_nhanvien=op.ma_nhanvien.replace(old_code,instance.operatorCode)
-                    op.save()
+            
+            # Xác định mã cũ (mặc định là "NLD" nếu null)
+            old_code = old_instance.operatorCode if old_instance.operatorCode else "NLD"
+            new_code = instance.operatorCode
+            
+            # Chỉ chạy Update nếu mã có thay đổi
+            if new_code != old_code:
+                # Cập nhật hàng loạt bằng 1 câu lệnh SQL duy nhất
+                CompanyOperator.objects.filter(company=instance).update(
+                    ma_nhanvien=Replace(
+                        F('ma_nhanvien'), 
+                        Value(old_code), 
+                        Value(new_code)
+                    )
+                )
         except Company.DoesNotExist:
-            ...
+            pass
         
 @receiver(pre_save, sender=CompanyOperator)
 def store_old_operator_data(sender, instance, **kwargs):
