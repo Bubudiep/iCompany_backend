@@ -1,5 +1,7 @@
 from django.db.models.signals import post_save, pre_save, post_migrate
+from django.db.models import Value, F, Concat, CharField
 from django.dispatch import receiver
+from django.db.models.functions import Substr, Length
 from .models import *
 from .serializers import *
 import threading
@@ -29,6 +31,27 @@ def handle_transaction_save(sender, instance, created, **kwargs):
                 'key': instance.room.company.key
             })
     
+@receiver(pre_save, sender=Company)
+def update_operator_prefix(sender, instance, **kwargs):
+    if instance.pk:  # Chỉ lưu khi đã có trong DB
+        try:
+            old_instance = Company.objects.get(pk=instance.pk)
+            old_code="NLD"
+            if old_instance.companyCode is not None:
+                old_code=old_instance.companyCode
+            if instance.companyCode!=old_code:
+                old_prefix_len = len(old_code) + 2
+                CompanyOperator.objects.filter(company=instance).update(
+                    ma_nhanvien=Concat(
+                        Value(old_code),
+                        Value('-'),
+                        Substr(F('ma_nhanvien'), old_prefix_len),
+                        output_field=CharField()
+                    )
+                )
+        except CompanyOperator.DoesNotExist:
+            ...
+        
 @receiver(pre_save, sender=CompanyOperator)
 def store_old_operator_data(sender, instance, **kwargs):
     if instance.pk:  # Chỉ lưu khi đã có trong DB
