@@ -37,9 +37,9 @@ def update_operator_prefix(sender, instance, **kwargs):
         try:
             old_instance = Company.objects.get(pk=instance.pk)
             old_code="NLD"
-            if old_instance.companyCode is not None:
-                old_code=old_instance.companyCode
-            if instance.companyCode!=old_code:
+            if old_instance.operatorCode is not None:
+                old_code=old_instance.operatorCode
+            if instance.operatorCode!=old_code:
                 ops=CompanyOperator.objects.filter(company=instance)
                 for op in ops:
                     op.ma_nhanvien=op.ma_nhanvien.replace(old_code,instance.operatorCode)
