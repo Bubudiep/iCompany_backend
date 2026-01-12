@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, pre_save, post_migrate
-from django.db.models import Value, F, Concat, CharField
+from django.db.models import Value, F, CharField
 from django.dispatch import receiver
-from django.db.models.functions import Substr, Length
+from django.db.models.functions import Substr, Length, Concat
 from .models import *
 from .serializers import *
 import threading
