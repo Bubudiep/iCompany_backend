@@ -40,15 +40,10 @@ def update_operator_prefix(sender, instance, **kwargs):
             if old_instance.companyCode is not None:
                 old_code=old_instance.companyCode
             if instance.companyCode!=old_code:
-                old_prefix_len = len(old_code) + 2
-                CompanyOperator.objects.filter(company=instance).update(
-                    ma_nhanvien=Concat(
-                        Value(old_code),
-                        Value('-'),
-                        Substr(F('ma_nhanvien'), old_prefix_len),
-                        output_field=CharField()
-                    )
-                )
+                ops=CompanyOperator.objects.filter(company=instance)
+                for op in ops:
+                    op.ma_nhanvien=op.ma_nhanvien.replace(old_code,instance.operatorCode)
+                    op.save()
         except Company.DoesNotExist:
             ...
         
