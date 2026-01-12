@@ -49,7 +49,7 @@ def update_operator_prefix(sender, instance, **kwargs):
                         output_field=CharField()
                     )
                 )
-        except CompanyOperator.DoesNotExist:
+        except Company.DoesNotExist:
             ...
         
 @receiver(pre_save, sender=CompanyOperator)
