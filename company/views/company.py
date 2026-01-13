@@ -859,6 +859,16 @@ class CompanyViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=True, methods=['post'])
+    def opCode(self, request,pk=None):
+        company = self.get_object()
+        operatorCode = request.data.get('operatorCode',None)
+        if operatorCode:
+            company.operatorCode=operatorCode
+            company.save()
+            return Response(CompanySerializer(company).data)
+        else:
+            return Response({"detail": "Vui lòng nhập code mới!"}, status=status.HTTP_403_FORBIDDEN)
     @action(detail=False, methods=['get'])
     def dashboard(self, request,pk=None):
         user = request.user

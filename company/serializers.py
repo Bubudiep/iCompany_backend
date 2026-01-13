@@ -429,6 +429,7 @@ class CompanySerializer(serializers.ModelSerializer):
             "Staff",
             "Config",
             "Operator",
+            "operatorCode",
             "addressDetails",
             "hotline",
             "isValidate",
