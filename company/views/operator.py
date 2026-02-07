@@ -1029,7 +1029,9 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(queryset)
         max_update_time_str = self.request.query_params.get("max_update_time")
         if max_update_time_str:
-            queryset = queryset.filter(updated_at__gt=max_update_time_str)
+            dt = parse_datetime(max_update_time_str)
+            if dt:
+                queryset = queryset.filter(updated_at__gt=dt)
         max_update = self.request.query_params.get("max_update")
         if max_update:
             qs_max = CompanyOperator.objects.filter(id=int(max_update)).first()
@@ -1044,7 +1046,6 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
 
 class CompanyOperatorNoWorkViewSet(viewsets.ModelViewSet):
     serializer_class = CompanyOperatorNoWorkSerializer
