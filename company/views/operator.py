@@ -1029,7 +1029,7 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
         max_update_time_str = self.request.query_params.get("max_update_time")
-        if max_update_time:
+        if max_update_time_str:
             max_update_time = parse_datetime(max_update_time_str)
             queryset = queryset.filter(updated_at__gt=max_update_time)
         max_update = self.request.query_params.get("max_update")
