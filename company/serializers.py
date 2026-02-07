@@ -816,6 +816,7 @@ class CompanyOperatorNoWorkSerializer(serializers.ModelSerializer):
         model = CompanyOperator
         fields = [
             "id",
+            "sdt",
             "ma_nhanvien",
             "ngay_phongvan",
             "ho_ten",
