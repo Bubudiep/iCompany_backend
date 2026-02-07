@@ -32,7 +32,7 @@ class AddOperatorAPIView(APIView):
                                 if not operatorCode:
                                     operatorCode = "NLD"
                                 count = f"{(last_id+1):06d}"
-                                cardID = f"{operatorCode}-{count}"
+                                cardID = f"{operatorCode}{count}"
                                 qs_nguoituyen = None
                                 nhacungcap = None
                                 qs_nhachinh = None
@@ -1026,7 +1026,10 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        queryset = self.filter_queryset(queryset)  # Áp dụng bộ lọc cho queryset
+        queryset = self.filter_queryset(queryset)
+        max_update_time = self.request.query_params.get("max_update_time")
+        if max_update_time:
+            queryset = queryset.filter(updated_at__gt=max_update_time)
         max_update = self.request.query_params.get("max_update")
         if max_update:
             qs_max = CompanyOperator.objects.filter(id=int(max_update)).first()

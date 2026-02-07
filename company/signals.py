@@ -36,11 +36,9 @@ def update_operator_prefix(sender, instance, **kwargs):
     if instance.pk:  # Chỉ xử lý khi update (đã tồn tại trong DB)
         try:
             old_instance = Company.objects.get(pk=instance.pk)
-            
             # Xác định mã cũ (mặc định là "NLD" nếu null)
             old_code = old_instance.operatorCode if old_instance.operatorCode else "NLD"
             new_code = instance.operatorCode
-            
             # Chỉ chạy Update nếu mã có thay đổi
             if new_code != old_code:
                 # Cập nhật hàng loạt bằng 1 câu lệnh SQL duy nhất
