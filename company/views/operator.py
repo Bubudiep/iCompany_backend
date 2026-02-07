@@ -1,4 +1,5 @@
 from .a import *
+from django.utils.dateparse import parse_datetime
 
 class AddOperatorAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
@@ -1027,8 +1028,9 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
-        max_update_time = self.request.query_params.get("max_update_time")
+        max_update_time_str = self.request.query_params.get("max_update_time")
         if max_update_time:
+            max_update_time = parse_datetime(max_update_time_str)
             queryset = queryset.filter(updated_at__gt=max_update_time)
         max_update = self.request.query_params.get("max_update")
         if max_update:
