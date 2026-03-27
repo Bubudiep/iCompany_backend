@@ -75,7 +75,7 @@ class ZaloMemberLogin(APIView):
                     'name': qs_staff.profile.name,
                     'phone': qs_staff.profile.phone,
                     'email': qs_staff.profile.email,
-                    'avatar': qs_staff.profile.avatar,
+                    'avatar': qs_staff.profile.avatar.url if qs_staff.profile.avatar else None,
                     'jobtitle': qs_staff.profile.jobtitle,
                     'department': qs_staff.profile.department,
                 },
