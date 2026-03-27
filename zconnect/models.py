@@ -76,7 +76,7 @@ class ZUsers(models.Model):
             )
         super().save(*args, **kwargs)
     def __str__(self):
-        return self.zaloid
+        return f"{self.zaloid} - {self.zalonumber}"
     class Meta:
         ordering = ["-id"]
 class RequestNoteCategory(models.Model):
