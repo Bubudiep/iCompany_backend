@@ -72,6 +72,7 @@ class ZaloMemberLogin(APIView):
                 'isadmin': qs_staff.isadmin,
                 'isdevelopment': qs_staff.isdevelopment,
                 'profile': {
+                    'cardid': qs_staff.profile.cardid,
                     'name': qs_staff.profile.name,
                     'phone': qs_staff.profile.phone,
                     'email': qs_staff.profile.email,
