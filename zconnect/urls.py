@@ -4,5 +4,5 @@ from .views import *
 router = routers.DefaultRouter()
 # router.register(r'profile', UserProfileViewSet, basename='userprofile')
 urlpatterns = [
-    # path('s/order/', MemberOrder.as_view(), name='s_order'),
+    path('auth/login/', ZaloMemberLogin.as_view(), name='auth_login'),
 ]
