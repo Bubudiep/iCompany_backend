@@ -41,8 +41,9 @@ class ZaloMemberLogin(APIView):
                   zalonumber=zalonumber,
                   company=qs_company
                 ).first()
-                qs_staff.zaloid = zaloid
-                qs_staff.save()
+                if qs_staff and not qs_staff.zaloid:
+                    qs_staff.zaloid = zaloid
+                    qs_staff.save()
             if not qs_staff:
                 return Response({"message":"Số điện thoại chưa được đăng ký"}, 
                   status=status.HTTP_400_BAD_REQUEST

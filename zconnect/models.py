@@ -43,14 +43,18 @@ class ZUsers(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def save(self, *args, **kwargs):
+        if not self.profile:
+            self.profile = ZProfile.objects.create(
+                name=f"No name",
+                phone=self.zalonumber
+            )
         if not self.oauth:
             alphabet = string.ascii_letters + string.digits
             random_password = ''.join(secrets.choice(alphabet) for i in range(16))
-            user = User.objects.create(
+            self.oauth = User.objects.create(
                 username=f"zalo_login_{self.zaloid}",
                 password=random_password,
             )
-            self.oauth_user = user
         super().save(*args, **kwargs)
     def __str__(self):
         return self.zaloid
