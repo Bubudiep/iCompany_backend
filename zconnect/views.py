@@ -23,7 +23,7 @@ class ZaloMemberLogin(APIView):
         try:
             print("Đang đăng nhập")
             ip=get_client_ip(request)
-            qs_company=Company.objects.filter(code=request.data.get("company_code")).first()
+            qs_company=Company.objects.filter(appid=request.data.get("appid")).first()
             if not qs_company:
                 return Response({"message":"Mã công ty không tồn tại"}, 
                   status=status.HTTP_400_BAD_REQUEST
