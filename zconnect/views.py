@@ -68,6 +68,19 @@ class ZaloMemberLogin(APIView):
             res_data={
                 'access_token': token,
                 'refresh_token': refresh_token_instance.token,
+                'profile': {
+                    'name': qs_staff.profile.name,
+                    'phone': qs_staff.profile.phone,
+                    'email': qs_staff.profile.email,
+                    'avatar': qs_staff.profile.avatar,
+                    'jobtitle': qs_staff.profile.jobtitle,
+                    'department': qs_staff.profile.department,
+                },
+                'company': {
+                    'code': qs_staff.company.code,
+                    'name': qs_staff.company.name,
+                    'appid': qs_staff.company.appid,
+                }
             }
             return Response(res_data, status=status.HTTP_200_OK)
         except Exception as e:
