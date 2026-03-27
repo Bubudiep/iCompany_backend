@@ -9,6 +9,20 @@ import os
 import sys
 from django.utils.timezone import now
 
+def reduce_image_size(self, picture):
+    img = Image.open(picture)
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+    max_width = 1280
+    max_height = 720
+    if img.width > max_width or img.height > max_height:
+        img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+    buffer = BytesIO()
+    img.save(buffer, format='JPEG', quality=80, optimize=True)
+    buffer.seek(0)
+    file_name = os.path.splitext(picture.name)[0] + ".jpg"
+    return ContentFile(buffer.read(), name=file_name)
+  
 class Company(models.Model):
     code = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
@@ -17,7 +31,7 @@ class Company(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"{self.code} - {self.name}"
-      
+
 class ZProfile(models.Model):
     name = models.CharField(max_length=255)
     cardid = models.CharField(max_length=255)
@@ -25,11 +39,16 @@ class ZProfile(models.Model):
     email = models.CharField(max_length=255)
     jobtitle = models.CharField(max_length=255)
     department = models.CharField(max_length=255)
-    avatar = models.URLField(max_length=500, blank=True, null=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.name
+      
+    def save(self, *args, **kwargs):
+        if self.avatar:
+            self.avatar = reduce_image_size(self.avatar)
+        super().save(*args, **kwargs)
       
 class ZUsers(models.Model):
     oauth = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -83,7 +102,7 @@ class RequestNote(models.Model):
       ]
     )
     categories = models.ManyToManyField(RequestNoteCategory, related_name='notes')
-    picture = models.FileField(upload_to='note_pictures/', blank=True, null=True)
+    picture = models.ImageField(upload_to='note_pictures/', blank=True, null=True)
     content = models.TextField()
     is_urgent = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
@@ -101,22 +120,9 @@ class RequestNote(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Note for {self.company.name} at {self.created_at}"
-    def reduce_image_size(self, picture):
-        img = Image.open(picture)
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
-        max_width = 1280
-        max_height = 720
-        if img.width > max_width or img.height > max_height:
-            img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-        buffer = BytesIO()
-        img.save(buffer, format='JPEG', quality=80, optimize=True)
-        buffer.seek(0)
-        file_name = os.path.splitext(picture.name)[0] + ".jpg"
-        return ContentFile(buffer.read(), name=file_name)
     def save(self, *args, **kwargs):
         if self.picture:
-            self.picture = self.reduce_image_size(self.picture)
+            self.picture = reduce_image_size(self.picture)
         super().save(*args, **kwargs)
         
 class RequestNoteHistory(models.Model):
