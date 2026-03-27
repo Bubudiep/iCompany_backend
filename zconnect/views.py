@@ -45,7 +45,8 @@ class ZaloMemberLogin(APIView):
                     qs_staff.zaloid = zaloid
                     qs_staff.save()
                 if zalonumber and qs_staff.zaloid != zaloid:
-                    return Response({"message":"Số điện thoại đã được đăng ký với tài khoản khác"}, 
+                    return Response(
+                      {"message":"Số điện thoại đã được đăng ký với tài khoản khác"}, 
                       status=status.HTTP_400_BAD_REQUEST
                     )
             if not qs_staff:
