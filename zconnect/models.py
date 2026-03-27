@@ -9,7 +9,7 @@ import os
 import sys
 from django.utils.timezone import now
 
-def reduce_image_size(self, picture):
+def reduce_image_size(picture):
     img = Image.open(picture)
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
