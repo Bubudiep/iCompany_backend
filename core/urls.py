@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/pheduyet/', include('pheduyet_zalo.urls')),
     path("note/", include("smartnote.urls")),
     path("hr-pro/", include("hr_pro.urls")),
+    path("zapp/", include("zconnect.urls")),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 ) + static(
