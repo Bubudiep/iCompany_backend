@@ -53,8 +53,8 @@ class ZProfile(models.Model):
 class ZUsers(models.Model):
     oauth = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     profile = models.OneToOneField(ZProfile, on_delete=models.CASCADE, null=True, blank=True)
-    company = models.OneToOneField(Company, on_delete=models.CASCADE, null=True, blank=True)
-    zaloid = models.CharField(max_length=128)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True)
+    zaloid = models.CharField(max_length=128,null=True, blank=True)
     zalonumber = models.CharField(max_length=128)
     isvalidated = models.BooleanField(default=False)
     isadmin = models.BooleanField(default=False)
