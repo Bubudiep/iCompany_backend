@@ -6,6 +6,8 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
 import os
+import sys
+from django.utils.timezone import now
 
 class Company(models.Model):
     code = models.CharField(max_length=255)
@@ -32,6 +34,7 @@ class ZProfile(models.Model):
 class ZUsers(models.Model):
     oauth = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     profile = models.OneToOneField(ZProfile, on_delete=models.CASCADE, null=True, blank=True)
+    company = models.OneToOneField(Company, on_delete=models.CASCADE, null=True, blank=True)
     zaloid = models.CharField(max_length=128)
     zalonumber = models.CharField(max_length=128)
     isvalidated = models.BooleanField(default=False)
