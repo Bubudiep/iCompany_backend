@@ -27,6 +27,7 @@ class Company(models.Model):
     code = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     appid = models.CharField(max_length=255)
+    hotline = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
@@ -74,11 +75,25 @@ class ZUsers(models.Model):
                 username=f"zalo_login_{self.zaloid}",
                 password=random_password,
             )
+            ZUserNotification.objects.create(
+                user=self,
+                title="Chào mừng bạn đến với ứng dụng!",
+                content="Cảm ơn bạn đã đăng ký tài khoản."
+            )
         super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.zaloid} - {self.zalonumber}"
     class Meta:
         ordering = ["-id"]
+class ZUserNotification(models.Model):
+    user = models.ForeignKey(ZUsers, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"Notification for {self.user.profile.name} at {self.created_at}"
 class RequestNoteCategory(models.Model):
     name = models.CharField(max_length=255)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='categories')

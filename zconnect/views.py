@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import *
+from .serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -85,10 +86,12 @@ class ZaloMemberLogin(APIView):
                     'jobtitle': qs_staff.profile.jobtitle,
                     'department': qs_staff.profile.department,
                 },
+                'notifications': ZUserNotificationSerializer(qs_staff.notifications.filter(is_read=False), many=True).data,
                 'company': {
                     'code': qs_staff.company.code,
                     'name': qs_staff.company.name,
                     'appid': qs_staff.company.appid,
+                    'hotline': qs_staff.company.hotline,
                 }
             }
             return Response(res_data, status=status.HTTP_200_OK)
