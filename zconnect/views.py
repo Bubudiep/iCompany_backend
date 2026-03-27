@@ -68,6 +68,9 @@ class ZaloMemberLogin(APIView):
             res_data={
                 'access_token': token,
                 'refresh_token': refresh_token_instance.token,
+                'isvalidated': qs_staff.isvalidated,
+                'isadmin': qs_staff.isadmin,
+                'isdevelopment': qs_staff.isdevelopment,
                 'profile': {
                     'name': qs_staff.profile.name,
                     'phone': qs_staff.profile.phone,
