@@ -9,7 +9,14 @@ from oauth2_provider.settings import oauth2_settings
 from datetime import timedelta, datetime
 from rest_framework import status
 from oauth2_provider.models import AccessToken, Application, RefreshToken
+from rest_framework import viewsets, permissions
+from rest_framework.pagination import PageNumberPagination
 
+class StandardPagesPagination(PageNumberPagination):
+    page_size = 15
+    page_size_query_param = 'page_size'
+    max_page_size = 200
+    
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -108,4 +115,32 @@ class ZaloMemberLogin(APIView):
               }, 
               status=status.HTTP_400_BAD_REQUEST
             )
-        
+
+class EHSIssueViewSet(viewsets.ModelViewSet):
+    queryset = EHSIssue.objects.all()
+    serializer_class = EHSIssueSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    http_method_names = ['patch']
+
+    def perform_create(self, serializer):
+        user=self.request.user
+        qs_zuser=ZUsers.objects.filter(oauth_user=user).first()
+        serializer.save(author=qs_zuser)
+    def get_queryset(self):
+        user=self.request.user
+        return EHSIssue.objects.filter(
+          store__user__oauth_user=user
+        ).order_by('-updated_at')
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

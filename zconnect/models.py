@@ -75,6 +75,7 @@ class ZUsers(models.Model):
                 username=f"zalo_login_{self.zaloid}",
                 password=random_password,
             )
+            super().save(*args, **kwargs)
             ZUserNotification.objects.create(
                 user=self,
                 title="Chào mừng bạn đến với ứng dụng!",
@@ -156,3 +157,89 @@ class RequestNoteComment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Comment by {self.author.name} on {self.note.title}"
+
+class IssueImpact(models.Model):
+    name = models.CharField(max_length=250, unique=True)
+    vi = models.CharField(max_length=250,null=True,blank=True)
+    color = models.CharField(max_length=10, default="#ef4444")
+    def __str__(self):
+        return self.name
+class IssueRickCategories(models.Model):
+    name = models.CharField(max_length=250, unique=True)
+    color = models.CharField(max_length=10, default="#ef4444")
+    def __str__(self):
+        return self.name
+class IssueCategories(models.Model):
+    name = models.CharField(max_length=250, unique=True)
+    color = models.CharField(max_length=10, default="#ef4444")
+    def __str__(self):
+        return self.name
+class IssueArea(models.Model):
+    name = models.CharField(max_length=250, unique=True)
+    vi = models.CharField(max_length=250,null=True,blank=True)
+    color = models.CharField(max_length=10, default="#ef4444")
+    def __str__(self):
+        return self.name
+    
+class EHSIssue(models.Model):
+    Step_choice = [('created', "created"),
+                   ('reviewed', "reviewed"), 
+                   ('processing', "processing"), 
+                   ('closing', "closing"), 
+                   ('completed', "completed"), 
+                   ('cancelled', "cancelled"), 
+                   ('rejected', "rejected")
+                ]
+    Level_choice = [('low', "Low"), 
+                    ('medium', "Medium"), 
+                    ('high', "High"), 
+                    ('critical', "Critical")]
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    area = models.ManyToManyField(IssueArea,blank=True)
+    author = models.ForeignKey(ZUsers, on_delete=models.CASCADE, related_name='ehsissues')
+    step = models.CharField(choices=Step_choice, max_length=100, default="created", null=True)
+    level = models.CharField(choices=Level_choice, max_length=100, default="low", null=True)
+    private = models.BooleanField(default=False)
+    impacts = models.ManyToManyField(IssueImpact, blank=True)
+    categories = models.ManyToManyField(IssueCategories, blank=True)
+    rickcategories = models.ManyToManyField(IssueRickCategories, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return self.title
+    class Meta:
+        ordering = ['-id']
+    def save(self, *args, **kwargs):
+        if not self.id:
+            super().save(*args, **kwargs)
+            EHSIssueHistory.objects.create(
+                issue=self,
+                status=self.step,
+                changed_by=self.author,
+                changed_at=now()
+            )
+        
+class EHSImage(models.Model):   
+    issue = models.ForeignKey('EHSIssue', on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='ehs_images/')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"Image for {self.issue.title} at {self.created_at}"
+    class Meta:
+        ordering = ['-id']
+    def save(self, *args, **kwargs):
+        if self.image:
+            self.image = reduce_image_size(self.image)
+        super().save(*args, **kwargs)
+        
+class EHSIssueHistory(models.Model):
+    issue = models.ForeignKey(EHSIssue, on_delete=models.CASCADE, related_name='history')
+    status = models.CharField(max_length=50)
+    changed_by = models.ForeignKey(ZUsers, on_delete=models.CASCADE)
+    changed_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"History for {self.issue.title} at {self.changed_at}"
+      
