@@ -1,10 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import (
-    Company, ZProfile, ZUsers, 
-    RequestNoteCategory, RequestNote, 
-    RequestNoteHistory, RequestNoteComment
-)
+from .models import *
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
@@ -69,3 +65,73 @@ class RequestNoteHistoryAdmin(admin.ModelAdmin):
 class RequestNoteCommentAdmin(admin.ModelAdmin):
     list_display = ('author', 'note', 'created_at')
     search_fields = ('content',)
+
+@admin.register(MailRequest)
+class MailRequestAdmin(admin.ModelAdmin):
+    # Hiển thị thông tin chính trong danh sách
+    list_display = ('subject', 'get_author', 'company', 'isAnonymous', 'isProcessed', 'created_at')
+    
+    # Bộ lọc nhanh ở cột bên phải
+    list_filter = ('isProcessed', 'isAnonymous', 'company', 'created_at')
+    
+    # Ô tìm kiếm (Search theo tiêu đề, nội dung và tên người gửi)
+    search_fields = ('subject', 'message', 'author__profile__name', 'author__zaloid')
+    
+    # Sắp xếp mặc định
+    ordering = ('-created_at',)
+    
+    # Phân nhóm các trường trong trang chi tiết
+    fieldsets = (
+        ('Thông tin chung', {
+            'fields': ('company', 'author', 'subject', 'isAnonymous')
+        }),
+        ('Nội dung Mail', {
+            'fields': ('message', 'response', 'isProcessed')
+        }),
+        ('Thời gian', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',), # Ẩn đi, bấm vào mới hiện
+        }),
+    )
+    readonly_fields = ('created_at', 'updated_at')
+
+    # Hàm hiển thị tên author (xử lý trường hợp Anonymous)
+    def get_author(self, obj):
+        if obj.isAnonymous:
+            return "--- Ẩn danh ---"
+        return obj.author.profile.name if obj.author and obj.author.profile else obj.author
+    get_author.short_description = 'Người gửi'
+
+    # Action: Đánh dấu đã xử lý hàng loạt
+    actions = ['mark_as_processed']
+    def mark_as_processed(self, request, queryset):
+        queryset.update(isProcessed=True)
+    mark_as_processed.short_description = "Đánh dấu là Đã xử lý"
+
+
+@admin.register(QNARequest)
+class QNARequestAdmin(admin.ModelAdmin):
+    list_display = ('question', 'get_author', 'isAnswered', 'answer_by', 'created_at')
+    list_filter = ('isAnswered', 'isAnonymous', 'company')
+    search_fields = ('question', 'answer', 'author__profile__name')
+    
+    # raw_id_fields giúp chọn User nhanh bằng ID/Kính lúp nếu database lớn
+    raw_id_fields = ('author', 'answer_by', 'company')
+    
+    # Cho phép sửa nhanh trạng thái ngay tại danh sách
+    list_editable = ('isAnswered',)
+
+    def get_author(self, obj):
+        if obj.isAnonymous:
+            return "--- Ẩn danh ---"
+        return obj.author.profile.name if obj.author and obj.author.profile else "N/A"
+    get_author.short_description = 'Người hỏi'
+    def save_model(self, request, obj, form, change):
+        if change and obj.answer and not obj.answer_by:
+            # Lấy ZUser tương ứng với Admin đang login (nếu có)
+            from .models import ZUsers
+            zuser_admin = ZUsers.objects.filter(oauth=request.user).first()
+            if zuser_admin:
+                obj.answer_by = zuser_admin
+                obj.isAnswered = True
+        super().save_model(request, obj, form, change)

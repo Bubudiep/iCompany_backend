@@ -129,6 +129,7 @@ class RequestNote(models.Model):
     implement =models.ForeignKey(ZUsers, on_delete=models.CASCADE , related_name='implementer')
     author = models.ForeignKey(ZUsers, on_delete=models.CASCADE, related_name='author')
     deadline = models.DateField()
+    score = models.IntegerField(default=0)
 
     processing_time = models.DateTimeField(blank=True, null=True)
     completed_time = models.DateTimeField(blank=True, null=True)
@@ -196,8 +197,10 @@ class EHSIssue(models.Model):
                     ('critical', "Critical")]
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
+    suggestion = models.TextField(null=True, blank=True)
     area = models.ManyToManyField(IssueArea,blank=True)
+    score = models.IntegerField(default=0)
     author = models.ForeignKey(ZUsers, on_delete=models.CASCADE, related_name='ehsissues')
     step = models.CharField(choices=Step_choice, max_length=100, default="created", null=True)
     level = models.CharField(choices=Level_choice, max_length=100, default="low", null=True)
@@ -220,7 +223,16 @@ class EHSIssue(models.Model):
                 changed_by=self.author,
                 changed_at=now()
             )
-        
+class EHSAction(models.Model):
+    issue = models.ForeignKey(EHSIssue, on_delete=models.CASCADE, related_name='actions')
+    description = models.TextField()
+    implementer = models.ForeignKey(ZUsers, on_delete=models.CASCADE, related_name='actions')
+    deadline = models.DateField()
+    completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"Action for {self.issue.title} by {self.implementer.profile.name}"
 class EHSImage(models.Model):   
     issue = models.ForeignKey('EHSIssue', on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='ehs_images/')
@@ -238,8 +250,40 @@ class EHSImage(models.Model):
 class EHSIssueHistory(models.Model):
     issue = models.ForeignKey(EHSIssue, on_delete=models.CASCADE, related_name='history')
     status = models.CharField(max_length=50)
+    readed = models.BooleanField(default=False)
     changed_by = models.ForeignKey(ZUsers, on_delete=models.CASCADE)
     changed_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"History for {self.issue.title} at {self.changed_at}"
-      
+
+class MailRequest(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    author = models.ForeignKey(ZUsers, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    response = models.TextField(blank=True, null=True)
+    isAnonymous = models.BooleanField(default=False)
+    isProcessed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"MailRequest for {self.author.profile.name} at {self.created_at}"
+
+class QNARequest(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    author = models.ForeignKey(ZUsers, on_delete=models.SET_NULL,null=True, blank=True)
+    question = models.CharField(max_length=255)
+    answer = models.TextField(null=True, blank=True)
+    answer_by = models.ForeignKey(
+        ZUsers, 
+        on_delete=models.SET_NULL, 
+        related_name='qna_answers',
+        null=True, blank=True
+    )
+    isAnonymous = models.BooleanField(default=False)
+    isAnswered = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"QNARequest for {self.author.profile.name} at {self.created_at}"
+        
