@@ -24,6 +24,11 @@ class ZUsersAdmin(admin.ModelAdmin):
         return obj.profile.name if obj.profile else "No Profile"
     get_name.short_description = 'User Name'
 
+@admin.register(EHSIssue)
+class EHSIssueAdmin(admin.ModelAdmin):
+    list_display = ('author', 'title','content', 'created_at')
+    list_filter = ('author__profile__name',)
+    
 @admin.register(ZUserNotification)
 class ZUserNotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'title','content', 'is_read', 'created_at')
