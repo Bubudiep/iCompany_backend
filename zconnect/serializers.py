@@ -32,7 +32,7 @@ class QNARequestViewSerializer(serializers.ModelSerializer):
         if obj.isAnonymous:
             return "Anonymous"
         if obj.author:
-            return obj.author.profile.name
+            return obj.author.profile.cardid
         return None
     class Meta:
         model = QNARequest
