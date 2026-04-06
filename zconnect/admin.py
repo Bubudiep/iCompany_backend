@@ -26,7 +26,7 @@ class ZUsersAdmin(admin.ModelAdmin):
 
 @admin.register(EHSIssue)
 class EHSIssueAdmin(admin.ModelAdmin):
-    list_display = ('author', 'title','content', 'created_at')
+    list_display = ('author', 'title','description', 'created_at')
     list_filter = ('author__profile__name',)
     
 @admin.register(ZUserNotification)
