@@ -49,7 +49,7 @@ class EHSIssueViewSerializer(serializers.ModelSerializer):
         read_only=True, 
         slug_field='name'
     )
-    author = serializers.CharField(source='author.profile.name', read_only=True)
+    author = serializers.CharField(source='author.profile.cardid', read_only=True)
     class Meta:
         model = EHSIssue
         fields = "__all__"
