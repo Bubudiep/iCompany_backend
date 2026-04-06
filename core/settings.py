@@ -106,6 +106,7 @@ CORS_ALLOW_ALL_ORIGINS = False  # (dev local thôi)
 CORS_ALLOWED_ORIGINS = [
     "http://10.103.196.60",
     "http://192.168.1.2:5175",
+    "http://localhost:5173/",
     "http://localhost:5175",
     "http://localhost:5178",
     "http://localhost:4687",
