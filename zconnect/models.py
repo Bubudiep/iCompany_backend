@@ -63,25 +63,33 @@ class ZUsers(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def save(self, *args, **kwargs):
+        username=f"zalo_login_{self.zalonumber}_{self.zaloid}"
+        isfirst_save = False
         if not self.profile:
             self.profile = ZProfile.objects.create(
                 name=f"No name",
                 phone=self.zalonumber
             )
+            print("Created profile for", username)
         if not self.oauth:
+            isfirst_save = True
             alphabet = string.ascii_letters + string.digits
             random_password = ''.join(secrets.choice(alphabet) for i in range(16))
             self.oauth = User.objects.create(
-                username=f"zalo_login_{self.zaloid}",
+                username=username,
                 password=random_password,
             )
-            super().save(*args, **kwargs)
+            print("Created oauth for", username)
+        else:
+            self.oauth.username = username
+            self.oauth.save()
+        super().save(*args, **kwargs)
+        if isfirst_save:
             ZUserNotification.objects.create(
                 user=self,
                 title="Chào mừng bạn đến với ứng dụng!",
                 content="Cảm ơn bạn đã đăng ký tài khoản."
             )
-        super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.zaloid} - {self.zalonumber}"
     class Meta:
@@ -90,6 +98,8 @@ class ZUserNotification(models.Model):
     user = models.ForeignKey(ZUsers, on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=255)
     content = models.TextField()
+    app = models.CharField(max_length=255,null=True,blank=True)
+    target = models.CharField(max_length=255,null=True,blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -286,4 +296,3 @@ class QNARequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"QNARequest for {self.author.profile.name} at {self.created_at}"
-        

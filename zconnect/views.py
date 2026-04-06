@@ -42,7 +42,13 @@ class ZaloMemberLogin(APIView):
             zaloid=request.data.get("zaloid", None)
             zalonumber=request.data.get("zalonumber", None)
             qs_staff = None
-            if zaloid:  # nếu mà có zaloid thì ưu tiên tìm theo zaloid trước
+            if not zaloid and not zalonumber:
+                qs_staff,_ = ZUsers.objects.get_or_create(
+                    company=qs_company, 
+                    zaloid="demo_user",
+                    zalonumber="demo_user",
+                )
+            if zaloid and not zalonumber:  # nếu mà có zaloid là auto login
                 qs_staff = ZUsers.objects.filter(
                   zaloid=zaloid,
                   company=qs_company
@@ -61,7 +67,7 @@ class ZaloMemberLogin(APIView):
                       status=status.HTTP_400_BAD_REQUEST
                     )
             if not qs_staff:
-                return Response({"message":"Số điện thoại chưa được đăng ký"}, 
+                return Response({"message":"Số điện thoại chưa được đăng ký!\nVui lòng liên hệ quản lý bộ phận hoặc phòng nhân sự để được hỗ trợ!"}, 
                   status=status.HTTP_400_BAD_REQUEST
                 )
             application = Application.objects.get(name="Zalo")
@@ -81,13 +87,13 @@ class ZaloMemberLogin(APIView):
             )
             access_token.refresh_token = refresh_token_instance
             access_token.save()
+            notify=ZUserNotification.objects.filter(user=qs_staff)
             res_data={
                 'access_token': token,
                 'refresh_token': refresh_token_instance.token,
                 'isvalidated': qs_staff.isvalidated,
                 'isadmin': qs_staff.isadmin,
                 'isdevelopment': qs_staff.isdevelopment,
-                'ehs_history': EHSIssueHistorySerializer(EHSIssueHistory.objects.filter(issue__author=qs_staff,readed=False), many=True).data,
                 'profile': {
                     'cardid': qs_staff.profile.cardid,
                     'name': qs_staff.profile.name,
@@ -97,7 +103,18 @@ class ZaloMemberLogin(APIView):
                     'jobtitle': qs_staff.profile.jobtitle,
                     'department': qs_staff.profile.department,
                 },
-                'notifications': ZUserNotificationSerializer(qs_staff.notifications.filter(is_read=False)[:5], many=True).data,
+                'notifications': {
+                    'unread_count': notify.filter(is_read=False).count(),
+                    'list': [
+                        {
+                            'id': n.id,
+                            'title': n.title,
+                            'content': n.content,
+                            'is_read': n.is_read,
+                            'created_at': n.created_at
+                        } for n in notify.order_by('-created_at')[:20]
+                    ]
+                },
                 'company': {
                     'code': qs_staff.company.code,
                     'name': qs_staff.company.name,
@@ -135,6 +152,9 @@ class MyEHSIssueViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
         page_size = self.request.query_params.get('page_size')
+        lastupdate = self.request.query_params.get('last_update')
+        if lastupdate:
+            queryset = queryset.filter(updated_at__gt=lastupdate)
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
         page = self.paginate_queryset(queryset)
@@ -175,6 +195,13 @@ class EHSIssueViewSet(viewsets.ModelViewSet):
                 image_files = request.FILES.getlist('images')
                 for f in image_files:
                     EHSImage.objects.create(issue=issue_instance, image=f)
+                ZUserNotification.objects.create(
+                    user=qs_zuser,
+                    app="ehs",
+                    target=issue_instance.id,
+                    title="Đã gửi báo cáo EHS!" if data.get('private',False)==False else "Đã gửi báo cáo EHS ẩn danh!",
+                    content=f"{data['title']}" if data.get('private',False)==False else "Báo cáo thành công!"
+                )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -186,6 +213,9 @@ class EHSIssueViewSet(viewsets.ModelViewSet):
         if isme and isme.lower() == 'true':
             user = self.request.user
             queryset = queryset.filter(author__oauth=user)
+        lastupdate = self.request.query_params.get('last_update')
+        if lastupdate:
+            queryset = queryset.filter(updated_at__gt=lastupdate)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
@@ -213,12 +243,22 @@ class MailRequestViewSet(viewsets.ModelViewSet):
         data['company'] = qs_zuser.company.id
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        mail=serializer.save()
+        ZUserNotification.objects.create(
+            user=qs_zuser,
+            app="mail",
+            target=mail.id,
+            title="Đã gửi thư góp ý!" if data.get('isAnonymous',False)==False else "Đã gửi thư góp ý ẩn danh!",
+            content=f"{data['subject']}" if data.get('isAnonymous',False)==False else "Thư đã được gửi!"
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
+        lastupdate = self.request.query_params.get('last_update')
+        if lastupdate:
+            queryset = queryset.filter(updated_at__gt=lastupdate)
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
@@ -253,12 +293,22 @@ class QNARequestViewSet(viewsets.ModelViewSet):
         data['company'] = qs_zuser.company.id
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        qna=serializer.save()
+        ZUserNotification.objects.create(
+            user=qs_zuser,
+            app="qna",
+            target=qna.id,
+            title="Đã gửi câu hỏi!" if data.get('isAnonymous',False)==False else "Đã gửi câu hỏi ẩn danh!",
+            content=f"{data['question']}" if data.get('isAnonymous',False)==False else "Đã đặt câu hỏi!"
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
+        lastupdate = self.request.query_params.get('last_update')
+        if lastupdate:
+            queryset = queryset.filter(updated_at__gt=lastupdate)
         isme = self.request.query_params.get('isme')
         if isme and isme.lower() == 'true':
             user = self.request.user
@@ -272,3 +322,50 @@ class QNARequestViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+class ZUserNotificationViewSet(viewsets.ModelViewSet):
+    queryset = ZUserNotification.objects.all()
+    serializer_class = ZUserNotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagesPagination
+    http_method_names = ['get']
+
+    def retrieve(self, request, *args, **kwargs):
+        notif=self.get_object()
+        if notif.is_read==False:
+            notif.is_read=True
+            notif.save()
+        return super().retrieve(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        user = self.request.user
+        return ZUserNotification.objects.filter(user__oauth=user).order_by('-created_at')
+    
+    def get_serializer(self, *args, **kwargs):
+        if self.action in ['list', 'retrieve']:
+            return ZUserNotificationSerializer(*args, **kwargs)
+        return super().get_serializer(*args, **kwargs)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        lastupdate = self.request.query_params.get('last_update')
+        if lastupdate:
+            queryset = queryset.filter(updated_at__gt=lastupdate)
+        unread = queryset.filter(is_read=False).count()
+        page_size = self.request.query_params.get('page_size')
+        if page_size is not None:
+            self.pagination_class.page_size = int(page_size)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_custom_paginated_response(serializer.data, unread)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    def get_custom_paginated_response(self, data, unread_count):
+        """
+        Helper để chèn thêm field vào response phân trang mặc định
+        """
+        response = self.get_paginated_response(data)
+        response.data['unread_count'] = unread_count
+        return response
