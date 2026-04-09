@@ -9,5 +9,6 @@ router.register(r'qna', QNARequestViewSet, basename='qna_requests')
 router.register(r'notifications', ZUserNotificationViewSet, basename='notifications')
 urlpatterns = [
     path('auth/login/', ZaloMemberLogin.as_view(), name='auth_login'),
+    path('public/company/', CompanyInfor.as_view(), name='company'),
     path("", include(router.urls)),
 ]
