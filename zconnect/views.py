@@ -28,6 +28,20 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+class CompanyInfor(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        key = request.headers.get('ApplicationKey')
+        if key:
+            qs_company=Company.objects.filter(appid=key).first()
+            if qs_company:
+                return Response(CompanySerializer(qs_company).data, 
+                    status=status.HTTP_200_OK
+                )
+        return Response({"message":"Mã công ty không tồn tại"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        
 class ZaloMemberLogin(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
