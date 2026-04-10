@@ -56,6 +56,8 @@ class ZaloMemberLogin(APIView):
             zaloid=request.data.get("zaloid", None)
             zalonumber=request.data.get("zalonumber", None)
             qs_staff = None
+            if zalonumber and zalonumber.startswith("0"):
+                zalonumber = f"84{zalonumber[1:]}"
             if not zaloid and not zalonumber:
                 qs_staff,_ = ZUsers.objects.get_or_create(
                     company=qs_company, 
