@@ -71,6 +71,11 @@ class RequestNoteHistoryAdmin(admin.ModelAdmin):
     list_display = ('note', 'status', 'changed_by', 'changed_at')
     list_filter = ('status', 'changed_at')
 
+@admin.register(RequestLogin)
+class RequestLoginAdmin(admin.ModelAdmin):
+    list_display = ('ip', 'ispass', 'created_at')
+    search_fields = ('ispass',)
+    
 @admin.register(RequestNoteComment)
 class RequestNoteCommentAdmin(admin.ModelAdmin):
     list_display = ('author', 'note', 'created_at')
