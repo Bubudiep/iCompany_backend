@@ -48,6 +48,10 @@ class ZaloMemberLogin(APIView):
         try:
             print("Đang đăng nhập")
             ip=get_client_ip(request)
+            record=RequestLogin.objects.create(
+                ip=ip,
+                data=request.data
+            )
             qs_company=Company.objects.filter(appid=request.data.get("appid")).first()
             if not qs_company:
                 return Response({"message":"Mã công ty không tồn tại"}, 
@@ -109,6 +113,8 @@ class ZaloMemberLogin(APIView):
             access_token.refresh_token = refresh_token_instance
             access_token.save()
             notify=ZUserNotification.objects.filter(user=qs_staff)
+            record.ispass=True
+            record.save()
             res_data={
                 'access_token': token,
                 'refresh_token': refresh_token_instance.token,

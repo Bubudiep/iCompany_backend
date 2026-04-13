@@ -94,6 +94,7 @@ class ZUsers(models.Model):
         return f"{self.zaloid} - {self.zalonumber}"
     class Meta:
         ordering = ["-id"]
+        
 class ZUserNotification(models.Model):
     user = models.ForeignKey(ZUsers, on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=255)
@@ -105,6 +106,17 @@ class ZUserNotification(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Notification for {self.user.profile.name} at {self.created_at}"
+class RequestLogin(models.Model):
+    ip = models.CharField(max_length=50,null=True,blank=True)
+    ispass = models.BooleanField(default=False)
+    data = models.JSONField(null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"{self.name} ({self.company.name})"
+    class Meta:
+        ordering = ["-id"]
+    
 class RequestNoteCategory(models.Model):
     name = models.CharField(max_length=255)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='categories')
