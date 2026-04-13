@@ -73,7 +73,7 @@ class RequestNoteHistoryAdmin(admin.ModelAdmin):
 
 @admin.register(RequestLogin)
 class RequestLoginAdmin(admin.ModelAdmin):
-    list_display = ('ip', 'ispass', 'created_at')
+    list_display = ('company', 'ip', 'ispass', 'created_at')
     search_fields = ('ispass',)
     
 @admin.register(RequestNoteComment)
