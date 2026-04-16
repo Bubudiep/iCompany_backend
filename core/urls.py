@@ -27,6 +27,7 @@ urlpatterns = [
     path("note/", include("smartnote.urls")),
     path("hr-pro/", include("hr_pro.urls")),
     path("zapp/", include("zconnect.urls")),
+    path("ktube/", include("ktube.urls")),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 ) + static(

@@ -84,7 +84,7 @@ class ZaloMemberLogin(APIView):
                       {"message":"Số điện thoại chưa được đăng ký với nhân sự!"}, 
                       status=status.HTTP_400_BAD_REQUEST
                     )
-                if qs_staff and not qs_staff.zaloid: # nếu bind với zalo id khác
+                if qs_staff: # nếu bind với zalo id khác
                     qs_staff.zaloid = zaloid
                     qs_staff.save()
                 else: # nếu đã bind

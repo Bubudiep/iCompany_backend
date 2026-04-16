@@ -6,6 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('WORK_MODE')
 INSTALLED_APPS = [
+    'ktube',
     'zconnect',
     'vieZ',
     'smartnote',
