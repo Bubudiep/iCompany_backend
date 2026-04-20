@@ -715,14 +715,15 @@ class AdvanceRequestLTESerializer(serializers.ModelSerializer):
     requesttype = serializers.CharField(
         source="requesttype.typecode", read_only=True, allow_null=True
     )
+    need_retrive = serializers.CharField(
+        source="requesttype.need_retrive", read_only=True, allow_null=True
+    )
     class Meta:
         model = AdvanceRequest
         fields = [
-            "requester",
-            "amount",
-            "requesttype",
-            "status",
-            "payment_status",
+            "requester","amount",
+            "requesttype","need_retrive",
+            "status","payment_status",
             "retrieve_status",
             "created_at",
         ]
