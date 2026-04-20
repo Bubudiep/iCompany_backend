@@ -80,6 +80,7 @@ class AddOperatorAPIView(APIView):
                                     so_taikhoan=op.get("bank_number"),
                                     chu_taikhoan=op.get("bank_name"),
                                     cccd_front=op.get("cccd_img"),
+                                    cccd_back=op.get("cccd_img_back"),
                                     ghichu=op.get("note"),
                                     nguoituyen=qs_nguoituyen,
                                     nguoibaocao=qs_nguoibaocao,

@@ -30,7 +30,6 @@ class GetStreamUrlAPI(APIView):
     def get(self, request):
         video_id = request.query_params.get('id')
         video_url = f"https://www.youtube.com/watch?v={video_id}"
-        
         data = YoutubeService.get_video_info(video_url, is_url=True)
         if data and 'url' in data:
             return Response({"stream_url": data['url']})

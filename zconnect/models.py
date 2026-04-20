@@ -32,7 +32,20 @@ class Company(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"{self.code} - {self.name}"
-
+    
+class FBINSheetTime(models.Model):
+    record_id = models.CharField(max_length=255, blank=True, null=True)
+    att_date = models.CharField(max_length=255, blank=True, null=True)
+    week = models.CharField(max_length=255, blank=True, null=True)
+    weekday = models.CharField(max_length=255, blank=True, null=True)
+    clock_in = models.CharField(max_length=255, blank=True, null=True)
+    clock_out = models.CharField(max_length=255, blank=True, null=True)
+    emp_code = models.CharField(max_length=255, blank=True, null=True)
+    punch_id = models.CharField(max_length=255, blank=True, null=True)
+    punch_time = models.CharField(max_length=255, blank=True, null=True)
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+    
 class ZProfile(models.Model):
     name = models.CharField(max_length=255)
     cardid = models.CharField(max_length=255)
@@ -310,3 +323,15 @@ class QNARequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"QNARequest for {self.author.profile.name} at {self.created_at}"
+
+class CompanyNews(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    author = models.ForeignKey(ZUsers, on_delete=models.SET_NULL,null=True, blank=True)
+    image = models.ImageField(upload_to='ehs_images/')
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f"QNARequest for {self.author.profile.name} at {self.created_at}"
+    
