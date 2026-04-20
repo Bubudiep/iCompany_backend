@@ -407,7 +407,6 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             if apv.payment_status!="done":
                 return Response({"detail": "Chưa được giải ngân"}, status=status.HTTP_403_FORBIDDEN)
             apv.retrieve_status="done"
-            apv.save()
             AdvanceRequestHistory.objects.create(request=apv,
                 user=staff,
                 action='retrieve',
@@ -419,7 +418,8 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                     changed_by=staff,
                     notes=f"Thu hồi {apv.amount} từ phê duyệt [approve|{apv.request_code}]"
                 )
-            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+            apv.save()
+            return Response(AdvanceRequestDetailsSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         return Response({
@@ -462,7 +462,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                     changed_by=staff,
                     notes=f"Giải ngân {apv.amount} từ phê duyệt [approve|{apv.request_code}]"
                 )
-            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+            return Response(AdvanceRequestDetailsSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         return Response({
@@ -499,7 +499,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                     action='update',
                     comment=f'update số tiền: {o_amount} -> {n_amount}'
                 )
-            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+            return Response(AdvanceRequestDetailsSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         return Response({
@@ -537,7 +537,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                     changed_by=staff,
                     notes=f"Hủy yêu cầu {apv.amount} từ phê duyệt [approve|{apv.request_code}]"
                 )
-            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+            return Response(AdvanceRequestDetailsSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         return Response({
@@ -579,7 +579,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                     changed_by=staff,
                     notes=f"Từ chối phê duyệt [approve|{apv.request_code}]"
                 )
-            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+            return Response(AdvanceRequestDetailsSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         return Response({
@@ -630,7 +630,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                     changed_by=staff,
                     notes=f"Chấp nhận và giải ngân phê duyệt [approve|{apv.request_code}]"
                 )
-            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+            return Response(AdvanceRequestDetailsSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
@@ -679,7 +679,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                     changed_by=staff,
                     notes=f"Chấp nhận yêu cầu phê duyệt [approve|{apv.request_code}]"
                 )
-            return Response(AdvanceRequestSerializer(apv).data, status=status.HTTP_200_OK)
+            return Response(AdvanceRequestDetailsSerializer(apv).data, status=status.HTTP_200_OK)
         except CompanyStaff.DoesNotExist:
             return Response({"detail": "Tài khoản không hợp lệ"}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
