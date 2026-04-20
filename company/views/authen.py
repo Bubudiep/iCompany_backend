@@ -286,34 +286,21 @@ class GetUserAPIView(APIView):
             user=request.user
             try:
                 qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
-                qs_profile,_=CompanyStaffProfile.objects.get_or_create(staff=qs_staff)
                 chat_not_read=0
                 alert_not_read=0
                 update_not_read=0
                 approve_not_read=0
                 member_updated_not_check=0
-                qs_user_chatroom=AppChatRoom.objects.filter(members=qs_staff)
-                for qs_chatroom in qs_user_chatroom:
-                    qs_last_read=AppChatStatus.objects.filter(room=qs_chatroom,user=qs_staff).first()
-                    if qs_last_read and qs_last_read.last_read_at:
-                        qs_not_read=ChatMessage.objects.filter(room=qs_chatroom,created_at__gt=qs_last_read.last_read_at)
-                        chat_not_read+=qs_not_read.count()
-                    else:
-                        qs_not_read=ChatMessage.objects.filter(room=qs_chatroom)
-                        chat_not_read+=qs_not_read.count()
-                last_check=LastCheckAPI.objects.filter(user=qs_staff)
                 return Response({
                     'id': qs_staff.id,
                     'info': CompanyStaffSerializer(qs_staff).data,
                     'company': CompanySerializer(qs_staff.company).data,
-                    'chatbox': AppChatRoomSerializer(AppChatRoom.objects.filter(members=qs_staff),many=True).data,
                     'app_config': {
                         'chat_not_read': chat_not_read,
                         'alert_not_read': alert_not_read,
                         'update_not_read': update_not_read,
                         'approve_not_read': approve_not_read,
                         'member_updated_not_check': member_updated_not_check,
-                        'last_check':LastCheckAPISerializer(last_check,many=True).data
                     }
                 }, status=status.HTTP_200_OK)
             except CompanyStaff.DoesNotExist:
