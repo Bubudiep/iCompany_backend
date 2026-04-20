@@ -747,7 +747,9 @@ class AdvanceRequestSerializer(serializers.ModelSerializer):
     nguoiThuhuong_display = serializers.CharField(
         source="get_nguoiThuhuong_display", read_only=True
     )
-
+    need_retrive = serializers.CharField(
+        source="requesttype.need_retrive", read_only=True, allow_null=True
+    )
     class Meta:
         model = AdvanceRequest
         fields = "__all__"
