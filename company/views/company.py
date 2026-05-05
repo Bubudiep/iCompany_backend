@@ -706,6 +706,8 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        key = self.request.headers.get('ApplicationKey')
+        user = self.request.user
         created_at = request.query_params.get('created_at')
         created_at_from = request.query_params.get('created_at_from')
         created_at_to = request.query_params.get('created_at_to')
@@ -760,8 +762,23 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             queryset=queryset.filter(updated_at__gt=last_update)
         confirm_thuhoi = self.request.query_params.get('confirm')
         if confirm_thuhoi:
-            queryset.filter(retrieve_status='note').update(retrieve_status="done")
-            queryset = queryset.all()
+            list_thuhoi=queryset.filter(retrieve_status='note')
+            if len(list_thuhoi)>0:
+                staff = CompanyStaff.objects.get(user__user=user, company__key=key)
+                list_thuhoi.update(retrieve_status="done")
+                for apv in list_thuhoi:
+                    AdvanceRequestHistory.objects.create(request=apv,
+                        user=staff,
+                        action='retrieve',
+                        comment=request.data.get('comment')
+                    )
+                    if apv.operator:
+                        OperatorUpdateHistory.objects.create(
+                            operator=apv.operator,
+                            changed_by=staff,
+                            notes=f"Thu hồi {apv.amount} từ phê duyệt [approve|{apv.request_code}]"
+                        )
+                queryset = queryset.all()
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
