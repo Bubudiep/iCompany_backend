@@ -758,6 +758,10 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         last_update = self.request.query_params.get('last_update')
         if last_update:
             queryset=queryset.filter(updated_at__gt=last_update)
+        confirm_thuhoi = self.request.query_params.get('confirm')
+        if confirm_thuhoi:
+            queryset.filter(retrieve_status='note').update(retrieve_status="done")
+            queryset = queryset.all()
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
