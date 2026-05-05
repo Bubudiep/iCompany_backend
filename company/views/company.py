@@ -762,7 +762,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             queryset=queryset.filter(updated_at__gt=last_update)
         confirm_thuhoi = self.request.query_params.get('confirm')
         if confirm_thuhoi:
-            list_thuhoi=queryset.filter(retrieve_status='note')
+            list_thuhoi=queryset.filter(retrieve_status='not')
             if len(list_thuhoi)>0:
                 staff = CompanyStaff.objects.get(user__user=user, company__key=key)
                 list_thuhoi.update(retrieve_status="done")
@@ -778,7 +778,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
                             changed_by=staff,
                             notes=f"Thu hồi {apv.amount} từ phê duyệt [approve|{apv.request_code}]"
                         )
-                queryset = queryset.all()
+                queryset = queryset.filter(retrieve_status='not')
         page_size = self.request.query_params.get('page_size')
         if page_size is not None:
             self.pagination_class.page_size = int(page_size)
