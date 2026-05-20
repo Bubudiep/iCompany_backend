@@ -394,20 +394,20 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         # Tính toán tất cả số liệu thống kê trong 1 câu SQL duy nhất
         stats = queryset.aggregate(
+            total=Count('id'),
             total_pending=Count('id', filter=Q(status='pending')),
             total_approved=Count('id', filter=Q(status='approved')),
             total_rejected=Count('id', filter=Q(status='rejected')),
             total_cancel=Count('id', filter=Q(status='cancel')),
-            
             # Chờ giải ngân: Đã duyệt nhưng chưa giải ngân
             waiting_payment=Count('id', filter=Q(status='approved', payment_status='not')),
-            
             # Chờ thu hồi: Đã giải ngân nhưng chưa thu hồi
             waiting_retrieve=Count('id', filter=Q(payment_status='done', retrieve_status='not'))
         )
 
         # Trả về kết quả JSON sạch sẽ
         return Response({
+            'total': stats['total'],
             'status_counts': {
                 'pending': stats['total_pending'],
                 'approved': stats['total_approved'],
