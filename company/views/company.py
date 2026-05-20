@@ -383,7 +383,41 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     http_method_names = ['get','post']
     pagination_class = StandardResultsSetPagination
     lookup_field = 'request_code'
+    
+    @action(detail=False, methods=['get'], url_path='stats', url_name='stats')
+    def get_stats(self, request, *args, **kwargs):
+        """
+        API: GET /api/advancerequest/stats/
+        Trả về dữ liệu thống kê số lượng theo trạng thái duyệt và thanh toán
+        """
+        # Áp dụng các bộ lọc (nếu có truyền query params như ?company_id=1, ?request_date=...)
+        queryset = self.filter_queryset(self.get_queryset())
+        # Tính toán tất cả số liệu thống kê trong 1 câu SQL duy nhất
+        stats = queryset.aggregate(
+            total_pending=Count('id', filter=Q(status='pending')),
+            total_approved=Count('id', filter=Q(status='approved')),
+            total_rejected=Count('id', filter=Q(status='rejected')),
+            total_cancel=Count('id', filter=Q(status='cancel')),
+            
+            # Chờ giải ngân: Đã duyệt nhưng chưa giải ngân
+            waiting_payment=Count('id', filter=Q(status='approved', payment_status='not')),
+            
+            # Chờ thu hồi: Đã giải ngân nhưng chưa thu hồi
+            waiting_retrieve=Count('id', filter=Q(payment_status='done', retrieve_status='not'))
+        )
 
+        # Trả về kết quả JSON sạch sẽ
+        return Response({
+            'status_counts': {
+                'pending': stats['total_pending'],
+                'approved': stats['total_approved'],
+                'rejected': stats['total_rejected'],
+                'cancel': stats['total_cancel'],
+            },
+            'waiting_payment_count': stats['waiting_payment'],
+            'waiting_retrieve_count': stats['waiting_retrieve'],
+        })
+        
     @action(detail=True, methods=['post'])
     def paytrieve(self, request, request_code=None):
         user = request.user
@@ -706,14 +740,6 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        stats = queryset.aggregate(
-            total_pending=Count('id', filter=Q(status='pending')),
-            total_approved=Count('id', filter=Q(status='approved')),
-            total_rejected=Count('id', filter=Q(status='rejected')),
-            total_cancel=Count('id', filter=Q(status='cancel')),
-            waiting_payment=Count('id', filter=Q(status='approved', payment_status='not')),
-            waiting_retrieve=Count('id', filter=Q(status='approved', payment_status='done', retrieve_status='not'))
-        )
         key = self.request.headers.get('ApplicationKey')
         user = self.request.user
         created_at = request.query_params.get('created_at')
@@ -793,15 +819,9 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response({
-                'statistics': self._format_stats(stats),
-                'results': serializer.data
-            })
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'statistics': self._format_stats(stats),
-            'results': serializer.data
-        })
+        return Response(serializer.data)  
     
 class AdvanceRequestExportViewSet(viewsets.ModelViewSet):
     queryset = AdvanceRequest.objects.all()
