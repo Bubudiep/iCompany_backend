@@ -391,10 +391,6 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='stats', url_name='stats')
     def get_stats(self, request, *args, **kwargs):
-        """
-        API: GET /api/advancerequest/stats/
-        Trả về dữ liệu thống kê số lượng theo trạng thái duyệt và thanh toán
-        """
         queryset = self.filter_queryset(self.get_queryset())
         stats = queryset.aggregate(
             total=Count('id'),
@@ -402,12 +398,9 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             total_approved=Count('id', filter=Q(status='approved')),
             total_rejected=Count('id', filter=Q(status='rejected')),
             total_cancel=Count('id', filter=Q(status='cancel')),
-            # Chờ giải ngân: Đã duyệt nhưng chưa giải ngân
             waiting_payment=Count('id', filter=Q(status='approved', payment_status='not')),
-            # Chờ thu hồi: Đã giải ngân nhưng chưa thu hồi
             waiting_retrieve=Count('id', filter=Q(payment_status='done', retrieve_status='not'))
         )
-        # Trả về kết quả JSON sạch sẽ
         return Response({
             'total': stats['total'],
             'status_counts': {
