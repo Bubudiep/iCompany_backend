@@ -847,6 +847,9 @@ class AdvanceRequestExportViewSet(viewsets.ModelViewSet):
         payment_status = self.request.query_params.get('payout')
         if payment_status:
             queryset=queryset.filter(payment_status=payment_status)
+        retrieve_status = self.request.query_params.get('retrive')
+        if retrieve_status:
+            queryset=queryset.filter(retrieve_status=retrieve_status)
         qs_status = self.request.query_params.get('status')
         if qs_status:
             queryset=queryset.filter(status=qs_status)
