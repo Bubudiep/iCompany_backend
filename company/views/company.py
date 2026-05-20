@@ -776,7 +776,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             queryset=queryset.filter(requesttype__typecode=qs_type)
         workstatus = self.request.query_params.get('workstatus')
         if workstatus:
-            queryset=queryset.filter(operator__congty_danglam__isnull=workstatus)
+            queryset=queryset.filter(operator__congty_danglam__isnull=True if workstatus=='true' else False)
         is_pending = self.request.query_params.get('is_pending')
         if is_pending:
             queryset=queryset.filter(payment_status='not',status__in=['pending','approved'])
