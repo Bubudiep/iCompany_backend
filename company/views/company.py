@@ -841,6 +841,9 @@ class AdvanceRequestExportViewSet(viewsets.ModelViewSet):
         qs_type = self.request.query_params.get('type')
         if qs_type:
             queryset=queryset.filter(requesttype__typecode=qs_type)
+        qs_status = self.request.query_params.get('status')
+        if qs_status:
+            queryset=queryset.filter(status=qs_status)
         is_pending = self.request.query_params.get('is_pending')
         if is_pending:
             queryset=queryset.filter(payment_status='not',status__in=['pending','approved'])
@@ -850,9 +853,6 @@ class AdvanceRequestExportViewSet(viewsets.ModelViewSet):
         retrieve_status = self.request.query_params.get('retrive')
         if retrieve_status:
             queryset=queryset.filter(retrieve_status=retrieve_status)
-        qs_status = self.request.query_params.get('status')
-        if qs_status:
-            queryset=queryset.filter(status=qs_status)
         last_update = self.request.query_params.get('last_update')
         if last_update:
             queryset=queryset.filter(updated_at__gt=last_update)
