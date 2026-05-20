@@ -706,6 +706,14 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        stats = queryset.aggregate(
+            total_pending=Count('id', filter=Q(status='pending')),
+            total_approved=Count('id', filter=Q(status='approved')),
+            total_rejected=Count('id', filter=Q(status='rejected')),
+            total_cancel=Count('id', filter=Q(status='cancel')),
+            waiting_payment=Count('id', filter=Q(status='approved', payment_status='not')),
+            waiting_retrieve=Count('id', filter=Q(status='approved', payment_status='done', retrieve_status='not'))
+        )
         key = self.request.headers.get('ApplicationKey')
         user = self.request.user
         created_at = request.query_params.get('created_at')
@@ -785,9 +793,15 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response({
+                'statistics': self._format_stats(stats),
+                'results': serializer.data
+            })
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)  
+        return Response({
+            'statistics': self._format_stats(stats),
+            'results': serializer.data
+        })
     
 class AdvanceRequestExportViewSet(viewsets.ModelViewSet):
     queryset = AdvanceRequest.objects.all()
