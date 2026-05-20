@@ -379,10 +379,15 @@ class CompanyStaffProfileViewSet(viewsets.ModelViewSet):
 class AdvanceRequestViewSet(viewsets.ModelViewSet):
     queryset = AdvanceRequest.objects.all()
     serializer_class = AdvanceRequestSerializer
+    filter_backends = [SearchFilter, OrderingFilter]
     permission_classes = [permissions.IsAuthenticated]
     http_method_names = ['get','post']
     pagination_class = StandardResultsSetPagination
     lookup_field = 'request_code'
+    search_fields = [
+        'approver', 'operator', 'request_code', 'requester','payment_status',
+        'status','retrieve_status','request_date'
+    ]
     
     @action(detail=False, methods=['get'], url_path='stats', url_name='stats')
     def get_stats(self, request, *args, **kwargs):
@@ -390,9 +395,7 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
         API: GET /api/advancerequest/stats/
         Trả về dữ liệu thống kê số lượng theo trạng thái duyệt và thanh toán
         """
-        # Áp dụng các bộ lọc (nếu có truyền query params như ?company_id=1, ?request_date=...)
         queryset = self.filter_queryset(self.get_queryset())
-        # Tính toán tất cả số liệu thống kê trong 1 câu SQL duy nhất
         stats = queryset.aggregate(
             total=Count('id'),
             total_pending=Count('id', filter=Q(status='pending')),
@@ -404,7 +407,6 @@ class AdvanceRequestViewSet(viewsets.ModelViewSet):
             # Chờ thu hồi: Đã giải ngân nhưng chưa thu hồi
             waiting_retrieve=Count('id', filter=Q(payment_status='done', retrieve_status='not'))
         )
-
         # Trả về kết quả JSON sạch sẽ
         return Response({
             'total': stats['total'],
