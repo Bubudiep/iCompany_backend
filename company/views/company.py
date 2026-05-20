@@ -379,15 +379,10 @@ class CompanyStaffProfileViewSet(viewsets.ModelViewSet):
 class AdvanceRequestViewSet(viewsets.ModelViewSet):
     queryset = AdvanceRequest.objects.all()
     serializer_class = AdvanceRequestSerializer
-    filter_backends = [SearchFilter, OrderingFilter]
     permission_classes = [permissions.IsAuthenticated]
     http_method_names = ['get','post']
     pagination_class = StandardResultsSetPagination
     lookup_field = 'request_code'
-    search_fields = [
-        'approver', 'operator', 'request_code', 'requester','payment_status',
-        'status','retrieve_status','request_date'
-    ]
     
     @action(detail=False, methods=['get'], url_path='stats', url_name='stats')
     def get_stats(self, request, *args, **kwargs):
