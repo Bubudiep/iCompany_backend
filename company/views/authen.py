@@ -408,6 +408,137 @@ class GetUserAPIView(APIView):
             res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
             return Response(data={"detail":"Bạn không có quyền tạo tài khoản mới!","error":res_data}, status=status.HTTP_400_BAD_REQUEST)
         
+class GetUserLTEAPIView(APIView):
+    authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
+    permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)
+    def get(self, request):
+        key = request.headers.get('ApplicationKey')
+        if request.user.is_authenticated:
+            user=request.user
+            try:
+                qs_staff=CompanyStaff.objects.get(user__user=user,company__key=key)
+                chat_not_read=0
+                alert_not_read=0
+                update_not_read=0
+                approve_not_read=0
+                member_updated_not_check=0
+                return Response({
+                    'id': qs_staff.id,
+                    'info': CompanyStaffSerializer(qs_staff).data,
+                    'company': CompanyLTESerializer(qs_staff.company).data,
+                    'app_config': {
+                        'chat_not_read': chat_not_read,
+                        'alert_not_read': alert_not_read,
+                        'update_not_read': update_not_read,
+                        'approve_not_read': approve_not_read,
+                        'member_updated_not_check': member_updated_not_check,
+                    }
+                }, status=status.HTTP_200_OK)
+            except CompanyStaff.DoesNotExist:
+                return Response({'detail': "Bạn không có quyền truy cập!"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                lineno = exc_tb.tb_lineno
+                file_path = exc_tb.tb_frame.f_code.co_filename
+                file_name = os.path.basename(file_path)
+                res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+                print(f"{res_data}")
+                return Response({'detail': f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': f"Please login and try again!"}, status=status.HTTP_403_FORBIDDEN)
+        
+    def post(self, request):
+        user=request.user
+        key = request.headers.get('ApplicationKey')
+        qs_user_company=CompanyStaff.objects.get(user__user=user,company__key=key)
+        try:
+            username = request.data.get('username')
+            password = request.data.get('password')
+            cardID = request.data.get('cardID',None)
+            department = request.data.get('department')
+            possition = request.data.get('possition')
+            role = request.data.get('role')
+            fullname = request.data.get('fullname')
+            birthday = request.data.get('birthday')
+            managerCustomer = request.data.get('managerCustomer')
+            isAdmin=False
+            isSuper=False
+            if role=="Admin":
+                if qs_user_company.isAdmin==False:
+                    return Response(
+                        data={"detail":"Bạn không có quyền tạo tài khoản admin!"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                isAdmin=True
+            if role=="SuperAdmin":
+                if qs_user_company.isSuperAdmin==False:
+                    return Response(
+                        data={"detail":"Bạn không có quyền tạo tài khoản boss!"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                isAdmin=True
+                isSuper=True
+            qs_user=CompanyUser.objects.filter(company__key=key,username=username)
+            last_id = CompanyStaff.objects.filter(company__key=key).count()
+            company_code=qs_user_company.company.companyCode
+            if not cardID:
+                if not company_code:
+                    company_code="MNV"
+                count = f"{last_id:06d}"
+                cardID=f"{company_code}-{count}"
+            if qs_user_company.isAdmin or qs_user_company.isSuperAdmin:
+                if not qs_user:
+                    with transaction.atomic():
+                        new_user=User.objects.create(username=f"{key}_{username}",password=uuid.uuid4().hex.upper())
+                        new_company_user=CompanyUser.objects.create(user=new_user,
+                                                                    username=username,
+                                                                    password=password,
+                                                                    company=qs_user_company.company)
+                        qs_department=None
+                        qs_possition=None
+                        if department:
+                            qs_department,_=CompanyDepartment.objects.get_or_create(
+                                name=department,
+                                company=qs_user_company.company,
+                                isActive=True)
+                        if possition:
+                            qs_possition,_=CompanyPossition.objects.get_or_create(
+                                name=possition,
+                                department=qs_department,
+                                company=qs_user_company.company,
+                                isActive=True
+                            )
+                        staff=CompanyStaff.objects.create(company=qs_user_company.company,
+                                                        cardID=cardID,
+                                                        department=qs_department,
+                                                        possition=qs_possition,
+                                                        user=new_company_user,
+                                                        isActive=True,
+                                                        isSuperAdmin=isSuper,
+                                                        created_by=qs_user_company,
+                                                        isAdmin=isAdmin)
+                        if managerCustomer:
+                            for cus in managerCustomer:
+                                qs_cus=CompanyCustomer.objects.get(id=cus)
+                                staff.managerCustomer.add(qs_cus)
+                                staff.save()
+                        profile=CompanyStaffProfile.objects.create(
+                            staff=staff,
+                            full_name=fullname if fullname else cardID,
+                            date_of_birth=birthday
+                        )
+                        return Response(data=CompanyStaffDetailsSerializer(staff).data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(data={"detail":"Tên tài khoản này đã được sử dụng!"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"detail":"Bạn không có quyền tạo tài khoản mới!"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            lineno = exc_tb.tb_lineno
+            file_path = exc_tb.tb_frame.f_code.co_filename
+            file_name = os.path.basename(file_path)
+            res_data = generate_response_json("FAIL", f"[{file_name}_{lineno}] {str(e)}")
+            return Response(data={"detail":"Bạn không có quyền tạo tài khoản mới!","error":res_data}, status=status.HTTP_400_BAD_REQUEST)
+      
 class GetUserSocketAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
     permission_classes = [IsAuthenticated]  # Đảm bảo người dùng phải đăng nhập (token hợp lệ)

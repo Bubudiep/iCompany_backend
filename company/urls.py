@@ -33,6 +33,7 @@ urlpatterns = [
     path("login/", LoginOAuth2APIView.as_view(), name="login"),
     path("in/", LoginOAuthLTEAPIView.as_view(), name="in"),
     path("user/", GetUserAPIView.as_view(), name="user"),
+    path("usr/", GetUserLTEAPIView.as_view(), name="usr"),
     path("s/me/", GetUserLTEView.as_view(), name="me"),
     path("s/company/", GetCompanyLTEView.as_view(), name="company"),
     path("s/chat/", GetChatLTEView.as_view(), name="chat"),
