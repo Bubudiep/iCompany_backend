@@ -876,13 +876,21 @@ class CompanyOperatorLTE2Serializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+class OP_HIST_LTESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OperatorWorkHistory
+        fields = "__all__"
+
+
 
 class CompanyOperatorNoWorkSerializer(serializers.ModelSerializer):
+    dilam = OP_HIST_LTESerializer()
     class Meta:
         model = CompanyOperator
         fields = [
             "id",
             "sdt",
+            "dilam",
             "ma_nhanvien",
             "ngay_phongvan",
             "ho_ten",
@@ -914,12 +922,6 @@ class CompanyOperatorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CompanyOperator
-        fields = "__all__"
-
-
-class OP_HIST_LTESerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OperatorWorkHistory
         fields = "__all__"
 
 
