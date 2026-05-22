@@ -881,16 +881,14 @@ class OP_HIST_LTESerializer(serializers.ModelSerializer):
         model = OperatorWorkHistory
         fields = "__all__"
 
-
-
 class CompanyOperatorNoWorkSerializer(serializers.ModelSerializer):
-    dilam = OP_HIST_LTESerializer()
+    danglam = OP_HIST_LTESerializer()
     class Meta:
         model = CompanyOperator
         fields = [
             "id",
             "sdt",
-            "dilam",
+            "danglam",
             "ma_nhanvien",
             "ngay_phongvan",
             "ho_ten",
