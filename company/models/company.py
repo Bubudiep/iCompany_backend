@@ -498,6 +498,7 @@ class CompanyOperator(models.Model):
     nguoituyen = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nguoituyen")
     vendor = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_vendor")
     congty_danglam = models.ForeignKey(CompanyCustomer, on_delete=models.SET_NULL, null=True, blank=True)
+    danglam = models.ForeignKey('OperatorWorkHistory', on_delete=models.SET_NULL, null=True, blank=True)
     nhachinh = models.ForeignKey(CompanyVendor, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nhachinh")
     nguoibaocao = models.ForeignKey(CompanyStaff, on_delete=models.SET_NULL, null=True, blank=True,related_name="companyOP_nguoibaocao")
     is_deleted = models.BooleanField(default=False)
@@ -517,8 +518,10 @@ class CompanyOperator(models.Model):
         qs_history=OperatorWorkHistory.objects.filter(operator=self,end_date__isnull=True).first()
         if qs_history:
             self.congty_danglam=qs_history.customer
+            self.danglam=qs_history
         else:
             self.congty_danglam=None
+            self.danglam=None
         super(CompanyOperator, self).save(*args, **kwargs)
     def __str__(self):
         return f"{self.ma_nhanvien}"
@@ -573,6 +576,7 @@ class OperatorWorkHistory(models.Model):
                     ).first()
                     if qs_work:
                         self.operator.congty_danglam = self.customer
+                        self.operator.danglam = self
             self.operator.save()
         except Exception as e:
             ...

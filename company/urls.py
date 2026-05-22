@@ -28,6 +28,7 @@ router.register(r"op_all", CompanyOperatorAllDetailsViewSet, basename="op_all")
 router.register(r"oplist", CompanyOperatorNoWorkViewSet, basename="oplist")
 router.register(r"notes", CompanyStaffNoteViewSet, basename="notes")
 urlpatterns = [
+    path("op/update/", updateOperatorAPIView.as_view(), name="update-op"),
     path("op/add/", AddOperatorAPIView.as_view(), name="add-op"),
     path("search/", SearchAPIView.as_view(), name="search"),
     path("login/", LoginOAuth2APIView.as_view(), name="login"),

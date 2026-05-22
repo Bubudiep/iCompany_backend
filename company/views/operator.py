@@ -1,5 +1,33 @@
 from .a import *
 
+class updateOperatorAPIView(APIView):
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # 🌟 1. Tạo Subquery lấy bản ghi WorkHistory mới nhất (order_by("-id").first()) 
+        # thỏa mãn điều kiện đang làm việc của từng Operator (OuterRef("pk"))
+        latest_work_history = OperatorWorkHistory.objects.filter(
+            operator_id=OuterRef("pk"),
+            start_date__isnull=False,
+            end_date__isnull=True
+        ).order_by("-id")
+
+        # 🌟 2. Thực hiện cập nhật hàng loạt (Bulk Update) trực tiếp dưới Database bằng câu lệnh UPDATE duy nhất.
+        # Dữ liệu được map thông qua Subquery, không cần loop for trên Python nữa.
+        updated_count = CompanyOperator.objects.annotate(
+            target_customer_id=Subquery(latest_work_history.values("customer_id")[:1]),
+            target_work_history_id=Subquery(latest_work_history.values("id")[:1])
+        ).filter(
+            target_work_history_id__isnull=False # Chỉ cập nhật những người tìm thấy lịch sử đang làm việc
+        ).update(
+            congty_danglam_id=F("target_customer_id"),
+            danglam_id=F("target_work_history_id")
+        )
+
+        return Response({'data': updated_count})
+                
+        
 class AddOperatorAPIView(APIView):
     authentication_classes = [OAuth2Authentication]  # Kiểm tra xác thực OAuth2
     permission_classes = [
