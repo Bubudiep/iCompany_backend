@@ -1003,8 +1003,16 @@ class CompanyOperatorViewSet(viewsets.ModelViewSet):
                     serializer = self.get_serializer(data=request.data)
                     serializer.is_valid(raise_exception=True)
                     user_create = serializer.save(company=qs_res.company)
+                    op_data=CompanyOperatorMoreDetailsSerializer(user_create).data
+                    sio.emit('backend_custom', {
+                        'type': 'operator:update',
+                        'key': qs_res.company.key,
+                        'to_company': True,
+                        'to_staff': [],
+                        'data': op_data
+                    })
                     return Response(
-                        CompanyOperatorMoreDetailsSerializer(user_create).data,
+                        op_data,
                         status=201,
                     )
             else:

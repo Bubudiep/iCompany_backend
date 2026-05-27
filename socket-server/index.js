@@ -36,7 +36,7 @@ io.use(async (socket, next) => {
             ApplicationKey: clientKey,
             Authorization: clientToken,
           },
-        }
+        },
       );
       socket.user = {
         ...userdata,
@@ -58,7 +58,7 @@ io.on("connection", (socket) => {
     if (!connected_list[appKey]) connected_list[appKey] = [];
     // Thêm user vào danh sách nếu chưa có
     const alreadyExists = connected_list[appKey].some(
-      (s) => s.id === socket.id
+      (s) => s.id === socket.id,
     );
     if (!alreadyExists) {
       connected_list[appKey].push({
@@ -85,7 +85,7 @@ io.on("connection", (socket) => {
     if (user?.ApplicationKey) {
       if (msg_data?.type == "user") {
         const online = connected_list[user?.ApplicationKey].filter(
-          (user) => user?.user?.id === msg_data?.to
+          (user) => user?.user?.id === msg_data?.to,
         );
         online.forEach((userItem) => {
           if (userItem.id) {
@@ -105,18 +105,37 @@ io.on("connection", (socket) => {
       }
     }
   });
+  socket.on("backend_custom", (data) => {
+    if (data?.type === "operator:update") {
+      if (connected_list[data.key]) {
+        const onlines = connected_list[data.key];
+        if (data?.to_company) {
+          onlines.map((online) => {
+            socket.to(online.id).emit("operator:update", data.data);
+          });
+        } else if (data?.to_staff?.length > 0) {
+          const staffIds = data.to_staff;
+          onlines
+            .filter((online) => staffIds.includes(online.user.id))
+            .map((online) => {
+              socket.to(online.id).emit("operator:update", data.data);
+            });
+        }
+      }
+    }
+  });
   socket.on("backend_event", (data) => {
     if (data?.type === "chat_message") {
       // Nếu mà gửi tin nhắn message bằng backend
       // Lấy danh sách người nhận
       const to = data?.room?.members.filter(
-        (staff) => staff.id !== data.data.sender
+        (staff) => staff.id !== data.data.sender,
       );
       // Kiểm tra người dùng có online không
       if (connected_list[data.key]) {
         for (let i = 0; i < to.length; i++) {
           const onlines = connected_list[data.key].filter(
-            (user) => user?.user?.id === to[i].id
+            (user) => user?.user?.id === to[i].id,
           );
           onlines.map((online) => {
             socket.to(online.id).emit("message", {
